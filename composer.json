@@ -1,0 +1,10 @@
+{
+    "autoload": {
+        "psr-4": {
+            "Neko\\": "src/Neko"
+        }
+    },
+    "require": {
+        "phpunit/phpunit": "^9.5"
+    }
+}
