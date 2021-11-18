@@ -24,7 +24,7 @@ final class Math
     public static function clamp(int|float $value, int|float $min, int|float $max): int|float
     {
         if ($min > $max) {
-            throw new InvalidArgumentException('The $min cannot be greater than $max');
+            throw new InvalidArgumentException('$min cannot be greater than $max');
         }
 
         return max($min, min($max, $value));
