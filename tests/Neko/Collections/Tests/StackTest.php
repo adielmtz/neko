@@ -29,6 +29,13 @@ final class StackTest extends TestCase
         return $stack;
     }
 
+    public function testContains(): void
+    {
+        $stack = new Stack(['a', 'b', 'c']);
+        $this->assertTrue($stack->contains('b'));
+        $this->assertFalse($stack->contains('z'));
+    }
+
     /**
      * @depends testPush
      */
