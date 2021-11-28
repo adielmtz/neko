@@ -4,6 +4,9 @@ namespace Neko\Collections;
 use Iterator;
 use Neko\InvalidOperationException;
 
+/**
+ * Iterates through the values of a stack in last-in-first-out order.
+ */
 final class StackIterator implements Iterator
 {
     private array $items;

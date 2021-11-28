@@ -6,7 +6,6 @@ use OutOfBoundsException;
 use PHPUnit\Framework\TestCase;
 use function ord;
 use function range;
-use function var_dump;
 
 final class ArrayListTest extends TestCase
 {

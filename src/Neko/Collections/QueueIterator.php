@@ -5,7 +5,7 @@ use Iterator;
 use Neko\InvalidOperationException;
 
 /**
- * Iterates through the values of a queue.
+ * Iterates through the values of a queue in first-in-first-out order.
  */
 final class QueueIterator implements Iterator
 {

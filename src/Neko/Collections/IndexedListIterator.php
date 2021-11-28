@@ -5,7 +5,7 @@ use OutOfBoundsException;
 use SeekableIterator;
 
 /**
- * Iterates through the values of an indexed list collection.
+ * Iterates through the values of a list.
  */
 final class IndexedListIterator implements SeekableIterator
 {
