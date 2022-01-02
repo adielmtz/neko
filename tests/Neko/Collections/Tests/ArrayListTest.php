@@ -280,25 +280,45 @@ final class ArrayListTest extends TestCase
         $this->assertSame('A', $this->list->get(4));
     }
 
-    public function testSlice(): void
+    public function testSliceFromBeginningOfList(): void
     {
-        $slice = $this->list->slice(1, 3);
+        $slice = $this->list->slice(0, 3);
         $this->assertSame(3, $slice->count());
-        $this->assertSame('B', $slice->get(0));
-        $this->assertSame('C', $slice->get(1));
-        $this->assertSame('D', $slice->get(2));
+        $this->assertSame('A', $slice->get(0));
+        $this->assertSame('B', $slice->get(1));
+        $this->assertSame('C', $slice->get(2));
+    }
+
+    public function testSliceFromMiddleOfList(): void
+    {
+        $slice = $this->list->slice(2, 2);
+        $this->assertSame(2, $slice->count());
+        $this->assertSame('C', $slice->get(0));
+        $this->assertSame('D', $slice->get(1));
+    }
+
+    public function testSliceReturnsAnEmptyList(): void
+    {
+        $slice = $this->list->slice(0, 0);
+        $this->assertTrue($slice->isEmpty());
     }
 
     public function testFilter(): void
     {
         $list = new ArrayList(range(1, 10));
-        $filtered = $list->filter(fn($i) => $i % 2 === 0);
-        $this->assertSame(5, $filtered->count());
-        $this->assertSame(2, $filtered->get(0));
-        $this->assertSame(4, $filtered->get(1));
-        $this->assertSame(6, $filtered->get(2));
-        $this->assertSame(8, $filtered->get(3));
-        $this->assertSame(10, $filtered->get(4));
+        $filter = $list->filter(fn($i) => $i % 2 === 0);
+        $this->assertSame(5, $filter->count());
+        $this->assertSame(2, $filter->get(0));
+        $this->assertSame(4, $filter->get(1));
+        $this->assertSame(6, $filter->get(2));
+        $this->assertSame(8, $filter->get(3));
+        $this->assertSame(10, $filter->get(4));
+    }
+
+    public function testFilterReturnsEmptyList(): void
+    {
+        $filter = $this->list->filter(fn() => false);
+        $this->assertTrue($filter->isEmpty());
     }
 
     public function testMap(): void
@@ -310,6 +330,40 @@ final class ArrayListTest extends TestCase
         $this->assertSame(ord('C'), $list->get(2));
         $this->assertSame(ord('D'), $list->get(3));
         $this->assertSame(ord('E'), $list->get(4));
+    }
+
+    public function testSortWithoutComparator(): void
+    {
+        $shuffled = str_shuffle('BACEDGF');
+        $characters = str_split($shuffled);
+
+        $list = new ArrayList($characters);
+        $list->sort();
+
+        $this->assertSame('A', $list->get(0));
+        $this->assertSame('B', $list->get(1));
+        $this->assertSame('C', $list->get(2));
+        $this->assertSame('D', $list->get(3));
+        $this->assertSame('E', $list->get(4));
+        $this->assertSame('F', $list->get(5));
+        $this->assertSame('G', $list->get(6));
+    }
+
+    public function testSortWithComparator(): void
+    {
+        $shuffled = str_shuffle('BACEDGF');
+        $characters = str_split($shuffled);
+
+        $list = new ArrayList($characters);
+        $list->sort(fn($a, $b) => $b <=> $a); // Sort in descending order
+
+        $this->assertSame('G', $list->get(0));
+        $this->assertSame('F', $list->get(1));
+        $this->assertSame('E', $list->get(2));
+        $this->assertSame('D', $list->get(3));
+        $this->assertSame('C', $list->get(4));
+        $this->assertSame('B', $list->get(5));
+        $this->assertSame('A', $list->get(6));
     }
 
     public function testTrueForAll_ReturnsTrue(): void

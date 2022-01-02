@@ -381,6 +381,42 @@ class ArrayList implements ArrayAccess, IndexedList
     }
 
     /**
+     * Finds the zero-base index of the first value that matches the condition.
+     *
+     * @param callable $match A function that must take 1 parameter and return a boolean value.
+     *
+     * @return int The index in the list or -1 if the value was not found.
+     */
+    public function findIndex(callable $match): int
+    {
+        for ($i = 0; $i < $this->size; $i++) {
+            if ($match($this->items[$i])) {
+                return $i;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * Finds the zero-base index of the last value that matches the condition.
+     *
+     * @param callable $match A function that must take 1 parameter and return a boolean value.
+     *
+     * @return int The index in the list or -1 if the value was not found.
+     */
+    public function findLastIndex(callable $match): int
+    {
+        for ($i = $this->size - 1; $i >= 0; $i--) {
+            if ($match($this->items[$i])) {
+                return $i;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
      * Reverses the order of the values in the list.
      */
     public function reverse(): void
@@ -410,7 +446,7 @@ class ArrayList implements ArrayAccess, IndexedList
     public function sort(?callable $comparator = null): void
     {
         $items = $this->items;
-        if (count($items) !== $this->size) {
+        if (count($items) > $this->size) {
             $items = $this->toArray();
         }
 
@@ -440,18 +476,16 @@ class ArrayList implements ArrayAccess, IndexedList
             throw new OutOfBoundsException('Index must be greater than or equal to zero and less than the size of the list');
         }
 
-        if ($count === null) {
+        if ($count === null || $count > $this->size) {
             $count = $this->size;
-        } else {
-            $count = min($count, $this->size);
         }
 
-        $result = new ArrayList();
+        $slice = new ArrayList();
         for ($i = 0; $i < $count; $i++) {
-            $result->add($this->items[$index++]);
+            $slice->add($this->items[$index++]);
         }
 
-        return $result;
+        return $slice;
     }
 
     /**
@@ -464,15 +498,15 @@ class ArrayList implements ArrayAccess, IndexedList
      */
     public function filter(callable $match): ArrayList
     {
-        $list = new ArrayList();
+        $filter = new ArrayList();
         for ($i = 0; $i < $this->size; $i++) {
             $value = $this->items[$i];
             if ($match($value)) {
-                $list->add($value);
+                $filter->add($value);
             }
         }
 
-        return $list;
+        return $filter;
     }
 
     /**
@@ -485,13 +519,13 @@ class ArrayList implements ArrayAccess, IndexedList
      */
     public function map(callable $callback): ArrayList
     {
-        $list = new ArrayList();
+        $map = new ArrayList();
         for ($i = 0; $i < $this->size; $i++) {
             $value = $callback($this->items[$i]);
-            $list->add($value);
+            $map->add($value);
         }
 
-        return $list;
+        return $map;
     }
 
     /**
