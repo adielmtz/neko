@@ -10,19 +10,19 @@ use SeekableIterator;
 final class IndexedListIterator implements SeekableIterator
 {
     private array $items;
-    private int $size;
+    private int $length;
     private int $cursor = 0;
 
-    public function __construct(array &$items, int $size)
+    public function __construct(array &$items, int $length)
     {
         $this->items = &$items;
-        $this->size = $size;
+        $this->length = $length;
     }
 
     public function seek(mixed $offset): void
     {
-        if ($offset < 0 || $offset >= $this->size) {
-            throw new OutOfBoundsException('Offset was out of bounds. Must be non-negative and less than the size of the list');
+        if ($offset < 0 || $offset >= $this->length) {
+            throw new OutOfBoundsException('Offset was out of bounds. Must be non-negative and less than the length of the list');
         }
 
         $this->cursor = $offset;
@@ -45,7 +45,7 @@ final class IndexedListIterator implements SeekableIterator
 
     public function valid(): bool
     {
-        return $this->cursor < $this->size;
+        return $this->cursor < $this->length;
     }
 
     public function rewind(): void

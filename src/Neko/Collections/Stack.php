@@ -12,7 +12,7 @@ use function array_reverse;
 class Stack implements Collection
 {
     private array $items = [];
-    private int $size = 0;
+    private int $length = 0;
 
     /**
      * Stack constructor.
@@ -35,7 +35,7 @@ class Stack implements Collection
      */
     public function isEmpty(): bool
     {
-        return $this->size === 0;
+        return $this->length === 0;
     }
 
     /**
@@ -44,7 +44,7 @@ class Stack implements Collection
     public function clear(): void
     {
         $this->items = [];
-        $this->size = 0;
+        $this->length = 0;
     }
 
     /**
@@ -56,7 +56,7 @@ class Stack implements Collection
      */
     public function contains(mixed $value): bool
     {
-        for ($i = 0; $i < $this->size; $i++) {
+        for ($i = 0; $i < $this->length; $i++) {
             if ($value === $this->items[$i]) {
                 return true;
             }
@@ -74,7 +74,7 @@ class Stack implements Collection
      */
     public function copyTo(array &$destination, int $index = 0): void
     {
-        for ($i = $this->size - 1; $i >= 0; $i--) {
+        for ($i = $this->length - 1; $i >= 0; $i--) {
             $destination[$index++] = $this->items[$i];
         }
     }
@@ -97,7 +97,7 @@ class Stack implements Collection
      */
     public function getIterator(): Traversable
     {
-        return new StackIterator($this->items, $this->size);
+        return new StackIterator($this->items, $this->length);
     }
 
     /**
@@ -107,7 +107,7 @@ class Stack implements Collection
      */
     public function count(): int
     {
-        return $this->size;
+        return $this->length;
     }
 
     /**
@@ -118,7 +118,7 @@ class Stack implements Collection
     public function push(mixed $value): void
     {
         $this->items[] = $value;
-        $this->size++;
+        $this->length++;
     }
 
     /**
@@ -133,7 +133,7 @@ class Stack implements Collection
             throw new InvalidOperationException('Stack is empty');
         }
 
-        $this->size--;
+        $this->length--;
         return array_pop($this->items);
     }
 
@@ -151,7 +151,7 @@ class Stack implements Collection
             return false;
         }
 
-        $this->size--;
+        $this->length--;
         $result = array_pop($this->items);
         return true;
     }
@@ -168,7 +168,7 @@ class Stack implements Collection
             throw new InvalidOperationException('Stack is empty');
         }
 
-        return $this->items[$this->size - 1];
+        return $this->items[$this->length - 1];
     }
 
     /**
@@ -185,7 +185,7 @@ class Stack implements Collection
             return false;
         }
 
-        $result = $this->items[$this->size - 1];
+        $result = $this->items[$this->length - 1];
         return true;
     }
 }

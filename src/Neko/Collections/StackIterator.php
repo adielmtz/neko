@@ -10,14 +10,14 @@ use Neko\InvalidOperationException;
 final class StackIterator implements Iterator
 {
     private array $items;
-    private int $size;
+    private int $length;
     private int $cursor;
 
-    public function __construct(array &$items, int $size)
+    public function __construct(array &$items, int $length)
     {
         $this->items = &$items;
-        $this->size = $size;
-        $this->cursor = $size - 1;
+        $this->length = $length;
+        $this->cursor = $length - 1;
     }
 
     public function current(): mixed
@@ -45,6 +45,6 @@ final class StackIterator implements Iterator
 
     public function rewind(): void
     {
-        $this->cursor = $this->size - 1;
+        $this->cursor = $this->length - 1;
     }
 }

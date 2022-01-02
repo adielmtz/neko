@@ -10,14 +10,14 @@ use Neko\InvalidOperationException;
 final class QueueIterator implements Iterator
 {
     private array $items;
-    private int $size;
+    private int $length;
     private int $head;
     private int $cursor;
 
-    public function __construct(array &$items, int $size, int $head)
+    public function __construct(array &$items, int $length, int $head)
     {
         $this->items = &$items;
-        $this->size = $size;
+        $this->length = $length;
         $this->head = $head;
         $this->cursor = $head;
     }
@@ -42,7 +42,7 @@ final class QueueIterator implements Iterator
 
     public function valid(): bool
     {
-        return $this->cursor < $this->head + $this->size;
+        return $this->cursor < $this->head + $this->length;
     }
 
     public function rewind(): void

@@ -12,7 +12,7 @@ class Queue implements Collection
 {
     private array $items = [];
     private int $head = 0;
-    private int $size = 0;
+    private int $length = 0;
 
     /**
      * Queue constructor.
@@ -35,7 +35,7 @@ class Queue implements Collection
      */
     public function isEmpty(): bool
     {
-        return $this->size === 0;
+        return $this->length === 0;
     }
 
     /**
@@ -45,7 +45,7 @@ class Queue implements Collection
     {
         $this->items = [];
         $this->head = 0;
-        $this->size = 0;
+        $this->length = 0;
     }
 
     /**
@@ -96,7 +96,7 @@ class Queue implements Collection
      */
     public function getIterator(): Traversable
     {
-        return new QueueIterator($this->items, $this->size, $this->head);
+        return new QueueIterator($this->items, $this->length, $this->head);
     }
 
     /**
@@ -106,7 +106,7 @@ class Queue implements Collection
      */
     public function count(): int
     {
-        return $this->size;
+        return $this->length;
     }
 
     /**
@@ -117,7 +117,7 @@ class Queue implements Collection
     public function enqueue(mixed $value): void
     {
         $this->items[] = $value;
-        $this->size++;
+        $this->length++;
     }
 
     /**
@@ -134,7 +134,7 @@ class Queue implements Collection
 
         $value = $this->items[$this->head];
         unset($this->items[$this->head]);
-        $this->size--;
+        $this->length--;
         $this->head++;
         return $value;
     }
@@ -155,7 +155,7 @@ class Queue implements Collection
 
         $result = $this->items[$this->head];
         unset($this->items[$this->head]);
-        $this->size--;
+        $this->length--;
         $this->head++;
         return true;
     }
