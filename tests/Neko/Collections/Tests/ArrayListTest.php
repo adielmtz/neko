@@ -4,6 +4,7 @@ namespace Neko\Collections\Tests;
 use Neko\Collections\ArrayList;
 use OutOfBoundsException;
 use PHPUnit\Framework\TestCase;
+use function implode;
 use function ord;
 use function range;
 
@@ -330,6 +331,19 @@ final class ArrayListTest extends TestCase
         $this->assertSame(ord('C'), $list->get(2));
         $this->assertSame(ord('D'), $list->get(3));
         $this->assertSame(ord('E'), $list->get(4));
+    }
+
+    public function testForEach(): void
+    {
+        $expected_str = implode('', $this->list->toArray());
+        $actual_str = '';
+
+        $this->list->forEach(function (string $c) use (&$actual_str): void
+        {
+            $actual_str .= $c;
+        });
+
+        $this->assertSame($expected_str, $actual_str);
     }
 
     public function testSortWithoutComparator(): void

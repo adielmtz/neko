@@ -535,6 +535,25 @@ class ArrayList implements ArrayAccess, IndexedList
     }
 
     /**
+     * Executes the given function for each value in the list.
+     *
+     * @param callable $action The function to execute.
+     *
+     * @throws InvalidOperationException If the collection is modified during the iteration.
+     */
+    public function forEach(callable $action): void
+    {
+        $version = $this->version;
+        for ($i = 0; $i < $this->length; $i++) {
+            if ($version !== $this->version) {
+                throw new InvalidOperationException('Collection was modified');
+            }
+
+            $action($this->items[$i]);
+        }
+    }
+
+    /**
      * Returns true if all the values in the list pass the condition.
      *
      * @param callable $match A function that must take 1 parameter and return a boolean value.
