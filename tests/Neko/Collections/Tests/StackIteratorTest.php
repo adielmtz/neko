@@ -17,4 +17,19 @@ final class StackIteratorTest extends TestCase
             $this->assertSame('abc', $value);
         }
     }
+
+    public function testIteratorThrowsExceptionIfTheCollectionIsModified(): void
+    {
+        $this->expectException(InvalidOperationException::class);
+        $stack = new Stack();
+        $stack->push('A');
+        $stack->push('B');
+        $stack->push('C');
+
+        foreach ($stack as $char) {
+            if ($char === 'C') {
+                $stack->push('D');
+            }
+        }
+    }
 }

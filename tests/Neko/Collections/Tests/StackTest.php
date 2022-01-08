@@ -4,7 +4,6 @@ namespace Neko\Collections\Tests;
 use Neko\Collections\Stack;
 use Neko\InvalidOperationException;
 use PHPUnit\Framework\TestCase;
-use function var_dump;
 
 final class StackTest extends TestCase
 {

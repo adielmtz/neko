@@ -17,4 +17,19 @@ final class QueueIteratorTest extends TestCase
             $this->assertSame('abc', $value);
         }
     }
+
+    public function testIteratorThrowsExceptionIfTheCollectionIsModified(): void
+    {
+        $this->expectException(InvalidOperationException::class);
+        $queue = new Queue();
+        $queue->enqueue('A');
+        $queue->enqueue('B');
+        $queue->enqueue('C');
+
+        foreach ($queue as $char) {
+            if ($char === 'C') {
+                $queue->enqueue('D');
+            }
+        }
+    }
 }

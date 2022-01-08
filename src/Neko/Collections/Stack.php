@@ -13,6 +13,7 @@ class Stack implements Collection
 {
     private array $items = [];
     private int $length = 0;
+    private int $version = 0;
 
     /**
      * Stack constructor.
@@ -45,6 +46,7 @@ class Stack implements Collection
     {
         $this->items = [];
         $this->length = 0;
+        $this->version++;
     }
 
     /**
@@ -97,7 +99,7 @@ class Stack implements Collection
      */
     public function getIterator(): Traversable
     {
-        return new StackIterator($this->items, $this->length);
+        return new StackIterator($this->items, $this->length, $this->version);
     }
 
     /**
@@ -119,6 +121,7 @@ class Stack implements Collection
     {
         $this->items[] = $value;
         $this->length++;
+        $this->version++;
     }
 
     /**
@@ -134,6 +137,7 @@ class Stack implements Collection
         }
 
         $this->length--;
+        $this->version++;
         return array_pop($this->items);
     }
 
@@ -152,6 +156,7 @@ class Stack implements Collection
         }
 
         $this->length--;
+        $this->version++;
         $result = array_pop($this->items);
         return true;
     }

@@ -13,6 +13,7 @@ class Queue implements Collection
     private array $items = [];
     private int $head = 0;
     private int $length = 0;
+    private int $version = 0;
 
     /**
      * Queue constructor.
@@ -46,6 +47,7 @@ class Queue implements Collection
         $this->items = [];
         $this->head = 0;
         $this->length = 0;
+        $this->version++;
     }
 
     /**
@@ -96,7 +98,7 @@ class Queue implements Collection
      */
     public function getIterator(): Traversable
     {
-        return new QueueIterator($this->items, $this->length, $this->head);
+        return new QueueIterator($this->items, $this->length, $this->head, $this->version);
     }
 
     /**
@@ -118,6 +120,7 @@ class Queue implements Collection
     {
         $this->items[] = $value;
         $this->length++;
+        $this->version++;
     }
 
     /**
@@ -136,6 +139,7 @@ class Queue implements Collection
         unset($this->items[$this->head]);
         $this->length--;
         $this->head++;
+        $this->version++;
         return $value;
     }
 
@@ -157,6 +161,7 @@ class Queue implements Collection
         unset($this->items[$this->head]);
         $this->length--;
         $this->head++;
+        $this->version++;
         return true;
     }
 

@@ -2,6 +2,7 @@
 namespace Neko\Collections;
 
 use ArrayAccess;
+use Neko\InvalidOperationException;
 use OutOfBoundsException;
 use Traversable;
 use function assert;
@@ -19,6 +20,7 @@ class ArrayList implements ArrayAccess, IndexedList
 {
     private array $items = [];
     private int $length = 0;
+    private int $version = 0;
 
     /**
      * ArrayList constructor.
@@ -51,6 +53,7 @@ class ArrayList implements ArrayAccess, IndexedList
     {
         $this->items = [];
         $this->length = 0;
+        $this->version++;
     }
 
     /**
@@ -85,14 +88,9 @@ class ArrayList implements ArrayAccess, IndexedList
      */
     public function toArray(): array
     {
-        // Cannot use array_slice() as the order of the keys may have been lost
-        // with insert operations, so we need to copy them manually.
-        $result = [];
-        for ($i = 0; $i < $this->length; $i++) {
-            $result[$i] = $this->items[$i];
-        }
-
-        return $result;
+        $values = [];
+        $this->copyTo($values);
+        return $values;
     }
 
     /**
@@ -102,7 +100,7 @@ class ArrayList implements ArrayAccess, IndexedList
      */
     public function getIterator(): Traversable
     {
-        return new IndexedListIterator($this->items, $this->length);
+        return new IndexedListIterator($this->items, $this->length, $this->version);
     }
 
     /**
@@ -123,6 +121,7 @@ class ArrayList implements ArrayAccess, IndexedList
     public function add(mixed $value): void
     {
         $this->items[$this->length++] = $value;
+        $this->version++;
     }
 
     /**
@@ -167,6 +166,7 @@ class ArrayList implements ArrayAccess, IndexedList
         }
 
         $this->items[$index] = $value;
+        $this->version++;
     }
 
     /**
@@ -190,6 +190,7 @@ class ArrayList implements ArrayAccess, IndexedList
 
         $this->items[$index] = $value;
         $this->length++;
+        $this->version++;
     }
 
     /**
@@ -232,6 +233,7 @@ class ArrayList implements ArrayAccess, IndexedList
         }
 
         $this->length = $newLength;
+        $this->version++;
     }
 
     /**
@@ -271,6 +273,7 @@ class ArrayList implements ArrayAccess, IndexedList
         }
 
         $this->items[$this->length] = null;
+        $this->version++;
     }
 
     /**
@@ -305,6 +308,7 @@ class ArrayList implements ArrayAccess, IndexedList
             assert($this->length >= 0);
         }
 
+        $this->version++;
         return $removed;
     }
 
@@ -432,8 +436,9 @@ class ArrayList implements ArrayAccess, IndexedList
 
             $start++;
             $end--;
-
         }
+
+        $this->version++;
     }
 
     /**
@@ -457,6 +462,7 @@ class ArrayList implements ArrayAccess, IndexedList
         }
 
         $this->items = $items;
+        $this->version++;
     }
 
     /**

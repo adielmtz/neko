@@ -14,12 +14,17 @@ final class QueueIterator implements Iterator
     private int $head;
     private int $cursor;
 
-    public function __construct(array &$items, int $length, int $head)
+    private int $queue_version;
+    private int $current_version;
+
+    public function __construct(array &$items, int $length, int $head, int &$version)
     {
         $this->items = &$items;
         $this->length = $length;
         $this->head = $head;
         $this->cursor = $head;
+        $this->queue_version = &$version;
+        $this->current_version = $version;
     }
 
     public function current(): mixed
@@ -27,8 +32,15 @@ final class QueueIterator implements Iterator
         return $this->items[$this->cursor];
     }
 
+    /**
+     * @throws InvalidOperationException
+     */
     public function next(): void
     {
+        if ($this->current_version !== $this->queue_version) {
+            throw new InvalidOperationException('Collection was modified');
+        }
+
         $this->cursor++;
     }
 
@@ -45,8 +57,14 @@ final class QueueIterator implements Iterator
         return $this->cursor < $this->head + $this->length;
     }
 
+    /**
+     * @throws InvalidOperationException
+     */
     public function rewind(): void
     {
+        if ($this->current_version !== $this->queue_version) {
+            throw new InvalidOperationException('Collection was modified');
+        }
         $this->cursor = $this->head;
     }
 }
