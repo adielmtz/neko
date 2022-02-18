@@ -2,7 +2,6 @@
 namespace Neko;
 
 use InvalidArgumentException;
-use function intdiv;
 use function max;
 use function min;
 
@@ -12,7 +11,7 @@ use function min;
 final class Math
 {
     /**
-     * Clamps the value to a given range.
+     * Clamps the value to a given inclusive range.
      *
      * @param int|float $value The value to clamp.
      * @param int|float $min The minimum value.
@@ -28,6 +27,26 @@ final class Math
         }
 
         return max($min, min($max, $value));
+    }
+
+    /**
+     * Clamps the value to 0 or 1 inclusive.
+     *
+     * @param float $value The value to clamp.
+     *
+     * @return float
+     */
+    public static function clamp01(float $value): float
+    {
+        if ($value > 1.0) {
+            return 1.0;
+        }
+
+        if ($value < 0.0) {
+            return 0.0;
+        }
+
+        return $value;
     }
 
     /**

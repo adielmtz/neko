@@ -4,6 +4,7 @@ namespace Neko\Tests;
 use InvalidArgumentException;
 use Neko\Math;
 use PHPUnit\Framework\TestCase;
+use const M_PI;
 
 final class MathTest extends TestCase
 {
@@ -39,6 +40,24 @@ final class MathTest extends TestCase
         $max = 50;
         $val = 1;
         Math::clamp($val, $min, $max);
+    }
+    #endregion
+
+    #region Math::clamp01() tests
+    public function testClamp01(): void
+    {
+        $value = 0.3;
+        $this->assertSame($value, Math::clamp01($value));
+    }
+
+    public function testClamp01Returns1(): void
+    {
+        $this->assertSame(1.0, Math::clamp01(M_PI));
+    }
+
+    public function testClamp01Returns0(): void
+    {
+        $this->assertSame(0.0, Math::clamp01(-M_PI));
     }
     #endregion
 
