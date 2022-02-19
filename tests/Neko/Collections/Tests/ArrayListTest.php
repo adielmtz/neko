@@ -2,6 +2,7 @@
 namespace Neko\Collections\Tests;
 
 use Neko\Collections\ArrayList;
+use Neko\InvalidOperationException;
 use OutOfBoundsException;
 use PHPUnit\Framework\TestCase;
 use function implode;
@@ -226,6 +227,12 @@ final class ArrayListTest extends TestCase
         $this->assertSame(2, $this->list->count());
     }
 
+    public function testRemoveIfTrue(): void
+    {
+        $count = $this->list->removeIfTrue(fn($c) => ord($c) % 2 === 0);
+        $this->assertSame(2, $count);
+    }
+
     public function testIndexOf_FindsAValue(): void
     {
         //                      0    1    2    3    4    5
@@ -344,6 +351,12 @@ final class ArrayListTest extends TestCase
         });
 
         $this->assertSame($expected_str, $actual_str);
+    }
+
+    public function testForEachThrowsExceptionIfCollectionIsModified(): void
+    {
+        $this->expectException(InvalidOperationException::class);
+        $this->list->forEach(fn($x) => $this->list->add('Not possible!'));
     }
 
     public function testSortWithoutComparator(): void

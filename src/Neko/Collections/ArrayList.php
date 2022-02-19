@@ -313,6 +313,49 @@ class ArrayList implements ArrayAccess, IndexedList
     }
 
     /**
+     * TODO: Review this method.
+     *
+     * @param callable $match
+     *
+     * @return int
+     */
+    public function removeIfTrue(callable $match): int
+    {
+        $freeIndex = 0;
+        while ($freeIndex < $this->length && !$match($this->items[$freeIndex])) {
+            $freeIndex++;
+        }
+
+        if ($freeIndex >= $this->length) {
+            return 0;
+        }
+
+        $current = $freeIndex + 1;
+        while ($current < $this->length) {
+            while ($current < $this->length && $match($this->items[$current])) {
+                $current++;
+            }
+
+            if ($current < $this->length) {
+                $this->items[$freeIndex++] = $this->items[$current++];
+            }
+        }
+
+        $result = $this->length - $freeIndex;
+        $this->length = $freeIndex;
+
+        // Clean up unused array elements
+        $size = count($this->items);
+        if ($size > $this->length) {
+            for ($i = $this->length; $i < $size; $i++) {
+                $this->items[$i] = null;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Returns the zero-base index of the first occurrence of the given value.
      *
      * @param mixed $value The value to search.
