@@ -31,12 +31,15 @@ class LinkedList implements IndexedList
         }
     }
 
+    /**
+     * @throws InvalidOperationException
+     */
     public function __clone(): void
     {
         // Keep a reference to the head of the list
         $head = $this->head;
 
-        // "Clean up" this clone instance
+        // Clean up this cloned instance
         $this->head = null;
         $this->length = 0;
         $this->version = 0;
@@ -45,7 +48,8 @@ class LinkedList implements IndexedList
         $node = $head;
         if ($node !== null) {
             do {
-                $this->add($node->getValue());
+                $value = $node->getValue();
+                $this->addLast($value);
                 $node = $node->getNext();
             } while ($node !== $head);
         }
@@ -385,7 +389,6 @@ class LinkedList implements IndexedList
             }
         }
 
-        // unlink node
         $node->detach();
         $this->length--;
         $this->version++;
