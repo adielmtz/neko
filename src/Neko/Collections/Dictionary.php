@@ -34,7 +34,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
 
         if ($items !== null) {
             foreach ($items as $key => $value) {
-                $this->set($key, $value);
+                $this->add($key, $value);
             }
         }
     }
@@ -302,8 +302,9 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     {
         $type = gettype($keyValue);
         return match ($type) {
-            'string', 'integer' => $keyValue,
-            'boolean' => $keyValue ? 'True' : 'False',
+            'integer' => $keyValue,
+            'boolean' => 'b:' . $keyValue ? 'true' : 'false',
+            'string' => 's:' . $keyValue,
             'double' => 'f:' . $keyValue,
             'object' => 'o:' . spl_object_hash($keyValue),
             default => throw new InvalidArgumentException("Value of type $type is not a valid key"),
