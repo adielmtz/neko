@@ -3,7 +3,7 @@ namespace Neko\Collections;
 
 use ArrayAccess;
 use InvalidArgumentException;
-use Neko\UnsupportedOperationException;
+use Neko\NotSupportedException;
 use Traversable;
 use function array_key_exists;
 use function function_exists;
@@ -24,12 +24,12 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
      *
      * @param iterable|null $items A collection of values that will be copied to the dictionary.
      *
-     * @throws UnsupportedOperationException
+     * @throws NotSupportedException
      */
     public function __construct(?iterable $items = null)
     {
         if (!function_exists('spl_object_hash')) {
-            throw new UnsupportedOperationException('Dictionary class requires spl_object_hash function');
+            throw new NotSupportedException('Dictionary class requires spl_object_hash function');
         }
 
         if ($items !== null) {

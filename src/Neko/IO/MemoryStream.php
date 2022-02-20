@@ -2,7 +2,7 @@
 namespace Neko\IO;
 
 use Neko\InvalidOperationException;
-use Neko\UnsupportedOperationException;
+use Neko\NotSupportedException;
 use function fclose;
 use function feof;
 use function fgets;
@@ -222,7 +222,7 @@ class MemoryStream extends Stream
      *
      * @throws IOException If this stream is not readable or the destination stream is not writable.
      * @throws InvalidOperationException If the stream is closed.
-     * @throws UnsupportedOperationException If the stream is not readable or the destination is not writable.
+     * @throws NotSupportedException If the stream is not readable or the destination is not writable.
      */
     public function writeTo(Stream $stream, int $buffer_size = 81920): void
     {
