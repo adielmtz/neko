@@ -264,6 +264,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
         $arrayKey = self::createValidArrayKey($key);
         if (array_key_exists($arrayKey, $this->entries)) {
             unset($this->entries[$arrayKey]);
+            $this->length--;
             $this->version++;
             return true;
         }

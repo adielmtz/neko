@@ -145,4 +145,14 @@ final class DictionaryTest extends TestCase
         $this->dictionary->remove('C');
         $this->dictionary->get('C');
     }
+
+    public function testRemoveDecrementsLength(): void
+    {
+        $dictionary = new Dictionary();
+        $dictionary->set('Key', 'Value');
+        $this->assertSame(1, $dictionary->count());
+
+        $dictionary->remove('Key');
+        $this->assertSame(0, $dictionary->count());
+    }
 }
