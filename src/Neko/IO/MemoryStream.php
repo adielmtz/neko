@@ -18,7 +18,7 @@ use function strlen;
 use const SEEK_SET;
 
 /**
- * Creates a Stream in memory.
+ * Represents a stream in memory.
  */
 class MemoryStream extends Stream
 {
