@@ -313,13 +313,14 @@ class ArrayList implements ArrayAccess, IndexedList
     }
 
     /**
-     * TODO: Review this method.
+     * Removes all the values that match the condition.
      *
-     * @param callable $match
+     * @param callable $match A function that must take 1 parameter and return a boolean value.
+     * If the function returns true, the value will be removed list; otherwise, the value is kept.
      *
-     * @return int
+     * @return int The number of values removed.
      */
-    public function removeIfTrue(callable $match): int
+    public function removeIf(callable $match): int
     {
         $freeIndex = 0;
         while ($freeIndex < $this->length && !$match($this->items[$freeIndex])) {

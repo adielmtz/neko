@@ -229,7 +229,7 @@ final class ArrayListTest extends TestCase
 
     public function testRemoveIfTrue(): void
     {
-        $count = $this->list->removeIfTrue(fn($c) => ord($c) % 2 === 0);
+        $count = $this->list->removeIf(fn($c) => ord($c) % 2 === 0);
         $this->assertSame(2, $count);
     }
 
