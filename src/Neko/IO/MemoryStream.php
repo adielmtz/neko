@@ -31,7 +31,7 @@ class MemoryStream extends Stream
      */
     public function __construct()
     {
-        $this->memory = fopen('php://memory', 'r+b');
+        $this->memory = @fopen('php://memory', 'r+b');
         if ($this->memory === false) {
             IOException::throwFromLastError();
         }
