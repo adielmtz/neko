@@ -345,12 +345,10 @@ class ArrayList implements ArrayAccess, IndexedList
         $result = $this->length - $freeIndex;
         $this->length = $freeIndex;
 
-        // Clean up unused array elements
+        // Clean up unused indexes
         $size = count($this->items);
-        if ($size > $this->length) {
-            for ($i = $this->length; $i < $size; $i++) {
-                $this->items[$i] = null;
-            }
+        for ($i = $this->length; $i < $size; $i++) {
+            $this->items[$i] = null;
         }
 
         return $result;
@@ -604,7 +602,7 @@ class ArrayList implements ArrayAccess, IndexedList
      *
      * @return bool
      */
-    public function trueForAll(callable $match): bool
+    public function all(callable $match): bool
     {
         for ($i = 0; $i < $this->length; $i++) {
             if (!$match($this->items[$i])) {
@@ -622,7 +620,7 @@ class ArrayList implements ArrayAccess, IndexedList
      *
      * @return bool
      */
-    public function trueForAny(callable $match): bool
+    public function any(callable $match): bool
     {
         for ($i = 0; $i < $this->length; $i++) {
             if ($match($this->items[$i])) {

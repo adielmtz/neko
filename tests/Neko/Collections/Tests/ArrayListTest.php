@@ -395,21 +395,21 @@ final class ArrayListTest extends TestCase
 
     public function testTrueForAll_ReturnsTrue(): void
     {
-        $this->assertTrue($this->list->trueForAll(fn($c) => $c >= 'A' && $c <= 'Z'));
+        $this->assertTrue($this->list->all(fn($c) => $c >= 'A' && $c <= 'Z'));
     }
 
     public function testTrueForAll_ReturnsFalse(): void
     {
-        $this->assertFalse($this->list->trueForAll(fn($c) => $c === 'A'));
+        $this->assertFalse($this->list->all(fn($c) => $c === 'A'));
     }
 
     public function testTrueForAny_ReturnsTrue(): void
     {
-        $this->assertTrue($this->list->trueForAny(fn($c) => $c === 'D'));
+        $this->assertTrue($this->list->any(fn($c) => $c === 'D'));
     }
 
     public function testTrueForAny_ReturnsFalse(): void
     {
-        $this->assertFalse($this->list->trueForAny(fn($c) => $c >= '0' && $c <= '9'));
+        $this->assertFalse($this->list->any(fn($c) => $c >= '0' && $c <= '9'));
     }
 }
