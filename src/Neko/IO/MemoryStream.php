@@ -5,6 +5,7 @@ use Neko\InvalidOperationException;
 use Neko\NotSupportedException;
 use function fclose;
 use function feof;
+use function fgetc;
 use function fgets;
 use function fopen;
 use function fread;
@@ -145,15 +146,36 @@ class MemoryStream extends Stream
     /**
      * Reads a block of bytes from the stream.
      *
+     * @param string|null $output The data read from the stream.
      * @param int $length The maximum number of bytes to read.
      *
-     * @return string A string containing the read data.
-     * @throws InvalidOperationException If the stream is closed.
+     * @return int The number of bytes read.
+     * @throws InvalidOperationException
      */
-    public function read(int $length): string
+    public function read(?string &$output, int $length): int
     {
         $this->ensureStreamIsOpen();
-        return fread($this->memory, $length);
+        $buffer = fread($this->memory, $length);
+        if ($buffer === false) {
+            $output = '';
+            return 0;
+        }
+
+        $output = $buffer;
+        return strlen($buffer);
+    }
+
+    /**
+     * Reads a byte (or a char) from the stream.
+     *
+     * @return string|null The character or NULL if the end of the stream has been reached.
+     * @throws InvalidOperationException
+     */
+    public function readChar(): ?string
+    {
+        $this->ensureStreamIsOpen();
+        $c = fgetc($this->memory);
+        return $c === false ? null : $c;
     }
 
     /**

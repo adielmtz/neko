@@ -5,6 +5,7 @@ use Neko\InvalidOperationException;
 use Neko\IO\MemoryStream;
 use PHPUnit\Framework\TestCase;
 use function strlen;
+use function var_dump;
 use const PHP_EOL;
 
 final class MemoryStreamTest extends TestCase
@@ -61,8 +62,17 @@ final class MemoryStreamTest extends TestCase
     public function testRead(MemoryStream $stream): void
     {
         $stream->setPosition(0);
-        $data = $stream->read(4096);
-        $this->assertSame(__FILE__, $data);
+        $stream->read($output, 4096);
+        $this->assertSame(__FILE__, $output);
+    }
+
+    public function testReadReturnsEmptyStringOnEndOfStream(): MemoryStream
+    {
+        $stream = new MemoryStream();
+        $bytes_read = $stream->read($output, 4096);
+        $this->assertSame(0, $bytes_read);
+        $this->assertSame('', $output);
+        return $stream;
     }
 
     public function testReadThrowsExceptionWhenTheStreamIsClosed(): void
@@ -70,7 +80,7 @@ final class MemoryStreamTest extends TestCase
         $this->expectException(InvalidOperationException::class);
         $stream = new MemoryStream();
         $stream->close();
-        $stream->read(100);
+        $stream->read($output, 100);
     }
 
     public function testWriteLine(): MemoryStream
@@ -91,8 +101,8 @@ final class MemoryStreamTest extends TestCase
     public function testReadLine(MemoryStream $stream): void
     {
         $stream->setPosition(0);
-        $data = $stream->read(4096);
-        $this->assertSame(__FILE__ . PHP_EOL, $data);
+        $stream->read($output, 4096);
+        $this->assertSame(__FILE__ . PHP_EOL, $output);
     }
 
     /**

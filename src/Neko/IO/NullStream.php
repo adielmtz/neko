@@ -48,9 +48,15 @@ final class NullStream extends Stream
     {
     }
 
-    public function read(int $length): string
+    public function read(?string &$output, int $length): int
     {
-        return '';
+        $output = null;
+        return 0;
+    }
+
+    public function readChar(): ?string
+    {
+        return null;
     }
 
     public function readLine(): string

@@ -83,18 +83,28 @@ abstract class Stream
     /**
      * Reads a block of bytes from the stream.
      *
+     * @param string|null $output The data read from the stream.
      * @param int $length The maximum number of bytes to read.
      *
-     * @return string A string containing the read data.
+     * @return int The number of bytes read.
      * @throws IOException
      * @throws NotSupportedException
      */
-    abstract public function read(int $length): string;
+    abstract public function read(?string &$output, int $length): int;
+
+    /**
+     * Reads a byte (or a char) from the stream.
+     *
+     * @return string|null The character or NULL if the end of the stream has been reached.
+     * @throws IOException
+     * @throws NotSupportedException
+     */
+    abstract public function readChar(): ?string;
 
     /**
      * Reads the stream until it finds an end-of-line sequence.
      *
-     * @return string A string containing the read data.
+     * @return string The data read from the stream.
      * @throws IOException
      * @throws NotSupportedException
      */
@@ -103,7 +113,7 @@ abstract class Stream
     /**
      * Read the entire content of the stream to the end.
      *
-     * @return string A string containing the read data.
+     * @return string The data read from the stream.
      * @throws IOException
      * @throws NotSupportedException
      */
@@ -168,8 +178,8 @@ abstract class Stream
         }
 
         while (!$this->endOfStream()) {
-            $data = $this->read($buffer_size);
-            $stream->write($data);
+            $bytes_read = $this->read($data, $buffer_size);
+            $stream->write($data, $bytes_read);
         }
     }
 
