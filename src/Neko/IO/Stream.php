@@ -2,6 +2,7 @@
 namespace Neko\IO;
 
 use InvalidArgumentException;
+use Neko\InvalidOperationException;
 use Neko\NotSupportedException;
 
 /**
@@ -104,11 +105,11 @@ abstract class Stream
     /**
      * Reads the stream until it finds an end-of-line sequence.
      *
-     * @return string The data read from the stream.
+     * @return string|null The data read from the stream or NULL if the end of the stream has been reached.
      * @throws IOException
      * @throws NotSupportedException
      */
-    abstract public function readLine(): string;
+    abstract public function readLine(): ?string;
 
     /**
      * Read the entire content of the stream to the end.
@@ -136,14 +137,12 @@ abstract class Stream
      * Writes a string to the stream, followed by an end-of-line sequence.
      *
      * @param string $data The string to be written.
-     * @param int $length The maximum number of bytes to write. If the value is less than zero, writing will stop
-     * until the end of $data is reached. This value does not count the length of the line terminator.
      *
      * @return int The number of bytes written plus the length of the end-of-line sequence.
      * @throws IOException
      * @throws NotSupportedException
      */
-    abstract public function writeLine(string $data, int $length = -1): int;
+    abstract public function writeLine(string $data): int;
 
     /**
      * Forces all buffered output to be written into the destination pointed by the stream.
@@ -170,8 +169,8 @@ abstract class Stream
      */
     public function copyTo(Stream $stream, int $buffer_size = 81920): void
     {
-        $this->ensureCanRead();
-        $stream->ensureCanWrite();
+        $this->ensureStreamIsReadable();
+        $stream->ensureStreamIsWritable();
 
         if ($buffer_size <= 0) {
             throw new InvalidArgumentException('Buffer size must be greater than zero');
@@ -184,28 +183,37 @@ abstract class Stream
     }
 
     /**
-     * Ensures that the stream is readable.
+     * Throws an InvalidOperationException if the stream is closed.
+     *
+     * @throws InvalidOperationException
+     */
+    protected abstract function ensureStreamIsOpen(): void;
+
+    /**
      * Throws an exception if the stream is not readable.
      *
+     * @throws InvalidOperationException
      * @throws NotSupportedException
      */
-    protected function ensureCanRead(): void
+    protected function ensureStreamIsReadable(): void
     {
+        $this->ensureStreamIsOpen();
         if (!$this->canRead()) {
-            throw new NotSupportedException('The stream does not support reading');
+            throw new NotSupportedException('Stream does not support read');
         }
     }
 
     /**
-     * Ensures that the stream is writable.
      * Throws an exception if the stream is not writable.
      *
+     * @throws InvalidOperationException
      * @throws NotSupportedException
      */
-    protected function ensureCanWrite(): void
+    protected function ensureStreamIsWritable(): void
     {
+        $this->ensureStreamIsOpen();
         if (!$this->canWrite()) {
-            throw new NotSupportedException('The stream does not support writing');
+            throw new NotSupportedException('Stream does not support write');
         }
     }
 }

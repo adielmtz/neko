@@ -74,7 +74,7 @@ final class NullStream extends Stream
         return 0;
     }
 
-    public function writeLine(string $data, int $length = -1): int
+    public function writeLine(string $data): int
     {
         return 0;
     }
@@ -88,6 +88,10 @@ final class NullStream extends Stream
     }
 
     public function copyTo(Stream $stream, int $buffer_size = 81920): void
+    {
+    }
+
+    protected function ensureStreamIsOpen(): void
     {
     }
 }

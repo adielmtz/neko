@@ -5,117 +5,139 @@ use Neko\InvalidOperationException;
 use Neko\IO\MemoryStream;
 use PHPUnit\Framework\TestCase;
 use function strlen;
-use function var_dump;
 use const PHP_EOL;
 
 final class MemoryStreamTest extends TestCase
 {
+    private static MemoryStream $persistentStream;
+    private MemoryStream $disposableStream;
+
+    #region Test Environment SetUp
+    public static function setUpBeforeClass(): void
+    {
+        self::$persistentStream = new MemoryStream();
+    }
+
+    public static function tearDownAfterClass(): void
+    {
+        self::$persistentStream->close();
+    }
+
+    public function setUp(): void
+    {
+        $this->disposableStream = new MemoryStream();
+    }
+
+    public function tearDown(): void
+    {
+        $this->disposableStream->close();
+    }
+
+    #endregion
+
     public function testBasic(): void
     {
-        $stream = new MemoryStream();
-        $this->assertTrue($stream->canRead());
-        $this->assertTrue($stream->canWrite());
-        $this->assertTrue($stream->canSeek());
-        $this->assertFalse($stream->endOfStream());
+        $this->assertTrue($this->disposableStream->canRead());
+        $this->assertTrue($this->disposableStream->canWrite());
+        $this->assertTrue($this->disposableStream->canSeek());
+        $this->assertFalse($this->disposableStream->endOfStream());
     }
 
     public function testBasicStreamClosed(): void
     {
-        $stream = new MemoryStream();
-        $stream->close();
-        $this->assertFalse($stream->canRead());
-        $this->assertFalse($stream->canWrite());
-        $this->assertFalse($stream->canSeek());
+        $this->disposableStream->close();
+        $this->assertFalse($this->disposableStream->canRead());
+        $this->assertFalse($this->disposableStream->canWrite());
+        $this->assertFalse($this->disposableStream->canSeek());
     }
 
     public function testEndOfStreamThrowsExceptionWhenTheStreamIsClosed(): void
     {
         $this->expectException(InvalidOperationException::class);
-        $stream = new MemoryStream();
-        $stream->close();
-        $stream->endOfStream();
+        $this->disposableStream->close();
+        $this->disposableStream->endOfStream();
     }
 
-    public function testWrite(): MemoryStream
+    public function testWrite(): void
     {
         $text = __FILE__;
-        $expected = strlen($text);
+        $expectedBytes = strlen($text);
 
-        $stream = new MemoryStream();
-        $writtenBytes = $stream->write($text);
-        $this->assertSame($expected, $writtenBytes);
-        $this->assertSame($expected, $stream->getSize());
-        return $stream;
+        $writtenBytes = self::$persistentStream->write($text);
+        $this->assertSame($expectedBytes, $writtenBytes);
+        $this->assertSame($expectedBytes, self::$persistentStream->getSize());
     }
 
     public function testWriteThrowsExceptionWhenTheStreamIsClosed(): void
     {
         $this->expectException(InvalidOperationException::class);
-        $stream = new MemoryStream();
-        $stream->close();
-        $stream->write('Cannot be done!');
+        $this->disposableStream->close();
+        $this->disposableStream->write('This should not be allowed!');
     }
 
-    /**
-     * @depends testWrite
-     */
-    public function testRead(MemoryStream $stream): void
+    public function testRead(): void
     {
-        $stream->setPosition(0);
-        $stream->read($output, 4096);
+        self::$persistentStream->setPosition(0);
+        self::$persistentStream->read($output, 4096);
         $this->assertSame(__FILE__, $output);
     }
 
-    public function testReadReturnsEmptyStringOnEndOfStream(): MemoryStream
+    public function testReadReturnsEmptyStringOnEndOfStream(): void
     {
-        $stream = new MemoryStream();
-        $bytes_read = $stream->read($output, 4096);
-        $this->assertSame(0, $bytes_read);
+        $bytesRead = $this->disposableStream->read($output, 4096);
+        $this->assertSame(0, $bytesRead);
         $this->assertSame('', $output);
-        return $stream;
     }
 
     public function testReadThrowsExceptionWhenTheStreamIsClosed(): void
     {
         $this->expectException(InvalidOperationException::class);
-        $stream = new MemoryStream();
-        $stream->close();
-        $stream->read($output, 100);
+        $this->disposableStream->close();
+        $this->disposableStream->read($_, 520);
     }
 
-    public function testWriteLine(): MemoryStream
+    public function testTruncate(): void
+    {
+        self::$persistentStream->setSize(0);
+        $this->assertSame(0, self::$persistentStream->getSize());
+    }
+
+    /**
+     * @depends testTruncate
+     */
+    public function testWriteLine(): void
     {
         $text = __FILE__;
-        $expected = strlen($text) + strlen(PHP_EOL);
+        $expectedBytes = strlen($text) + strlen(PHP_EOL);
 
-        $stream = new MemoryStream();
-        $writtenBytes = $stream->writeLine($text);
-        $this->assertSame($expected, $writtenBytes);
-        $this->assertSame($expected, $stream->getSize());
-        return $stream;
+        $writtenBytes = self::$persistentStream->writeLine($text);
+        $this->assertSame($expectedBytes, $writtenBytes);
+        $this->assertSame($expectedBytes, self::$persistentStream->getSize());
     }
 
     /**
      * @depends testWriteLine
      */
-    public function testReadLine(MemoryStream $stream): void
+    public function testReadLine(): void
     {
-        $stream->setPosition(0);
-        $stream->read($output, 4096);
+        self::$persistentStream->setPosition(0);
+        self::$persistentStream->read($output, 4096);
         $this->assertSame(__FILE__ . PHP_EOL, $output);
     }
 
     /**
-     * @depends testWrite
+     * @depends testWriteLine
      */
-    public function testCopyTo(MemoryStream $sourceStream): void
+    public function testCopyTo(): void
     {
-        $sourceStream->setPosition(0);
+        self::$persistentStream->setPosition(0);
+        self::$persistentStream->copyTo($this->disposableStream);
 
-        $destinationStream = new MemoryStream();
-        $sourceStream->copyTo($destinationStream);
+        $this->assertSame(self::$persistentStream->getSize(), $this->disposableStream->getSize());
 
-        $this->assertSame($sourceStream->getSize(), $destinationStream->getSize());
-        $this->assertSame($sourceStream->readToEnd(), $destinationStream->readToEnd());
+        self::$persistentStream->setPosition(0);
+        $this->disposableStream->setPosition(0);
+
+        $this->assertSame(self::$persistentStream->readToEnd(), $this->disposableStream->readToEnd());
     }
 }

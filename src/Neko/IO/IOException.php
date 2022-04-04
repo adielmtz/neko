@@ -12,17 +12,20 @@ use function error_get_last;
 class IOException extends Exception
 {
     /**
-     * Throws an IOException if error_get_last() reports an error.
+     * Throws an IOException using the last error message.
      *
      * @throws IOException
      */
-    public static function throwFromLastError(): void
+    public static function throwFromLastError(): IOException
     {
         $error = error_get_last();
+        $message = '';
         if ($error !== null) {
             error_clear_last();
-            throw new IOException($error['message']);
+            $message = $error['message'];
         }
+
+        throw new IOException($message);
     }
 
     public function __construct(string $message = '', int $code = 0, Throwable $previous = null)

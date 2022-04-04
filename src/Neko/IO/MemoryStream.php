@@ -16,6 +16,7 @@ use function ftruncate;
 use function fwrite;
 use function stream_get_contents;
 use function strlen;
+use const PHP_EOL;
 use const SEEK_SET;
 
 /**
@@ -34,7 +35,7 @@ class MemoryStream extends Stream
     {
         $this->memory = @fopen('php://memory', 'r+b');
         if ($this->memory === false) {
-            IOException::throwFromLastError();
+            throw IOException::throwFromLastError();
         }
     }
 
@@ -102,7 +103,11 @@ class MemoryStream extends Stream
     public function setSize(int $size): void
     {
         $this->ensureStreamIsOpen();
-        ftruncate($this->memory, $size);
+        if (ftruncate($this->memory, $size)) {
+            if ($this->getPosition() > $size) {
+                $this->seek($size, SEEK_SET);
+            }
+        }
     }
 
     /**
@@ -181,13 +186,14 @@ class MemoryStream extends Stream
     /**
      * Reads the stream until it finds an end-of-line sequence.
      *
-     * @return string A string containing the read data.
+     * @return string|null The data read from the stream or NULL if the end of the stream has been reached.
      * @throws InvalidOperationException If the stream is closed.
      */
-    public function readLine(): string
+    public function readLine(): ?string
     {
         $this->ensureStreamIsOpen();
-        return fgets($this->memory);
+        $data = fgets($this->memory);
+        return $data === false ? null : $data;
     }
 
     /**
@@ -223,17 +229,13 @@ class MemoryStream extends Stream
      * Writes a string to the stream, followed by an end-of-line sequence.
      *
      * @param string $data The string to be written.
-     * @param int $length The maximum number of bytes to write. If the value is less than zero, writing will stop
-     * until the end of $data is reached. This value does not count the length of the line terminator.
      *
      * @return int The number of bytes written plus the length of the end-of-line sequence.
      * @throws InvalidOperationException If the stream is closed.
      */
-    public function writeLine(string $data, int $length = -1): int
+    public function writeLine(string $data): int
     {
-        $bytes = $this->write($data, $length);
-        $bytes += $this->write(PHP_EOL);
-        return $bytes;
+        return $this->write($data . PHP_EOL);
     }
 
     /**
@@ -275,10 +277,10 @@ class MemoryStream extends Stream
      *
      * @throws InvalidOperationException
      */
-    private function ensureStreamIsOpen(): void
+    protected function ensureStreamIsOpen(): void
     {
         if ($this->memory === null) {
-            throw new InvalidOperationException('The stream is closed');
+            throw new InvalidOperationException('Stream is closed');
         }
     }
 }
