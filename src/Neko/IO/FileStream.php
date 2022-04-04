@@ -3,7 +3,6 @@ namespace Neko\IO;
 
 use InvalidArgumentException;
 use Neko\InvalidOperationException;
-use Neko\NotSupportedException;
 use function fclose;
 use function feof;
 use function fgetc;
@@ -41,10 +40,11 @@ final class FileStream extends Stream
     /**
      * FileStream constructor.
      *
-     * @param string $file
-     * @param string $mode
+     * @param string $file The path to the file to open.
+     * @param string $mode The open mode (see fopen documentation).
      *
-     * @throws IOException If the stream could not be open.
+     * @throws IOException If the stream cannot be open.
+     * @throws FileNotFoundException If the file doesn't exist or cannot be found.
      */
     public function __construct(string $file, string $mode)
     {
@@ -60,6 +60,9 @@ final class FileStream extends Stream
             case 'r':
                 $this->can_read = true;
                 $this->can_write = str_contains($mode, '+');
+                if (!file_exists($file)) {
+                    throw new FileNotFoundException("Cannot find file $file");
+                }
                 break;
             case 'w':
             case 'a':
@@ -138,8 +141,7 @@ final class FileStream extends Stream
      *
      * @return int
      * @throws IOException If fstat failed.
-     * @throws InvalidOperationException If the stream is closed.
-     * @throws NotSupportedException If the stream is not readable.
+     * @throws InvalidOperationException If the stream is closed or the stream is not readable.
      */
     public function getSize(): int
     {
@@ -158,8 +160,7 @@ final class FileStream extends Stream
      * @param int $size The new size. If the new size is less than the current size, the stream will be truncated.
      *
      * @throws IOException
-     * @throws InvalidOperationException If the stream is closed.
-     * @throws NotSupportedException If the stream is not writable.
+     * @throws InvalidOperationException If the stream is closed or the stream is not writable.
      */
     public function setSize(int $size): void
     {
@@ -180,8 +181,7 @@ final class FileStream extends Stream
      *
      * @return int
      *
-     * @throws InvalidOperationException If the stream is closed.
-     * @throws NotSupportedException If the stream is not seekable.
+     * @throws InvalidOperationException If the stream is closed or the stream is not seekable.
      */
     public function getPosition(): int
     {
@@ -195,8 +195,7 @@ final class FileStream extends Stream
      * @param int $position The new position
      *
      * @throws IOException If fseek failed.
-     * @throws InvalidOperationException If the stream is closed.
-     * @throws NotSupportedException If the stream is not seekable.
+     * @throws InvalidOperationException If the stream is closed or the stream is not seekable.
      */
     public function setPosition(int $position): void
     {
@@ -246,8 +245,7 @@ final class FileStream extends Stream
      * @param int $whence The seek reference point.
      *
      * @throws IOException If fseek failed.
-     * @throws InvalidOperationException If the stream is closed.
-     * @throws NotSupportedException If the stream is not seekable.
+     * @throws InvalidOperationException If the stream is closed or the stream is not seekable.
      */
     public function seek(int $offset, int $whence): void
     {
@@ -265,8 +263,7 @@ final class FileStream extends Stream
      *
      * @return int The number of bytes read.
      * @throws InvalidArgumentException If $length is less than or equal to zero.
-     * @throws InvalidOperationException If the stream is closed.
-     * @throws NotSupportedException If the stream is not readable.
+     * @throws InvalidOperationException If the stream is closed or the stream is not readable.
      */
     public function read(?string &$output, int $length): int
     {
@@ -289,8 +286,7 @@ final class FileStream extends Stream
      * Reads a char from the stream.
      *
      * @return string|null The read char or NULL if the end of the stream has been reached.
-     * @throws InvalidOperationException If the stream is closed.
-     * @throws NotSupportedException If the stream is not readable.
+     * @throws InvalidOperationException If the stream is closed or the stream is not readable.
      */
     public function readChar(): ?string
     {
@@ -303,8 +299,7 @@ final class FileStream extends Stream
      * Reads the stream until it finds an end-of-line sequence.
      *
      * @return string|null The data read from the stream or NULL if the end of the stream has been reached.
-     * @throws InvalidOperationException If the stream is closed.
-     * @throws NotSupportedException If the stream is not readable.
+     * @throws InvalidOperationException If the stream is closed or stream is not readable.
      */
     public function readLine(): ?string
     {
@@ -317,8 +312,7 @@ final class FileStream extends Stream
      * Read the entire content of the stream to the end.
      *
      * @return string A string containing the read data.
-     * @throws InvalidOperationException If the stream is closed.
-     * @throws NotSupportedException If the stream is not readable.
+     * @throws InvalidOperationException If the stream is closed or the stream is not readable.
      */
     public function readToEnd(): string
     {
@@ -336,8 +330,7 @@ final class FileStream extends Stream
      *
      * @return int The number of bytes written.
      * @throws IOException If fwrite failed.
-     * @throws InvalidOperationException If the stream is closed.
-     * @throws NotSupportedException If the stream is not writable.
+     * @throws InvalidOperationException If the stream is closed or the stream is not writable.
      */
     public function write(string $data, int $length = -1): int
     {
@@ -359,8 +352,7 @@ final class FileStream extends Stream
      *
      * @return int
      * @throws IOException If fwrite failed.
-     * @throws InvalidOperationException If the stream is closed.
-     * @throws NotSupportedException If the stream is not writable.
+     * @throws InvalidOperationException If the stream is closed or the stream is not writable.
      */
     public function writeLine(string $data): int
     {
@@ -370,8 +362,7 @@ final class FileStream extends Stream
     /**
      * Forces any buffered data to be written to the file.
      *
-     * @throws InvalidOperationException If the stream is closed.
-     * @throws NotSupportedException If the stream is not writable.
+     * @throws InvalidOperationException If the stream is closed or the stream is not writable.
      */
     public function flush(): void
     {
@@ -409,13 +400,12 @@ final class FileStream extends Stream
      * Throws NotSupportedException if the stream is not seekable.
      *
      * @throws InvalidOperationException
-     * @throws NotSupportedException
      */
     private function ensureStreamIsSeekable(): void
     {
         $this->ensureStreamIsOpen();
         if (!$this->can_seek) {
-            throw new NotSupportedException('Stream does not support seek');
+            throw new InvalidOperationException('Stream does not support seek');
         }
     }
 }

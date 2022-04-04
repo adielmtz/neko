@@ -2,7 +2,6 @@
 namespace Neko\IO;
 
 use Neko\InvalidOperationException;
-use Neko\NotSupportedException;
 use function fclose;
 use function feof;
 use function fgetc;
@@ -244,9 +243,8 @@ class MemoryStream extends Stream
      * @param Stream $stream The stream to write the contents of this stream to.
      * @param int $buffer_size The size of the buffer. This value must be greater than zero.
      *
-     * @throws IOException If this stream is not readable or the destination stream is not writable.
-     * @throws InvalidOperationException If the stream is closed.
-     * @throws NotSupportedException If the stream is not readable or the destination is not writable.
+     * @throws IOException
+     * @throws InvalidOperationException If the stream is closed or the destination is not writable.
      */
     public function writeTo(Stream $stream, int $buffer_size = 81920): void
     {

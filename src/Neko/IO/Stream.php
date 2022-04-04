@@ -3,7 +3,6 @@ namespace Neko\IO;
 
 use InvalidArgumentException;
 use Neko\InvalidOperationException;
-use Neko\NotSupportedException;
 
 /**
  * Provides a generic view for streams.
@@ -89,7 +88,7 @@ abstract class Stream
      *
      * @return int The number of bytes read.
      * @throws IOException
-     * @throws NotSupportedException
+     * @throws InvalidOperationException
      */
     abstract public function read(?string &$output, int $length): int;
 
@@ -98,7 +97,7 @@ abstract class Stream
      *
      * @return string|null The character or NULL if the end of the stream has been reached.
      * @throws IOException
-     * @throws NotSupportedException
+     * @throws InvalidOperationException
      */
     abstract public function readChar(): ?string;
 
@@ -107,7 +106,7 @@ abstract class Stream
      *
      * @return string|null The data read from the stream or NULL if the end of the stream has been reached.
      * @throws IOException
-     * @throws NotSupportedException
+     * @throws InvalidOperationException
      */
     abstract public function readLine(): ?string;
 
@@ -116,7 +115,7 @@ abstract class Stream
      *
      * @return string The data read from the stream.
      * @throws IOException
-     * @throws NotSupportedException
+     * @throws InvalidOperationException
      */
     abstract public function readToEnd(): string;
 
@@ -129,7 +128,7 @@ abstract class Stream
      *
      * @return int The number of bytes written.
      * @throws IOException
-     * @throws NotSupportedException
+     * @throws InvalidOperationException
      */
     abstract public function write(string $data, int $length = -1): int;
 
@@ -140,7 +139,7 @@ abstract class Stream
      *
      * @return int The number of bytes written plus the length of the end-of-line sequence.
      * @throws IOException
-     * @throws NotSupportedException
+     * @throws InvalidOperationException
      */
     abstract public function writeLine(string $data): int;
 
@@ -163,9 +162,9 @@ abstract class Stream
      * @param Stream $stream The stream to copy the contents of this stream to.
      * @param int $buffer_size The size of the buffer. This value must be greater than zero.
      *
-     * @throws IOException If this stream is not readable or the destination stream is not writable.
+     * @throws IOException
      * @throws InvalidArgumentException If the buffer size is less than or equal to zero.
-     * @throws NotSupportedException If the stream is not readable or the destination stream is not writable.
+     * @throws InvalidOperationException If the stream is not readable or the destination stream is not writable.
      */
     public function copyTo(Stream $stream, int $buffer_size = 81920): void
     {
@@ -190,30 +189,28 @@ abstract class Stream
     protected abstract function ensureStreamIsOpen(): void;
 
     /**
-     * Throws an exception if the stream is not readable.
+     * Throws an InvalidOperationException if the stream is not readable.
      *
      * @throws InvalidOperationException
-     * @throws NotSupportedException
      */
     protected function ensureStreamIsReadable(): void
     {
         $this->ensureStreamIsOpen();
         if (!$this->canRead()) {
-            throw new NotSupportedException('Stream does not support read');
+            throw new InvalidOperationException('Stream does not support read');
         }
     }
 
     /**
-     * Throws an exception if the stream is not writable.
+     * Throws an InvalidOperationException if the stream is not writable.
      *
      * @throws InvalidOperationException
-     * @throws NotSupportedException
      */
     protected function ensureStreamIsWritable(): void
     {
         $this->ensureStreamIsOpen();
         if (!$this->canWrite()) {
-            throw new NotSupportedException('Stream does not support write');
+            throw new InvalidOperationException('Stream does not support write');
         }
     }
 }
