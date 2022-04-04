@@ -8,7 +8,7 @@ use SeekableIterator;
 /**
  * Iterates over the elements of a list.
  */
-final class IndexedListIterator implements SeekableIterator
+final class ListCollectionIterator implements SeekableIterator
 {
     private array $items;
     private int $length;

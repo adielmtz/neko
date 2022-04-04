@@ -6,7 +6,7 @@ use OutOfBoundsException;
 /**
  * Defines an ordered collection of elements that can be accessed by index.
  */
-interface IndexedList extends Collection
+interface ListCollection extends Collection
 {
     /**
      * Adds an element to the end of the list.

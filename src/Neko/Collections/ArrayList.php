@@ -17,7 +17,7 @@ use const SORT_REGULAR;
 /**
  * Represents an ordered list of elements that can be accessed by index.
  */
-class ArrayList implements ArrayAccess, IndexedList
+class ArrayList implements ArrayAccess, ListCollection
 {
     private array $items = [];
     private int $length = 0;
@@ -105,7 +105,7 @@ class ArrayList implements ArrayAccess, IndexedList
      */
     public function getIterator(): Traversable
     {
-        return new IndexedListIterator($this->items, $this->length, $this->version);
+        return new ListCollectionIterator($this->items, $this->length, $this->version);
     }
 
     /**

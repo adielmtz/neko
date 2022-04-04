@@ -9,7 +9,7 @@ use function assert;
 /**
  * Represents an ordered collection of elements stored in a doubly linked list.
  */
-class LinkedList implements IndexedList
+class LinkedList implements ListCollection
 {
     private ?LinkedListNode $head = null;
     private int $length = 0;
