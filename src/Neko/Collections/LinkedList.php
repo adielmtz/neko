@@ -7,7 +7,7 @@ use Traversable;
 use function assert;
 
 /**
- * Represents a doubly-linked list.
+ * Represents an ordered collection of elements stored in a doubly linked list.
  */
 class LinkedList implements IndexedList
 {
@@ -32,6 +32,7 @@ class LinkedList implements IndexedList
     }
 
     /**
+     * @return void
      * @throws InvalidOperationException
      */
     public function __clone(): void
@@ -56,7 +57,7 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Returns true if the list is empty.
+     * Returns true if the list contains no elements.
      *
      * @return bool
      */
@@ -66,7 +67,9 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Removes all nodes from the list.
+     * Removes all elements from the list.
+     *
+     * @return void
      */
     public function clear(): void
     {
@@ -83,7 +86,7 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Returns true if the list contains the given value.
+     * Returns true if the list contains a specific element.
      *
      * @param mixed $value The value to search.
      *
@@ -95,24 +98,26 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Copies the values of the list to an array.
+     * Copies the elements of the list to an array.
      *
-     * @param array $destination The destination array.
-     * @param int $index The index in $destination at which copy begins.
+     * @param array $array
+     * @param int $index The zero-based index in $array at which copying begins.
+     *
+     * @return void
      */
-    public function copyTo(array &$destination, int $index = 0): void
+    public function copyTo(array &$array, int $index = 0): void
     {
         $node = $this->head;
         if ($node !== null) {
             do {
-                $destination[$index++] = $node->getValue();
+                $array[$index++] = $node->getValue();
                 $node = $node->getNext();
             } while ($node !== $this->head);
         }
     }
 
     /**
-     * Returns a one-dimension array containing all the values in the list.
+     * Returns an array containing all the elements of the list.
      *
      * @return array
      */
@@ -124,7 +129,7 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Gets an iterator instance for the linked list.
+     * Returns an iterator over the elements in the list.
      *
      * @return Traversable
      */
@@ -134,7 +139,7 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Returns the number of nodes in the list.
+     * Returns the number of elements in the list.
      *
      * @return int
      */
@@ -144,9 +149,9 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Adds a value at the end of the list.
+     * Adds an element to the end of the list.
      *
-     * @param mixed $value
+     * @param mixed $value The element to add to the list.
      *
      * @return void
      * @throws InvalidOperationException
@@ -157,9 +162,9 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Adds a value at the head of the list.
+     * Adds an element to the head of the list.
      *
-     * @param mixed $value
+     * @param mixed $value The element to add to the list.
      *
      * @return void
      * @throws InvalidOperationException
@@ -176,9 +181,9 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Adds a value at the end of the list.
+     * Adds an element to the tail of the list.
      *
-     * @param mixed $value
+     * @param mixed $value The element to add to the list.
      *
      * @return void
      * @throws InvalidOperationException
@@ -194,12 +199,12 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Gets the value at the specified position in the list.
+     * Returns the element at the specified index.
      *
-     * @param int $index The zero-based index of the value to return.
+     * @param int $index The zero-based index of the element to return.
      *
      * @return mixed
-     * @throws OutOfBoundsException If the index is less than zero or is equal or greater than the length of the list.
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
      */
     public function get(int $index): mixed
     {
@@ -207,7 +212,7 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Gets the first node of the list.
+     * Returns the first node of the list or null if the list is empty.
      *
      * @return LinkedListNode|null
      */
@@ -217,7 +222,7 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Gets the last node of the list.
+     * Returns the last node of the list or null if the list is empty.
      *
      * @return LinkedListNode|null
      */
@@ -227,16 +232,19 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Gets the node at the specified position in the list.
+     * Returns the node at the specified index in the list.
      *
-     * @param int $index
+     * @param int $index The zero-based index of the node to return.
      *
      * @return LinkedListNode
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
      */
     public function getNodeAt(int $index): LinkedListNode
     {
         if ($index < 0 || $index >= $this->length) {
-            throw new OutOfBoundsException('Index must be greater than or equal to zero and less than the length of the list');
+            throw new OutOfBoundsException(
+                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= LinkedList::count())', $index)
+            );
         }
 
         $node = $this->head;
@@ -253,12 +261,13 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Sets a value at the specified position in the list.
+     * Replaces the element at the specified index with a different element.
      *
-     * @param int $index The zero-based index in the list.
-     * @param mixed $value The value to set.
+     * @param int $index The zero-based index of the element to replace.
+     * @param mixed $value The new element.
      *
-     * @throws OutOfBoundsException If the index is less than zero or is equal or greater than the length of the list.
+     * @return void
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
      */
     public function set(int $index, mixed $value): void
     {
@@ -267,14 +276,15 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Inserts a value at the specified position in the list.
+     * Inserts an element at the specified index.
      *
-     * @param int $index The zero-based index at which the value will be inserted.
-     * The index can be the length of the list, in which case it will insert the value at the end.
-     * @param mixed $value The value to insert.
+     * @param int $index The zero-based index at which the element should be inserted.
+     * If the index is equal to the size of the list, the element is added to the end of the list.
+     * @param mixed $value The element to insert.
      *
+     * @return void
      * @throws InvalidOperationException
-     * @throws OutOfBoundsException If the index is less than zero or equal or greater than the length of the list.
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > ArrayList::count()).
      */
     public function insert(int $index, mixed $value): void
     {
@@ -292,12 +302,13 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Inserts a node after another node.
+     * Inserts an element after an existing node in the list.
      *
-     * @param LinkedListNode $node The reference node to insert the new node after.
-     * @param mixed $value The value to insert.
+     * @param LinkedListNode $node The node after which to insert the element.
+     * @param mixed $value The element to insert.
      *
-     * @throws InvalidOperationException If the reference node or the new node belongs to a different linked list.
+     * @return void
+     * @throws InvalidOperationException if the node does not belong to the list.
      */
     public function insertAfter(LinkedListNode $node, mixed $value): void
     {
@@ -305,12 +316,11 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Removes the first occurrence of the value in the list.
+     * Removes the first occurrence of an element in the list.
      *
-     * @param mixed $value The value to remove.
+     * @param mixed $value The element to remove.
      *
-     * @return bool Returns true if the value was found and removed from the list.
-     *
+     * @return bool True if the element existed and was removed; otherwise, false.
      * @throws InvalidOperationException
      */
     public function remove(mixed $value): bool
@@ -325,12 +335,13 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Removes the value at the specified position in the list.
+     * Removes the element at the specified index.
      *
-     * @param int $index The zero-based index of the value to be removed.
+     * @param int $index The zero-based index of the element to remove.
      *
+     * @return void
      * @throws InvalidOperationException
-     * @throws OutOfBoundsException If the index is less than zero or is equal or greater than the length of the list.
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
      */
     public function removeAt(int $index): void
     {
@@ -341,7 +352,8 @@ class LinkedList implements IndexedList
     /**
      * Removes the first node from the list.
      *
-     * @throws InvalidOperationException If the linked list is empty.
+     * @return void
+     * @throws InvalidOperationException
      */
     public function removeFirst(): void
     {
@@ -353,7 +365,8 @@ class LinkedList implements IndexedList
     /**
      * Removes the last node from the list.
      *
-     * @throws InvalidOperationException If the linked list is empty.
+     * @return void
+     * @throws InvalidOperationException
      */
     public function removeLast(): void
     {
@@ -363,11 +376,12 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Removes a node from the linked list.
+     * Removes the specified node from the list.
      *
      * @param LinkedListNode $node The node to remove.
      *
-     * @throws InvalidOperationException If the linked list is empty or the node does not belong to the list.
+     * @return void
+     * @throws InvalidOperationException if the list is empty or the node does not belong to the list.
      */
     public function removeNode(LinkedListNode $node): void
     {
@@ -376,7 +390,7 @@ class LinkedList implements IndexedList
         }
 
         if ($node->getOwner() !== $this) {
-            throw new InvalidOperationException('The node belongs to a different linked list');
+            throw new InvalidOperationException('Node does not belong to this linked list');
         }
 
         if ($node->getNext() === $node) {
@@ -395,11 +409,12 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Returns the zero-base index of the first occurrence of the given value.
+     * Returns the zero-based index of the first occurrence of the element in the list.
      *
-     * @param mixed $value The value to search.
+     * @param mixed $value The element to search.
      *
-     * @return int The index in the list or -1 if the value was not found.
+     * @return int The zero-based index of the first occurrence of the element or -1 if the list does not
+     * contain the element.
      */
     public function indexOf(mixed $value): int
     {
@@ -420,11 +435,12 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * Returns the zero-base index of the last occurrence of the given value.
+     * Returns the zero-based index of the last occurrence of the element in the list.
      *
-     * @param mixed $value The value to search.
+     * @param mixed $value The element to search.
      *
-     * @return int The index in the list or -1 if the value was not found.
+     * @return int The zero-based index of the last occurrence of the element or -1 if the list does not
+     * contain the element.
      */
     public function lastIndexOf(mixed $value): int
     {
@@ -445,7 +461,9 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * @param mixed $value
+     * Returns the first node that contains the given value.
+     *
+     * @param mixed $value The value to search.
      *
      * @return LinkedListNode|null
      */
@@ -466,10 +484,12 @@ class LinkedList implements IndexedList
     }
 
     /**
+     * Inserts a node when the list is empty.
+     *
      * @param LinkedListNode $node
      *
      * @return void
-     * @throws InvalidOperationException
+     * @throws InvalidOperationException if the node does not belong to the list.
      */
     private function insertNodeOnEmptyList(LinkedListNode $node): void
     {
@@ -486,11 +506,13 @@ class LinkedList implements IndexedList
     }
 
     /**
-     * @param LinkedListNode $ref
-     * @param LinkedListNode $node
+     * Inserts a node after an existing node in the list.
+     *
+     * @param LinkedListNode $ref The node after which to insert the element.
+     * @param LinkedListNode $node The node to insert.
      *
      * @return void
-     * @throws InvalidOperationException
+     * @throws InvalidOperationException if any of the given nodes does not belong to the list.
      */
     private function insertNodeAfter(LinkedListNode $ref, LinkedListNode $node): void
     {

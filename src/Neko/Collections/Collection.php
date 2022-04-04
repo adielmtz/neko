@@ -5,24 +5,27 @@ use Countable;
 use IteratorAggregate;
 
 /**
- * Defines methods for collection manipulation.
+ * The root interface for the collection hierarchy.
+ * Defines methods to manipulate a collection of values.
  */
 interface Collection extends Countable, IteratorAggregate
 {
     /**
-     * Returns true if the collection is empty.
+     * Returns true if the collection contains no elements.
      *
      * @return bool
      */
     public function isEmpty(): bool;
 
     /**
-     * Removes all values from the collection.
+     * Removes all elements from the collection.
+     *
+     * @return void
      */
     public function clear(): void;
 
     /**
-     * Returns true if the collection contains the given value.
+     * Returns true if the collection contains a specific element.
      *
      * @param mixed $value The value to search.
      *
@@ -31,15 +34,17 @@ interface Collection extends Countable, IteratorAggregate
     public function contains(mixed $value): bool;
 
     /**
-     * Copies the values of the collection to an array.
+     * Copies the elements of the collection to an array.
      *
-     * @param array $destination The destination array.
-     * @param int $index The index in $destination at which copy begins.
+     * @param array $array
+     * @param int $index The zero-based index in $array at which copying begins.
+     *
+     * @return void
      */
-    public function copyTo(array &$destination, int $index = 0): void;
+    public function copyTo(array &$array, int $index = 0): void;
 
     /**
-     * Returns a one-dimension array containing all the values in the collection.
+     * Returns an array containing all the elements of the collection.
      *
      * @return array
      */

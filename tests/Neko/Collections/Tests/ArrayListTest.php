@@ -345,8 +345,7 @@ final class ArrayListTest extends TestCase
         $expected_str = implode('', $this->list->toArray());
         $actual_str = '';
 
-        $this->list->forEach(function (string $c) use (&$actual_str): void
-        {
+        $this->list->forEach(function (string $c) use (&$actual_str): void {
             $actual_str .= $c;
         });
 

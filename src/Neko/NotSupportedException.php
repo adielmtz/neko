@@ -5,8 +5,8 @@ use LogicException;
 use Throwable;
 
 /**
- * Thrown when an invoked method is not supported or its functionality is not available.
- * Represents an error in the program logic. This kind of exception should lead directly to a fix in your code.
+ * This exception is thrown when a method or function call is not supported or its functionality is not available,
+ * such as trying to call a function that requires a specific extension to be enabled.
  */
 class NotSupportedException extends LogicException
 {

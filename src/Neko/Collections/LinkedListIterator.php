@@ -6,7 +6,7 @@ use OutOfBoundsException;
 use SeekableIterator;
 
 /**
- * Iterates through the nodes of a linked list.
+ * Iterates over the nodes of a doubly linked list.
  */
 final class LinkedListIterator implements SeekableIterator
 {
@@ -28,17 +28,21 @@ final class LinkedListIterator implements SeekableIterator
     }
 
     /**
+     * @param mixed $offset
+     *
+     * @return void
      * @throws InvalidOperationException
-     * @throws OutOfBoundsException
      */
     public function seek(mixed $offset): void
     {
         if ($this->current_version !== $this->list_version) {
-            throw new InvalidOperationException('Collection was modified');
+            throw new InvalidOperationException('List was modified');
         }
 
         if ($offset < 0 || $offset >= $this->length) {
-            throw new OutOfBoundsException('Index must be greater than or equal to zero and less than the length of the list');
+            throw new OutOfBoundsException(
+                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= IndexedList::count())', $offset)
+            );
         }
 
         $this->index = $offset;
@@ -54,29 +58,39 @@ final class LinkedListIterator implements SeekableIterator
 
     }
 
+    /**
+     * @return mixed
+     */
     public function current(): mixed
     {
         return $this->node?->getValue();
     }
 
     /**
+     * @return void
      * @throws InvalidOperationException
      */
     public function next(): void
     {
         if ($this->current_version !== $this->list_version) {
-            throw new InvalidOperationException('Collection was modified');
+            throw new InvalidOperationException('List was modified');
         }
 
         $this->node = $this->node?->getNext();
         $this->index++;
     }
 
+    /**
+     * @return int
+     */
     public function key(): int
     {
         return $this->index;
     }
 
+    /**
+     * @return bool
+     */
     public function valid(): bool
     {
         if ($this->head !== null) {
@@ -87,12 +101,13 @@ final class LinkedListIterator implements SeekableIterator
     }
 
     /**
+     * @return void
      * @throws InvalidOperationException
      */
     public function rewind(): void
     {
         if ($this->current_version !== $this->list_version) {
-            throw new InvalidOperationException('Collection was modified');
+            throw new InvalidOperationException('List was modified');
         }
 
         $this->node = $this->head;

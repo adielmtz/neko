@@ -17,7 +17,7 @@ final class DictionaryTest extends TestCase
     public function setUp(): void
     {
         if (!function_exists('spl_object_hash')) {
-            $this->markTestSkipped('spl_object_hash function is not available.');
+            $this->markTestSkipped('Dictionary class requires spl_object_hash() function which is not available for this PHP installation');
         }
 
         $this->dictionary = new Dictionary();

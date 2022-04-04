@@ -11,26 +11,26 @@ use function min;
 final class Math
 {
     /**
-     * Clamps the value to a given inclusive range.
+     * Returns the value clamped to the inclusive range of $min and $max.
      *
      * @param int|float $value The value to clamp.
      * @param int|float $min The minimum value.
      * @param int|float $max The maximum value.
      *
      * @return int|float
-     * @throws InvalidArgumentException If the minimum value is greater than the maximum value.
+     * @throws InvalidArgumentException if the minimum value is greater than the maximum value.
      */
     public static function clamp(int|float $value, int|float $min, int|float $max): int|float
     {
         if ($min > $max) {
-            throw new InvalidArgumentException('$min cannot be greater than $max');
+            throw new InvalidArgumentException('Minimum value cannot be greater than the maximum value');
         }
 
         return max($min, min($max, $value));
     }
 
     /**
-     * Clamps the value to 0 or 1 inclusive.
+     * Returns the value clamped to the inclusive range of 0 and 1.
      *
      * @param float $value The value to clamp.
      *
@@ -52,15 +52,15 @@ final class Math
     /**
      * Calculates the factorial of the given value.
      *
-     * @param int $n The base value.
+     * @param int $n The value to calculate its factorial.
      *
      * @return int
-     * @throws InvalidArgumentException If $n is negative.
+     * @throws InvalidArgumentException if the $n is negative.
      */
     public static function factorial(int $n): int
     {
         if ($n < 0) {
-            throw new InvalidArgumentException('Base value must be equal to or greater than zero');
+            throw new InvalidArgumentException('Value must be greater than or equal to zero');
         }
 
         $result = 1;

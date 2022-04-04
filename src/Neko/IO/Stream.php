@@ -5,7 +5,7 @@ use InvalidArgumentException;
 use Neko\InvalidOperationException;
 
 /**
- * Provides a generic view for streams.
+ * Defines an interface for streams.
  */
 abstract class Stream
 {
@@ -31,25 +31,31 @@ abstract class Stream
     abstract public function canSeek(): bool;
 
     /**
-     * Returns true if the current position is at the end of the stream.
+     * Returns true if the current position in the stream equals the size of the stream.
      *
      * @return bool
+     * @throws IOException
+     * @throws InvalidOperationException if the stream is closed.
      */
     abstract public function endOfStream(): bool;
 
     /**
-     * Gets the stream size in bytes.
+     * Returns the size of the stream in bytes.
      *
      * @return int
+     * @throws IOException
+     * @throws InvalidOperationException if the stream is closed.
      */
     abstract public function getSize(): int;
 
     /**
-     * Sets the size of the stream.
+     * Sets the size, in bytes, of the stream.
      *
-     * @param int $size The new size. If the new size is less than the current size, the stream will be truncated.
+     * @param int $size The new size.
      *
+     * @return void
      * @throws IOException
+     * @throws InvalidOperationException if the stream is closed.
      */
     abstract public function setSize(int $size): void;
 
@@ -58,140 +64,155 @@ abstract class Stream
      *
      * @return int
      * @throws IOException
+     * @throws InvalidOperationException if the stream is closed.
      */
     abstract public function getPosition(): int;
 
     /**
-     * Sets the position in the stream.
+     * Sets the current position in the stream to the given value.
      *
-     * @param int $position The new position.
+     * @param int $position The position in the stream.
      *
+     * @return void
      * @throws IOException
+     * @throws InvalidOperationException if the stream is closed.
      */
     abstract public function setPosition(int $position): void;
 
     /**
-     * Seeks on the stream.
+     * Sets the current position in the stream, relative to $whence.
      *
-     * @param int $offset The new position within the stream, relative to $whence value.
-     * @param int $whence The seek reference point.
+     * @param int $offset The position relative to $whence from which to begin seeking.
+     * @param int $whence SEEK_SET, SEEK_CUR, or SEEK_END.
      *
+     * @return void
      * @throws IOException
+     * @throws InvalidOperationException if the stream is closed.
      */
     abstract public function seek(int $offset, int $whence): void;
 
     /**
-     * Reads a block of bytes from the stream.
+     * Reads a block of bytes from the stream into the $output argument.
      *
      * @param string|null $output The data read from the stream.
      * @param int $length The maximum number of bytes to read.
      *
      * @return int The number of bytes read.
      * @throws IOException
-     * @throws InvalidOperationException
+     * @throws InvalidOperationException if the stream is closed or does not support reading.
      */
     abstract public function read(?string &$output, int $length): int;
 
     /**
-     * Reads a byte (or a char) from the stream.
+     * Reads a char from the stream.
      *
-     * @return string|null The character or NULL if the end of the stream has been reached.
+     * @return string|null The read character or null if the end of the stream has been reached.
      * @throws IOException
-     * @throws InvalidOperationException
+     * @throws InvalidOperationException if the stream is closed or does not support reading.
      */
     abstract public function readChar(): ?string;
 
     /**
-     * Reads the stream until it finds an end-of-line sequence.
+     * Reads the stream until an end-of-line sequence is found.
      *
-     * @return string|null The data read from the stream or NULL if the end of the stream has been reached.
+     * @return string|null The data read from the stream or null if the end of the stream has been reached.
      * @throws IOException
-     * @throws InvalidOperationException
+     * @throws InvalidOperationException if the stream is closed or does not support reading.
      */
     abstract public function readLine(): ?string;
 
     /**
-     * Read the entire content of the stream to the end.
+     * Reads the remainder of the stream into a string.
      *
      * @return string The data read from the stream.
      * @throws IOException
-     * @throws InvalidOperationException
+     * @throws InvalidOperationException if the stream is closed or does not support reading.
      */
     abstract public function readToEnd(): string;
 
     /**
      * Writes a block of bytes to the stream.
      *
-     * @param string $data The data to be written.
-     * @param int $length The maximum number of bytes to write. If the value is less than zero, writing will stop
-     * until the end of $data is reached.
+     * @param string $data The data to write.
+     * @param int $length The maximum number of bytes to write. If the value is less than zero, writing will stop until
+     *     the end of $data is reached.
      *
      * @return int The number of bytes written.
      * @throws IOException
-     * @throws InvalidOperationException
+     * @throws InvalidOperationException if the stream is closed or does not support writing.
      */
     abstract public function write(string $data, int $length = -1): int;
 
     /**
      * Writes a string to the stream, followed by an end-of-line sequence.
      *
-     * @param string $data The string to be written.
+     * @param string $data The string to write.
      *
-     * @return int The number of bytes written plus the length of the end-of-line sequence.
+     * @return int The number of bytes written, including the length of the end-of-line sequence.
      * @throws IOException
-     * @throws InvalidOperationException
+     * @throws InvalidOperationException if the stream is closed or does not support writing.
      */
     abstract public function writeLine(string $data): int;
 
     /**
-     * Forces all buffered output to be written into the destination pointed by the stream.
+     * Forces any buffered data to be written into the stream.
      *
+     * @return void
      * @throws IOException
+     * @throws InvalidOperationException if the stream is closed or does not support writing.
      */
     abstract public function flush(): void;
 
     /**
      * Closes the stream.
+     *
+     * @return void
      */
     abstract public function close(): void;
 
     /**
-     * Writes the stream contents into another stream. Copying begins at the current position in the stream
-     * and does not reset the position of the destination stream after the copy operation is complete.
+     * Reads the data from the stream and writes it to another stream.
+     * Copying begins at the current position in this stream and does not reset the position of the destination stream
+     * after the copy is complete.
      *
-     * @param Stream $stream The stream to copy the contents of this stream to.
-     * @param int $buffer_size The size of the buffer. This value must be greater than zero.
+     * @param Stream $destination The stream where the copy will be written.
+     * @param int $buffer_size The size of the copy buffer.
      *
+     * @return void
      * @throws IOException
-     * @throws InvalidArgumentException If the buffer size is less than or equal to zero.
-     * @throws InvalidOperationException If the stream is not readable or the destination stream is not writable.
+     * @throws InvalidArgumentException if the buffer size is less than or equal to zero.
+     * @throws InvalidOperationException if the stream is not readable or the destination stream is not writable.
      */
-    public function copyTo(Stream $stream, int $buffer_size = 81920): void
+    public function copyTo(Stream $destination, int $buffer_size = 81920): void
     {
         $this->ensureStreamIsReadable();
-        $stream->ensureStreamIsWritable();
+        $destination->ensureStreamIsWritable();
 
         if ($buffer_size <= 0) {
-            throw new InvalidArgumentException('Buffer size must be greater than zero');
+            throw new InvalidArgumentException(
+                sprintf('Buffer size \'%d\' is not valid. Must be an integer greater than zero', $buffer_size)
+            );
         }
 
         while (!$this->endOfStream()) {
             $bytes_read = $this->read($data, $buffer_size);
-            $stream->write($data, $bytes_read);
+            $destination->write($data, $bytes_read);
         }
     }
 
     /**
-     * Throws an InvalidOperationException if the stream is closed.
+     * Ensures that the stream is open before attempting to execute any operation.
      *
-     * @throws InvalidOperationException
+     * @return void
+     * @throws InvalidOperationException if the stream is closed.
      */
     protected abstract function ensureStreamIsOpen(): void;
 
     /**
-     * Throws an InvalidOperationException if the stream is not readable.
+     * Ensures that the stream is open and is readable before attempting to execute any read operation.
      *
-     * @throws InvalidOperationException
+     * @return void
+     * @throws InvalidOperationException if the stream is closed or does not support writing.
      */
     protected function ensureStreamIsReadable(): void
     {
@@ -202,9 +223,10 @@ abstract class Stream
     }
 
     /**
-     * Throws an InvalidOperationException if the stream is not writable.
+     * Ensures that the stream is open and is writable before attempting to execute any write operation.
      *
-     * @throws InvalidOperationException
+     * @return void
+     * @throws InvalidOperationException if the stream is closed or does not support writing.
      */
     protected function ensureStreamIsWritable(): void
     {

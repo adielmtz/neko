@@ -2,7 +2,7 @@
 namespace Neko\Collections;
 
 /**
- * Represents a node in a LinkedList.
+ * Represents a node in a doubly linked list.
  */
 final class LinkedListNode
 {
@@ -23,7 +23,7 @@ final class LinkedListNode
     }
 
     /**
-     * Gets the linked list that the node belongs to.
+     * Returns the linked list that the node belongs to.
      *
      * @return LinkedList|null
      */
@@ -93,7 +93,7 @@ final class LinkedListNode
     }
 
     /**
-     * Detaches the node from the list.
+     * Detaches the node from its owner list.
      */
     public function detach(): void
     {

@@ -7,7 +7,7 @@ use function array_pop;
 use function array_reverse;
 
 /**
- * Represents a last-in-first-out (LIFO) collection.
+ * Represents a last-in, first-out collection of elements.
  */
 class Stack implements Collection
 {
@@ -30,7 +30,7 @@ class Stack implements Collection
     }
 
     /**
-     * Returns true if the stack is empty.
+     * Returns true if the stack contains no elements.
      *
      * @return bool
      */
@@ -40,7 +40,9 @@ class Stack implements Collection
     }
 
     /**
-     * Removes all values from the stack.
+     * Removes all elements from the stack.
+     *
+     * @return void
      */
     public function clear(): void
     {
@@ -50,9 +52,9 @@ class Stack implements Collection
     }
 
     /**
-     * Returns true if the stack contains the given value.
+     * Returns true if the stack contains a specific element.
      *
-     * @param mixed $value
+     * @param mixed $value The value to search.
      *
      * @return bool
      */
@@ -68,22 +70,24 @@ class Stack implements Collection
     }
 
     /**
-     * Copies the values of the stack to an array.
-     * The values are copied in last-in-first-out (LIFO) order.
+     * Copies the elements of the stack to an array.
+     * The elements of the stack are copied in a last-in, first-out order.
      *
-     * @param array $destination The destination array.
-     * @param int $index The index in $destination at which copy begins.
+     * @param array $array
+     * @param int $index The zero-based index in $array at which copying begins.
+     *
+     * @return void
      */
-    public function copyTo(array &$destination, int $index = 0): void
+    public function copyTo(array &$array, int $index = 0): void
     {
         for ($i = $this->length - 1; $i >= 0; $i--) {
-            $destination[$index++] = $this->items[$i];
+            $array[$index++] = $this->items[$i];
         }
     }
 
     /**
-     * Returns a one-dimension array containing all the values in the stack.
-     * The values are copied in last-in-first-out (LIFO) order.
+     * Returns an array containing all the elements of the stack.
+     * The elements of the stack are copied in a last-in, first-out order.
      *
      * @return array
      */
@@ -93,7 +97,7 @@ class Stack implements Collection
     }
 
     /**
-     * Gets an iterator instance for the stack.
+     * Returns an iterator over the elements in the stack.
      *
      * @return Traversable
      */
@@ -103,7 +107,7 @@ class Stack implements Collection
     }
 
     /**
-     * Returns the number of values in the stack.
+     * Returns the number of elements in the stack.
      *
      * @return int
      */
@@ -113,9 +117,11 @@ class Stack implements Collection
     }
 
     /**
-     * Adds a value at the top of the stack.
+     * Adds an element to the top of the stack.
      *
-     * @param mixed $value The value to push.
+     * @param mixed $value The element to push.
+     *
+     * @return void
      */
     public function push(mixed $value): void
     {
@@ -125,10 +131,10 @@ class Stack implements Collection
     }
 
     /**
-     * Removes and returns the value at the top of the stack.
+     * Retrieves and removes the element at the top of the stack.
      *
      * @return mixed
-     * @throws InvalidOperationException If the stack is empty.
+     * @throws InvalidOperationException if the stack is empty.
      */
     public function pop(): mixed
     {
@@ -142,11 +148,11 @@ class Stack implements Collection
     }
 
     /**
-     * Copies and removes the value at the top of the stack to $result.
+     * Removes the element at the top of the stack and copies it to the $result argument.
      *
      * @param mixed $result The value at the top of the stack.
      *
-     * @return bool Returns true if the stack is not empty.
+     * @return bool True if the element was removed; false if the stack is empty.
      */
     public function tryPop(mixed &$result): bool
     {
@@ -162,10 +168,10 @@ class Stack implements Collection
     }
 
     /**
-     * Returns the value at the top of the stack without removing it.
+     * Returns the element at the top of the stack without removing it.
      *
      * @return mixed
-     * @throws InvalidOperationException If the stack is empty.
+     * @throws InvalidOperationException if the stack is empty.
      */
     public function peek(): mixed
     {
@@ -177,11 +183,11 @@ class Stack implements Collection
     }
 
     /**
-     * Copies the value at the top of the stack to $result.
+     * Retrieves the element at the top of the stack and copies it to the $result argument.
      *
      * @param mixed $result The value at the top of the stack.
      *
-     * @return bool Returns true if the stack is not empty.
+     * @return bool True if there is an element at the top of the stack; false if the stack is empty.
      */
     public function tryPeek(mixed &$result): bool
     {

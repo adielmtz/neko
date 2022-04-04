@@ -6,7 +6,7 @@ use OutOfBoundsException;
 use SeekableIterator;
 
 /**
- * Iterates through the values of a list.
+ * Iterates over the elements of a list.
  */
 final class IndexedListIterator implements SeekableIterator
 {
@@ -26,56 +26,72 @@ final class IndexedListIterator implements SeekableIterator
     }
 
     /**
+     * @param mixed $offset
+     *
+     * @return void
      * @throws InvalidOperationException
      * @throws OutOfBoundsException
      */
     public function seek(mixed $offset): void
     {
         if ($this->current_version !== $this->list_version) {
-            throw new InvalidOperationException('Collection was modified');
+            throw new InvalidOperationException('List was modified');
         }
 
         if ($offset < 0 || $offset >= $this->length) {
-            throw new OutOfBoundsException('Offset was out of bounds. Must be non-negative and less than the length of the list');
+            throw new OutOfBoundsException(
+                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= IndexedList::count())', $offset)
+            );
         }
 
         $this->cursor = $offset;
     }
 
+    /**
+     * @return mixed
+     */
     public function current(): mixed
     {
         return $this->items[$this->cursor];
     }
 
     /**
+     * @return void
      * @throws InvalidOperationException
      */
     public function next(): void
     {
         if ($this->current_version !== $this->list_version) {
-            throw new InvalidOperationException('Collection was modified');
+            throw new InvalidOperationException('List was modified');
         }
 
         $this->cursor++;
     }
 
+    /**
+     * @return int
+     */
     public function key(): int
     {
         return $this->cursor;
     }
 
+    /**
+     * @return bool
+     */
     public function valid(): bool
     {
         return $this->cursor < $this->length;
     }
 
     /**
+     * @return void
      * @throws InvalidOperationException
      */
     public function rewind(): void
     {
         if ($this->current_version !== $this->list_version) {
-            throw new InvalidOperationException('Collection was modified');
+            throw new InvalidOperationException('List was modified');
         }
 
         $this->cursor = 0;

@@ -50,7 +50,7 @@ final class NullStream extends Stream
 
     public function read(?string &$output, int $length): int
     {
-        $output = null;
+        $output = '';
         return 0;
     }
 
@@ -84,10 +84,6 @@ final class NullStream extends Stream
     }
 
     public function close(): void
-    {
-    }
-
-    public function copyTo(Stream $stream, int $buffer_size = 81920): void
     {
     }
 

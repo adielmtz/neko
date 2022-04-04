@@ -31,7 +31,7 @@ use const SEEK_SET;
 final class FileStream extends Stream
 {
     private mixed $handle;
-    private string $file;
+    private string $filename;
     private bool $is_locked = false;
     private bool $can_seek = false;
     private bool $can_read = false;
@@ -40,15 +40,16 @@ final class FileStream extends Stream
     /**
      * FileStream constructor.
      *
-     * @param string $file The path to the file to open.
-     * @param string $mode The open mode (see fopen documentation).
+     * @param string $filename The path to the file to open.
+     * @param string $mode The open mode (see fopen() documentation).
      *
+     * @throws InvalidArgumentException if the file path or open mode is an empty string.
+     * @throws FileNotFoundException if the file cannot be found or does not exist.
      * @throws IOException If the stream cannot be open.
-     * @throws FileNotFoundException If the file doesn't exist or cannot be found.
      */
-    public function __construct(string $file, string $mode)
+    public function __construct(string $filename, string $mode)
     {
-        if ($file === '') {
+        if ($filename === '') {
             throw new InvalidArgumentException('File path cannot be empty');
         }
 
@@ -60,8 +61,8 @@ final class FileStream extends Stream
             case 'r':
                 $this->can_read = true;
                 $this->can_write = str_contains($mode, '+');
-                if (!file_exists($file)) {
-                    throw new FileNotFoundException("Cannot find file $file");
+                if (!file_exists($filename)) {
+                    throw new FileNotFoundException("Could not find file '$filename'");
                 }
                 break;
             case 'w':
@@ -75,12 +76,14 @@ final class FileStream extends Stream
                 throw new InvalidArgumentException("Mode '$mode' is not a valid mode");
         }
 
-        $this->handle = @fopen($file, $mode);
+        $this->handle = @fopen($filename, $mode);
         if ($this->handle === false) {
-            IOException::throwFromLastError();
+            IOException::throwFromLastError(
+                sprintf('fopen(%s, %s) failed', $filename, $mode)
+            );
         }
 
-        $this->file = $file;
+        $this->filename = $filename;
         $this->can_seek = stream_get_meta_data($this->handle)['seekable'];
     }
 
@@ -115,20 +118,20 @@ final class FileStream extends Stream
     }
 
     /**
-     * Returns the file name from the stream.
+     * Returns the path of the file opened by the stream.
      *
      * @return string
      */
     public function getFileName(): string
     {
-        return $this->file;
+        return $this->filename;
     }
 
     /**
-     * Returns true if the current position is at the end of the stream.
+     * Returns true if the current position in the stream equals the end of file.
      *
      * @return bool
-     * @throws InvalidOperationException If the stream is closed.
+     * @throws InvalidOperationException if the stream is closed.
      */
     public function endOfStream(): bool
     {
@@ -137,38 +140,42 @@ final class FileStream extends Stream
     }
 
     /**
-     * Gets the stream size in bytes.
+     * Returns the size of the stream in bytes.
      *
      * @return int
-     * @throws IOException If fstat failed.
-     * @throws InvalidOperationException If the stream is closed or the stream is not readable.
+     * @throws IOException if fstat failed.
+     * @throws InvalidOperationException if the stream is closed or the stream does not support seeking.
      */
     public function getSize(): int
     {
-        $this->ensureStreamIsReadable();
+        $this->ensureStreamIsSeekable();
         $stat = @fstat($this->handle);
         if ($stat === false) {
-            throw new IOException('stat failed: ' . $this->file);
+            IOException::throwFromLastError(
+                sprintf('fstat(%s) failed', $this->filename)
+            );
         }
 
         return $stat['size'];
     }
 
     /**
-     * Sets the size of the stream.
+     * Sets the size, in bytes, of the stream.
      *
-     * @param int $size The new size. If the new size is less than the current size, the stream will be truncated.
+     * @param int $size The new size.
      *
+     * @return void
      * @throws IOException
-     * @throws InvalidOperationException If the stream is closed or the stream is not writable.
+     * @throws InvalidArgumentException if the size is less than zero.
+     * @throws InvalidOperationException if the stream is closed or the stream does not support seeking.
      */
     public function setSize(int $size): void
     {
         if ($size < 0) {
-            throw new InvalidArgumentException('Size must be greater than or equal to 0');
+            throw new InvalidArgumentException('Stream size must be greater than or equal to 0');
         }
 
-        $this->ensureStreamIsWritable();
+        $this->ensureStreamIsSeekable();
         if (ftruncate($this->handle, $size)) {
             if ($this->getPosition() > $size) {
                 $this->seek($size, SEEK_SET);
@@ -181,7 +188,7 @@ final class FileStream extends Stream
      *
      * @return int
      *
-     * @throws InvalidOperationException If the stream is closed or the stream is not seekable.
+     * @throws InvalidOperationException if the stream is closed or the stream does not support seeking.
      */
     public function getPosition(): int
     {
@@ -190,12 +197,13 @@ final class FileStream extends Stream
     }
 
     /**
-     * Sets the position in the stream.
+     * Sets the current position in the stream to the given value.
      *
-     * @param int $position The new position
+     * @param int $position The position in the stream.
      *
-     * @throws IOException If fseek failed.
-     * @throws InvalidOperationException If the stream is closed or the stream is not seekable.
+     * @return void
+     * @throws IOException if fseek failed.
+     * @throws InvalidOperationException if the stream is closed or the stream does not support seeking.
      */
     public function setPosition(int $position): void
     {
@@ -203,11 +211,31 @@ final class FileStream extends Stream
     }
 
     /**
-     * Locks the file read and write operations.
+     * Sets the current position in the stream, relative to $whence.
+     *
+     * @param int $offset The position relative to $whence from which to begin seeking.
+     * @param int $whence SEEK_SET, SEEK_CUR, or SEEK_END.
+     *
+     * @return void
+     * @throws IOException if fseek failed
+     * @throws InvalidOperationException if the stream is closed.
+     */
+    public function seek(int $offset, int $whence): void
+    {
+        $this->ensureStreamIsSeekable();
+        if (@fseek($this->handle, $offset, $whence) === -1) {
+            IOException::throwFromLastError(
+                sprintf('fseek(%s) failed', $this->filename)
+            );
+        }
+    }
+
+    /**
+     * Locks the file using a read/write lock.
      *
      * @param bool $no_block True to avoid blocking while attempting to lock the file.
      *
-     * @return bool True if the file was locked; False otherwise.
+     * @return bool True if the file was locked successfully; otherwise, false.
      * @throws InvalidOperationException If the stream is closed.
      */
     public function lock(bool $no_block = false): bool
@@ -226,7 +254,7 @@ final class FileStream extends Stream
     }
 
     /**
-     * Unlocks the file.
+     * Releases the read/write lock from the file.
      *
      * @throws InvalidOperationException If the stream is closed.
      */
@@ -235,44 +263,28 @@ final class FileStream extends Stream
         if ($this->is_locked) {
             $this->ensureStreamIsOpen();
             flock($this->handle, LOCK_UN);
+            $this->is_locked = false;
         }
     }
 
     /**
-     * Seeks on the stream.
-     *
-     * @param int $offset The new position within the stream, relative to $whence value.
-     * @param int $whence The seek reference point.
-     *
-     * @throws IOException If fseek failed.
-     * @throws InvalidOperationException If the stream is closed or the stream is not seekable.
-     */
-    public function seek(int $offset, int $whence): void
-    {
-        $this->ensureStreamIsSeekable();
-        if (fseek($this->handle, $offset, $whence) === -1) {
-            throw new IOException('failed to seek: ' . $this->file);
-        }
-    }
-
-    /**
-     * Reads a block of bytes from the stream.
+     * Reads a block of bytes from the stream into the $output argument.
      *
      * @param string|null $output The data read from the stream.
-     * @param int $length The maximum number of bytes to read. This value must be greater than zero.
+     * @param int $length The maximum number of bytes to read.
      *
      * @return int The number of bytes read.
-     * @throws InvalidArgumentException If $length is less than or equal to zero.
-     * @throws InvalidOperationException If the stream is closed or the stream is not readable.
+     * @throws InvalidArgumentException if the read length is less than or equal to zero.
+     * @throws InvalidOperationException if the stream is closed or does not support reading.
      */
     public function read(?string &$output, int $length): int
     {
         $this->ensureStreamIsReadable();
         if ($length <= 0) {
-            throw new InvalidArgumentException('Length must be greater than 0');
+            throw new InvalidArgumentException('Read length must be greater than 0');
         }
 
-        $data = fread($this->handle, $length);
+        $data = @fread($this->handle, $length);
         if ($data === false) {
             $output = '';
             return 0;
@@ -285,52 +297,52 @@ final class FileStream extends Stream
     /**
      * Reads a char from the stream.
      *
-     * @return string|null The read char or NULL if the end of the stream has been reached.
-     * @throws InvalidOperationException If the stream is closed or the stream is not readable.
+     * @return string|null The read character or null if the end of the stream has been reached.
+     * @throws InvalidOperationException if the stream is closed or does not support reading.
      */
     public function readChar(): ?string
     {
         $this->ensureStreamIsReadable();
-        $c = fgetc($this->handle);
+        $c = @fgetc($this->handle);
         return $c === false ? null : $c;
     }
 
     /**
-     * Reads the stream until it finds an end-of-line sequence.
+     * Reads the stream until an end-of-line sequence is found.
      *
-     * @return string|null The data read from the stream or NULL if the end of the stream has been reached.
-     * @throws InvalidOperationException If the stream is closed or stream is not readable.
+     * @return string|null The data read from the stream or null if the end of the stream has been reached.
+     * @throws InvalidOperationException if the stream is closed or does not support reading.
      */
     public function readLine(): ?string
     {
         $this->ensureStreamIsReadable();
-        $data = fgets($this->handle);
+        $data = @fgets($this->handle);
         return $data === false ? null : $data;
     }
 
     /**
-     * Read the entire content of the stream to the end.
+     * Reads the remainder of the stream into a string.
      *
-     * @return string A string containing the read data.
-     * @throws InvalidOperationException If the stream is closed or the stream is not readable.
+     * @return string The data read from the stream.
+     * @throws InvalidOperationException if the stream is closed or does not support reading.
      */
     public function readToEnd(): string
     {
         $this->ensureStreamIsReadable();
-        $data = stream_get_contents($this->handle);
+        $data = @stream_get_contents($this->handle);
         return $data === false ? '' : $data;
     }
 
     /**
      * Writes a block of bytes to the stream.
      *
-     * @param string $data The data to be written.
-     * @param int $length The maximum number of bytes to write. If the value is less than zero, writing will stop
-     * until the end of $data is reached.
+     * @param string $data The data to write.
+     * @param int $length The maximum number of bytes to write. If the value is less than zero, writing will stop until
+     *     the end of $data is reached.
      *
      * @return int The number of bytes written.
-     * @throws IOException If fwrite failed.
-     * @throws InvalidOperationException If the stream is closed or the stream is not writable.
+     * @throws IOException if fwrite failed.
+     * @throws InvalidOperationException if the stream is closed or does not support writing.
      */
     public function write(string $data, int $length = -1): int
     {
@@ -339,20 +351,22 @@ final class FileStream extends Stream
         $bytes = fwrite($this->handle, $data, $length);
 
         if ($bytes === false) {
-            throw new IOException('fwrite failed: ' . $this->file);
+            IOException::throwFromLastError(
+                sprintf('fwrite(%s, ..., %d) failed', $this->filename, $length)
+            );
         }
 
         return $bytes;
     }
 
     /**
-     * Writes string to the stream, followed by an end-of-line sequence.
+     * Writes a string to the stream, followed by an end-of-line sequence.
      *
-     * @param string $data The string to be written.
+     * @param string $data The string to write.
      *
-     * @return int
-     * @throws IOException If fwrite failed.
-     * @throws InvalidOperationException If the stream is closed or the stream is not writable.
+     * @return int The number of bytes written, including the length of the end-of-line sequence.
+     * @throws IOException if fwrite failed.
+     * @throws InvalidOperationException if the stream is closed or does not support writing.
      */
     public function writeLine(string $data): int
     {
@@ -360,9 +374,10 @@ final class FileStream extends Stream
     }
 
     /**
-     * Forces any buffered data to be written to the file.
+     * Forces any buffered data to be written into the stream.
      *
-     * @throws InvalidOperationException If the stream is closed or the stream is not writable.
+     * @return void
+     * @throws InvalidOperationException if the stream is closed or does not support writing.
      */
     public function flush(): void
     {
@@ -372,6 +387,8 @@ final class FileStream extends Stream
 
     /**
      * Closes the stream.
+     *
+     * @return void
      */
     public function close(): void
     {
@@ -385,9 +402,10 @@ final class FileStream extends Stream
     }
 
     /**
-     * Throws an InvalidOperationException if the stream is closed.
+     * Ensures that the stream is open before attempting to execute any operation.
      *
-     * @throws InvalidOperationException
+     * @return void
+     * @throws InvalidOperationException if the stream is closed.
      */
     protected function ensureStreamIsOpen(): void
     {
@@ -397,9 +415,10 @@ final class FileStream extends Stream
     }
 
     /**
-     * Throws NotSupportedException if the stream is not seekable.
+     * Ensures that the stream is open and is seekable before attempting to execute any seek operation.
      *
-     * @throws InvalidOperationException
+     * @return void
+     * @throws InvalidOperationException if the stream is closed or does not support seeking.
      */
     private function ensureStreamIsSeekable(): void
     {

@@ -8,8 +8,12 @@ use Traversable;
 use function array_key_exists;
 use function function_exists;
 use function gettype;
+use function is_object;
 use function spl_object_hash;
 
+/**
+ * Represents a collection of keys and values.
+ */
 final class Dictionary implements ArrayAccess, KeyValuePairCollection
 {
     /**
@@ -29,7 +33,9 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     public function __construct(?iterable $items = null)
     {
         if (!function_exists('spl_object_hash')) {
-            throw new NotSupportedException('Dictionary class requires spl_object_hash function');
+            throw new NotSupportedException(
+                'Dictionary class requires spl_object_hash() function which is not available for this PHP installation'
+            );
         }
 
         if ($items !== null) {
@@ -40,7 +46,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     }
 
     /**
-     * Returns true if the dictionary is empty.
+     * Returns true if the dictionary contains no entries.
      *
      * @return bool
      */
@@ -50,7 +56,9 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     }
 
     /**
-     * Removes all values from the dictionary.
+     * Removes all entries from the dictionary.
+     *
+     * @return void
      */
     public function clear(): void
     {
@@ -60,7 +68,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     }
 
     /**
-     * Returns true if the dictionary contains the given value.
+     * Returns true if the dictionary contains a specific entry.
      *
      * @param mixed $value The value to search.
      *
@@ -80,11 +88,12 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     }
 
     /**
-     * Returns true if the collection contains the specified key.
+     * Returns true if the dictionary contains a specific key.
      *
      * @param mixed $key The key to search.
      *
      * @return bool
+     * @throws InvalidArgumentException if the key is of type array or a resource.
      */
     public function containsKey(mixed $key): bool
     {
@@ -93,7 +102,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     }
 
     /**
-     * Returns true if the collection contains the specified value.
+     * Returns true if the dictionary contains a specific value.
      *
      * @param mixed $value The value to search.
      *
@@ -113,18 +122,20 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     /**
      * Copies the entries of the dictionary to an array.
      *
-     * @param array $destination The destination array.
-     * @param int $index The index in $destination at which copy begins.
+     * @param array $array
+     * @param int $index The zero-based index in $array at which copying begins.
+     *
+     * @return void
      */
-    public function copyTo(array &$destination, int $index = 0): void
+    public function copyTo(array &$array, int $index = 0): void
     {
         foreach ($this->entries as $entry) {
-            $destination[$index++] = $entry;
+            $array[$index++] = $entry;
         }
     }
 
     /**
-     * Returns a one-dimension array containing all the entries in the collection.
+     * Returns an array containing all the entries of the dictionary.
      *
      * @return array
      */
@@ -136,7 +147,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     }
 
     /**
-     * Gets an iterator instance for the list.
+     * Returns an iterator over the entries in the list.
      *
      * @return Traversable
      */
@@ -146,7 +157,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     }
 
     /**
-     * Returns the number of values in the dictionary.
+     * Returns the number of entries in the list.
      *
      * @return int
      */
@@ -156,7 +167,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     }
 
     /**
-     * Gets an array with the collection keys.
+     * Returns an array containing all the keys of the dictionary.
      *
      * @return array
      */
@@ -170,7 +181,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     }
 
     /**
-     * Gets an array with the collection values.
+     * Returns an array containing all the values of the dictionary.
      *
      * @return array
      */
@@ -184,19 +195,26 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     }
 
     /**
-     * Adds a key and value to the dictionary.
-     * Throws an exception if a value with the specified key already exists.
+     * Adds a key and a value pair to the dictionary.
      *
-     * @param mixed $key The key to add.
-     * @param mixed $value The value add.
+     * @param mixed $key The key that maps to the value.
+     * @param mixed $value The value of the element to add.
      *
-     * @throws InvalidArgumentException
+     * @return void
+     * @throws InvalidArgumentException if the key is of type array or a resource or the key already exists in the
+     *     dictionary.
      */
     public function add(mixed $key, mixed $value): void
     {
         $arrayKey = self::createValidArrayKey($key);
         if (array_key_exists($arrayKey, $this->entries)) {
-            throw new InvalidArgumentException('The key already exists');
+            if (is_object($key)) {
+                $key = $key::class;
+            }
+
+            throw new InvalidArgumentException(
+                sprintf('Key \'%s\' exists in the dictionary', $key)
+            );
         }
 
         $entry = new KeyValuePair();
@@ -208,32 +226,38 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     }
 
     /**
-     * Gets the value associated to the specified key.
+     * Returns the value associated to the specified key.
      *
-     * @param mixed $key The key of the value to get.
+     * @param mixed $key The key associated with the value to return.
      *
      * @return mixed
-     * @throws KeyNotFoundException If the key is not found in the dictionary.
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException if the key is of type array or a resource.
+     * @throws KeyNotFoundException if the key does not exist in the dictionary.
      */
     public function get(mixed $key): mixed
     {
         $arrayKey = self::createValidArrayKey($key);
         if (!array_key_exists($arrayKey, $this->entries)) {
-            throw new KeyNotFoundException('The given key was not found in the dictionary');
+            if (is_object($key)) {
+                $key = $key::class;
+            }
+
+            throw new KeyNotFoundException(
+                sprintf('Key \'%s\' was not found in the dictionary', $key)
+            );
         }
 
         return $this->entries[$arrayKey]->getValue();
     }
 
     /**
-     * Sets the value associated to the specified key.
+     * Replaces the value associated to the specified key or sets a new key and value pair to the dictionary.
      *
-     * @param mixed $key The key of the value to set.
-     * @param mixed $value The value associated to the specified key.
+     * @param mixed $key The key of the value to set or replace.
+     * @param mixed $value The value of the element to set or replace.
      *
      * @return void
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException if the key is of type array or a resource.
      */
     public function set(mixed $key, mixed $value): void
     {
@@ -252,12 +276,12 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     }
 
     /**
-     * Removes the value associated to the specified key in the collection.
+     * Removes the value associated to the specified key.
      *
-     * @param mixed $key The key of the value to remove.
+     * @param mixed $key The key associated with the value to remove.
      *
-     * @return bool True if the value was removed, false otherwise (key not found).
-     * @throws InvalidArgumentException
+     * @return bool True if the element existed and was removed; otherwise, false.
+     * @throws InvalidArgumentException if the key is of type array or a resource.
      */
     public function remove(mixed $key): bool
     {
@@ -273,7 +297,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     }
 
     /**
-     * Returns a new dictionary with the keys and values exchanged.
+     * Returns a new dictionary containing the entries of the dictionary by exchanging the keys with the values.
      *
      * @return Dictionary
      */
@@ -289,27 +313,6 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
         }
 
         return $flipped;
-    }
-
-    /**
-     * Creates a string or int that can be used as array key.
-     *
-     * @param mixed $keyValue The original key to process.
-     *
-     * @return string|int The array key.
-     * @throws InvalidArgumentException If the key is of an invalid type.
-     */
-    private static function createValidArrayKey(mixed $keyValue): string|int
-    {
-        $type = gettype($keyValue);
-        return match ($type) {
-            'integer' => $keyValue,
-            'boolean' => 'b:' . $keyValue ? 'true' : 'false',
-            'string' => 's:' . $keyValue,
-            'double' => 'f:' . $keyValue,
-            'object' => 'o:' . spl_object_hash($keyValue),
-            default => throw new InvalidArgumentException("Value of type $type is not a valid key"),
-        };
     }
 
     #region ArrayAccess methods
@@ -333,4 +336,25 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
         $this->remove($offset);
     }
     #endregion
+
+    /**
+     * Returns a string or integers that can be used as a key for an array.
+     *
+     * @param mixed $keyValue The original key to process.
+     *
+     * @return string|int The array key.
+     * @throws InvalidArgumentException if the key is of type array or a resource.
+     */
+    private static function createValidArrayKey(mixed $keyValue): string|int
+    {
+        $type = gettype($keyValue);
+        return match ($type) {
+            'integer' => $keyValue,
+            'boolean' => 'b:' . $keyValue ? 'true' : 'false',
+            'string' => 's:' . $keyValue,
+            'double' => 'f:' . $keyValue,
+            'object' => 'o:' . spl_object_hash($keyValue),
+            default => throw new InvalidArgumentException("Value of type $type is not a valid key"),
+        };
+    }
 }

@@ -5,7 +5,7 @@ use Iterator;
 use Neko\InvalidOperationException;
 
 /**
- * Iterates through the values of a stack in last-in-first-out order.
+ * Iterates over the elements of a stack collection.
  */
 final class StackIterator implements Iterator
 {
@@ -25,43 +25,52 @@ final class StackIterator implements Iterator
         $this->current_version = $version;
     }
 
+    /**
+     * @return mixed
+     */
     public function current(): mixed
     {
         return $this->items[$this->cursor];
     }
 
     /**
+     * @return void
      * @throws InvalidOperationException
      */
     public function next(): void
     {
         if ($this->current_version !== $this->stack_version) {
-            throw new InvalidOperationException('Collection was modified');
+            throw new InvalidOperationException('Stack was modified');
         }
 
         $this->cursor--;
     }
 
     /**
+     * @return mixed
      * @throws InvalidOperationException
      */
-    public function key(): void
+    public function key(): mixed
     {
         throw new InvalidOperationException('Accessing the key is not valid for a stack collection');
     }
 
+    /***
+     * @return bool
+     */
     public function valid(): bool
     {
         return $this->cursor >= 0;
     }
 
     /**
+     * @return void
      * @throws InvalidOperationException
      */
     public function rewind(): void
     {
         if ($this->current_version !== $this->stack_version) {
-            throw new InvalidOperationException('Collection was modified');
+            throw new InvalidOperationException('Stack was modified');
         }
 
         $this->cursor = $this->length - 1;

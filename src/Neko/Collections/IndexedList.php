@@ -4,80 +4,88 @@ namespace Neko\Collections;
 use OutOfBoundsException;
 
 /**
- * Defines a collection of values that can be individually accessed by an index.
+ * Defines an ordered collection of elements that can be accessed by index.
  */
 interface IndexedList extends Collection
 {
     /**
-     * Adds a value at the end of the list.
+     * Adds an element to the end of the list.
      *
-     * @param mixed $value
+     * @param mixed $value The element to add to the list.
+     *
+     * @return void
      */
     public function add(mixed $value): void;
 
     /**
-     * Gets the value at the specified position in the list.
+     * Returns the element at the specified index.
      *
-     * @param int $index The zero-based index of the value to return.
+     * @param int $index The zero-based index of the element to return.
      *
      * @return mixed
-     * @throws OutOfBoundsException
+     * @throws OutOfBoundsException if the index is out of range.
      */
     public function get(int $index): mixed;
 
     /**
-     * Sets a value at the specified position in the list.
+     * Replaces the element at the specified index with a different element.
      *
-     * @param int $index The zero-based index in the list.
-     * @param mixed $value The value to set.
+     * @param int $index The zero-based index of the element to replace.
+     * @param mixed $value The new element.
      *
-     * @throws OutOfBoundsException
+     * @return void
+     * @throws OutOfBoundsException if the index is out of range.
      */
     public function set(int $index, mixed $value): void;
 
     /**
-     * Inserts a value at the specified position in the list.
+     * Inserts an element at the specified index.
      *
-     * @param int $index The zero-based index at which the value will be inserted.
-     * @param mixed $value The value to insert.
+     * @param int $index The zero-based index at which the element should be inserted.
+     * If the index is equal to the size of the list, the element is added to the end of the list.
+     * @param mixed $value The element to insert.
      *
-     * @throws OutOfBoundsException
+     * @return void
+     * @throws OutOfBoundsException if the index is out of range.
      */
     public function insert(int $index, mixed $value): void;
 
     /**
-     * Removes the first occurrence of the value in the list.
+     * Removes the first occurrence of an element in the list.
      *
-     * @param mixed $value The value to remove.
+     * @param mixed $value The element to remove.
      *
-     * @return bool Returns true if the value was found and removed from the list.
+     * @return bool True if the element existed and was removed; otherwise, false.
      */
     public function remove(mixed $value): bool;
 
     /**
-     * Removes the value at the specified position in the list.
+     * Removes the element at the specified index.
      *
-     * @param int $index The zero-based index of the value to be removed.
+     * @param int $index The zero-based index of the element to remove.
      *
-     * @throws OutOfBoundsException
+     * @return void
+     * @throws OutOfBoundsException if the index is out of range.
      */
     public function removeAt(int $index): void;
 
     /**
-     * Returns the zero-base index of the first occurrence of the given value.
+     * Returns the zero-based index of the first occurrence of the element in the list.
      *
-     * @param mixed $value The value to search.
+     * @param mixed $value The element to search.
      *
-     * @return int The index in the list or -1 if the value was not found.
+     * @return int The zero-based index of the first occurrence of the element or -1 if the list does not
+     * contain the element.
      */
     public function indexOf(mixed $value): int;
 
     /**
-     * Returns the zero-base index of the last occurrence of the given value.
+     * Returns the zero-based index of the last occurrence of the element in the list.
      *
-     * @param mixed $value The value to search.
+     * @param mixed $value The element to search.
      *
-     * @return int The index in the list or -1 if the value was not found.
+     * @return int The zero-based index of the last occurrence of the element or -1 if the list does not
+     * contain the element.
      */
     public function lastIndexOf(mixed $value): int;
 }

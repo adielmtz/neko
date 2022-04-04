@@ -7,6 +7,9 @@ use function current;
 use function next;
 use function reset;
 
+/**
+ * Iterates over the entries of a dictionary.
+ */
 final class KeyValuePairIterator implements Iterator
 {
     /**
@@ -23,12 +26,16 @@ final class KeyValuePairIterator implements Iterator
         $this->current_version = $version;
     }
 
+    /**
+     * @return mixed
+     */
     public function current(): mixed
     {
         return current($this->entries)->getValue();
     }
 
     /**
+     * @return void
      * @throws InvalidOperationException
      */
     public function next(): void
@@ -40,11 +47,18 @@ final class KeyValuePairIterator implements Iterator
         next($this->entries);
     }
 
+    /**
+     * @return mixed
+     */
     public function key(): mixed
     {
         return current($this->entries)->getKey();
     }
 
+    /**
+     * @return bool
+     * @throws InvalidOperationException
+     */
     public function valid(): bool
     {
         if ($this->current_version !== $this->map_version) {
@@ -55,6 +69,7 @@ final class KeyValuePairIterator implements Iterator
     }
 
     /**
+     * @return void
      * @throws InvalidOperationException
      */
     public function rewind(): void
@@ -62,6 +77,7 @@ final class KeyValuePairIterator implements Iterator
         if ($this->current_version !== $this->map_version) {
             throw new InvalidOperationException('Collection was modified');
         }
+
         reset($this->entries);
     }
 }
