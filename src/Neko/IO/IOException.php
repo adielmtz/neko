@@ -16,7 +16,7 @@ class IOException extends Exception
      *
      * @throws IOException
      */
-    public static function throwFromLastError(): IOException
+    public static function throwFromLastError(): void
     {
         $error = error_get_last();
         $message = '';
