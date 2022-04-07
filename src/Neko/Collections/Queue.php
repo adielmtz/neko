@@ -99,10 +99,18 @@ class Queue implements Collection
      * Returns an iterator over the elements in the queue.
      *
      * @return Traversable
+     * @throws InvalidOperationException
      */
     public function getIterator(): Traversable
     {
-        return new QueueIterator($this->items, $this->length, $this->head, $this->version);
+        $version = $this->version;
+        foreach ($this->items as $item) {
+            yield $item;
+
+            if ($version !== $this->version) {
+                throw new InvalidOperationException('Queue was modified');
+            }
+        }
     }
 
     /**

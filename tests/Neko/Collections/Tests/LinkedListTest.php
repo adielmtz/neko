@@ -21,6 +21,29 @@ final class LinkedListTest extends TestCase
         $this->list->add('E'); // 4
     }
 
+    public function testIterator(): void
+    {
+        $items = ['A', 'B', 'C', 'D', 'E'];
+        $index = 0;
+
+        foreach ($this->list as $i => $value) {
+            $this->assertSame($index, $i);
+            $this->assertSame($items[$index], $value);
+            $index++;
+        }
+    }
+
+    public function testIteratorThrowsExceptionIfTheCollectionIsModified(): void
+    {
+        $this->expectException(InvalidOperationException::class);
+
+        foreach ($this->list as $value) {
+            if ($value === 'B') {
+                $this->list->add('Z');
+            }
+        }
+    }
+
     public function testClear(): void
     {
         $this->list->clear();

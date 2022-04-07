@@ -2,7 +2,9 @@
 namespace Neko\IO\Tests;
 
 use Neko\InvalidOperationException;
+use Neko\IO\FileNotFoundException;
 use Neko\IO\FileStream;
+use Neko\IO\IOException;
 use PHPUnit\Framework\TestCase;
 use function strlen;
 use function unlink;
@@ -43,6 +45,18 @@ final class FileStreamTest extends TestCase
         $this->assertTrue($this->disposableStream->canRead());
         $this->assertTrue($this->disposableStream->canWrite());
         $this->assertTrue($this->disposableStream->canSeek());
+    }
+
+    public function testFileStreamThrowsFileNotFoundExceptionWhenOpenModeIsRAndTheFileDoesNotExist(): void
+    {
+        $this->expectException(FileNotFoundException::class);
+        $stream = new FileStream('unknown-filename-foo-bar.txt', 'r+b');
+    }
+
+    public function testFileStreamThrowsIOExceptionWhenOpenModeIsXAndTheFileAlreadyExist(): void
+    {
+        $this->expectException(IOException::class);
+        $stream = new FileStream(__FILE__, 'x+b');
     }
 
     public function testBasicStreamClosed(): void

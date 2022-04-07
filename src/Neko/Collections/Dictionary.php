@@ -3,6 +3,7 @@ namespace Neko\Collections;
 
 use ArrayAccess;
 use InvalidArgumentException;
+use Neko\InvalidOperationException;
 use Neko\NotSupportedException;
 use Traversable;
 use function array_key_exists;
@@ -151,10 +152,18 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
      * Returns an iterator over the entries in the list.
      *
      * @return Traversable
+     * @throws InvalidOperationException
      */
     public function getIterator(): Traversable
     {
-        return new KeyValuePairIterator($this->entries, $this->version);
+        $version = $this->version;
+        foreach ($this->entries as $entry) {
+            yield $entry->getKey() => $entry->getValue();
+
+            if ($version !== $this->version) {
+                throw new InvalidOperationException('Dictionary was modified');
+            }
+        }
     }
 
     /**

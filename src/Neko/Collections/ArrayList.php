@@ -102,10 +102,18 @@ class ArrayList implements ArrayAccess, ListCollection
      * Returns an iterator over the elements in the list.
      *
      * @return Traversable
+     * @throws InvalidOperationException
      */
     public function getIterator(): Traversable
     {
-        return new ListCollectionIterator($this->items, $this->length, $this->version);
+        $version = $this->version;
+        for ($i = 0; $i < $this->length; $i++) {
+            yield $this->items[$i];
+
+            if ($version !== $this->version) {
+                throw new InvalidOperationException('List was modified');
+            }
+        }
     }
 
     /**

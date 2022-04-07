@@ -25,6 +25,17 @@ final class ArrayListTest extends TestCase
         $this->list->add('E'); // 4
     }
 
+    public function testIteratorThrowsExceptionIfTheListIsModified(): void
+    {
+        $this->expectException(InvalidOperationException::class);
+
+        foreach ($this->list as $char) {
+            if ($char === 'C') {
+                $this->list->add('D');
+            }
+        }
+    }
+
     public function testClear(): void
     {
         $this->list->clear();

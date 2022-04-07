@@ -7,6 +7,22 @@ use PHPUnit\Framework\TestCase;
 
 final class QueueTest extends TestCase
 {
+    public function testIteratorThrowsExceptionIfTheCollectionIsModified(): void
+    {
+        $this->expectException(InvalidOperationException::class);
+        $queue = new Queue();
+        $queue->enqueue('A');
+        $queue->enqueue('B');
+        $queue->enqueue('C');
+        $queue->enqueue('D');
+
+        foreach ($queue as $char) {
+            if ($char === 'D') {
+                $queue->enqueue('D');
+            }
+        }
+    }
+
     public function testEmpty(): Queue
     {
         $queue = new Queue();

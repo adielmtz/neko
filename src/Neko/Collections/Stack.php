@@ -100,10 +100,18 @@ class Stack implements Collection
      * Returns an iterator over the elements in the stack.
      *
      * @return Traversable
+     * @throws InvalidOperationException
      */
     public function getIterator(): Traversable
     {
-        return new StackIterator($this->items, $this->length, $this->version);
+        $version = $this->version;
+        for ($i = $this->length - 1; $i >= 0; $i--) {
+            yield $this->items[$i];
+
+            if ($version !== $this->version) {
+                throw new InvalidOperationException('Stack was modified');
+            }
+        }
     }
 
     /**

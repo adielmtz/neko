@@ -133,10 +133,22 @@ class LinkedList implements ListCollection
      * Returns an iterator over the elements in the list.
      *
      * @return Traversable
+     * @throws InvalidOperationException
      */
     public function getIterator(): Traversable
     {
-        return new LinkedListIterator($this->head, $this->length, $this->version);
+        $version = $this->version;
+        $node = $this->head;
+        if ($node !== null) {
+            do {
+                yield $node->getValue();
+                $node = $node->getNext();
+
+                if ($version !== $this->version) {
+                    throw new InvalidOperationException('List was modified');
+                }
+            } while ($node !== $this->head);
+        }
     }
 
     /**

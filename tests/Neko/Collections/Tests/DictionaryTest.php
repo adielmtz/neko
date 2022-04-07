@@ -4,6 +4,7 @@ namespace Neko\Collections\Tests;
 use InvalidArgumentException;
 use Neko\Collections\Dictionary;
 use Neko\Collections\KeyNotFoundException;
+use Neko\InvalidOperationException;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use function fclose;
@@ -34,6 +35,17 @@ final class DictionaryTest extends TestCase
         $this->dictionary->set(30, 'thirty');
         $this->dictionary->set(40, 'forty');
         $this->dictionary->set(50, 'fifty');
+    }
+
+    public function testIteratorThrowsExceptionIfTheCollectionIsModified(): void
+    {
+        $this->expectException(InvalidOperationException::class);
+
+        foreach ($this->dictionary as $key => $value) {
+            if ($value === 'c') {
+                $this->dictionary->set($key, 'C');
+            }
+        }
     }
 
     public function testEmpty(): void

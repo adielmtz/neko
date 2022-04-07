@@ -7,6 +7,21 @@ use PHPUnit\Framework\TestCase;
 
 final class StackTest extends TestCase
 {
+    public function testIteratorThrowsExceptionIfTheCollectionIsModified(): void
+    {
+        $this->expectException(InvalidOperationException::class);
+        $stack = new Stack();
+        $stack->push('A');
+        $stack->push('B');
+        $stack->push('C');
+
+        foreach ($stack as $char) {
+            if ($char === 'A') {
+                $stack->push('D');
+            }
+        }
+    }
+
     public function testEmpty(): Stack
     {
         $stack = new Stack();
