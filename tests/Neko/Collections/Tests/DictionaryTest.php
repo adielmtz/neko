@@ -6,8 +6,10 @@ use Neko\Collections\Dictionary;
 use Neko\Collections\KeyNotFoundException;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use function fclose;
 use function fopen;
 use function function_exists;
+use function is_resource;
 use const M_PI;
 
 final class DictionaryTest extends TestCase
@@ -128,9 +130,15 @@ final class DictionaryTest extends TestCase
 
     public function testSetThrowsExceptionWithResourceAsKey(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        $res = fopen('php://memory', 'w+b');
-        $this->dictionary->set($res, 0);
+        try {
+            $this->expectException(InvalidArgumentException::class);
+            $res = fopen('php://memory', 'w+b');
+            $this->dictionary->set($res, 0);
+        } finally {
+            if (isset($res) && is_resource($res)) {
+                fclose($res);
+            }
+        }
     }
 
     public function testRemove(): void

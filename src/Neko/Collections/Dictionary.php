@@ -10,6 +10,7 @@ use function function_exists;
 use function gettype;
 use function is_object;
 use function spl_object_hash;
+use function sprintf;
 
 /**
  * Represents a collection of keys and values.
@@ -177,6 +178,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
         foreach ($this->entries as $entry) {
             $keys[] = $entry->getKey();
         }
+
         return $keys;
     }
 
@@ -191,6 +193,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
         foreach ($this->entries as $entry) {
             $values[] = $entry->getValue();
         }
+
         return $values;
     }
 

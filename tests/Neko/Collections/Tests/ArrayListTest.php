@@ -8,6 +8,8 @@ use PHPUnit\Framework\TestCase;
 use function implode;
 use function ord;
 use function range;
+use function str_shuffle;
+use function str_split;
 
 final class ArrayListTest extends TestCase
 {

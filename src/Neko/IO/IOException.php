@@ -2,12 +2,11 @@
 namespace Neko\IO;
 
 use Exception;
-use Throwable;
 use function error_clear_last;
 use function error_get_last;
 
 /**
- * This exception is thrown then an IO error occurs.
+ * This exception is thrown when an IO error occurs.
  */
 class IOException extends Exception
 {
@@ -30,10 +29,5 @@ class IOException extends Exception
         }
 
         throw new IOException($message, $code);
-    }
-
-    public function __construct(string $message = '', int $code = 0, Throwable $previous = null)
-    {
-        parent::__construct($message, $code, $previous);
     }
 }

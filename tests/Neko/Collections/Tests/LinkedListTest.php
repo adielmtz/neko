@@ -1,7 +1,6 @@
 <?php declare(strict_types=1);
 namespace Neko\Collections\Tests;
 
-use Neko\Collections\ArrayList;
 use Neko\Collections\LinkedList;
 use Neko\Collections\LinkedListNode;
 use Neko\InvalidOperationException;
@@ -203,28 +202,28 @@ final class LinkedListTest extends TestCase
     public function testIndexOf_FindsAValue(): void
     {
         //                      0    1    2    3    4    5
-        $list = new ArrayList(['A', 'B', 'C', 'C', 'D', 'E']);
+        $list = new LinkedList(['A', 'B', 'C', 'C', 'D', 'E']);
         $this->assertSame(2, $list->indexOf('C'));
     }
 
     public function testIndexOf_DidNotFindAValue(): void
     {
         //                      0    1    2    3    4    5
-        $list = new ArrayList(['A', 'B', 'C', 'C', 'D', 'E']);
+        $list = new LinkedList(['A', 'B', 'C', 'C', 'D', 'E']);
         $this->assertSame(-1, $list->indexOf('Z'));
     }
 
     public function testLastIndexOf_FindsAValue(): void
     {
         //                      0    1    2    3    4    5
-        $list = new ArrayList(['A', 'B', 'C', 'C', 'D', 'E']);
+        $list = new LinkedList(['A', 'B', 'C', 'C', 'D', 'E']);
         $this->assertSame(3, $list->lastIndexOf('C'));
     }
 
     public function testLastIndexOf_DidNotFindAValue(): void
     {
         //                      0    1    2    3    4    5
-        $list = new ArrayList(['A', 'B', 'C', 'C', 'D', 'E']);
+        $list = new LinkedList(['A', 'B', 'C', 'C', 'D', 'E']);
         $this->assertSame(-1, $this->list->lastIndexOf('Z'));
     }
 }

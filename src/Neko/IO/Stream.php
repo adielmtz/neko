@@ -3,6 +3,7 @@ namespace Neko\IO;
 
 use InvalidArgumentException;
 use Neko\InvalidOperationException;
+use function sprintf;
 
 /**
  * Defines an interface for streams.

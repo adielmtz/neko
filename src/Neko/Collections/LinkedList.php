@@ -5,6 +5,7 @@ use Neko\InvalidOperationException;
 use OutOfBoundsException;
 use Traversable;
 use function assert;
+use function sprintf;
 
 /**
  * Represents an ordered collection of elements stored in a doubly linked list.

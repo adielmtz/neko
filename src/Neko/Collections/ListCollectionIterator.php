@@ -4,6 +4,7 @@ namespace Neko\Collections;
 use Neko\InvalidOperationException;
 use OutOfBoundsException;
 use SeekableIterator;
+use function sprintf;
 
 /**
  * Iterates over the elements of a list.
