@@ -8,6 +8,7 @@ use Traversable;
 use function assert;
 use function count;
 use function floor;
+use function iterator_to_array;
 use function min;
 use function sort;
 use function sprintf;
@@ -142,11 +143,11 @@ class ArrayList implements ArrayAccess, ListCollection
     /**
      * Inserts a collection of elements to the end of the list.
      *
-     * @param array|Collection $items The collection of elements to insert to the list.
+     * @param iterable $items The collection of elements to insert to the list.
      *
      * @return void
      */
-    public function addRange(array|Collection $items): void
+    public function addRange(iterable $items): void
     {
         $this->insertRange($this->length, $items);
     }
@@ -223,12 +224,12 @@ class ArrayList implements ArrayAccess, ListCollection
      *
      * @param int $index The zero-based index at which the collection should be inserted.
      * If the index is equal to the size of the list, the collection is added to the end of the list.
-     * @param array|Collection $items The collection of elements to insert to the list.
+     * @param iterable $items The collection of elements to insert to the list.
      *
      * @return void
      * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > ArrayList::count()).
      */
-    public function insertRange(int $index, array|Collection $items): void
+    public function insertRange(int $index, iterable $items): void
     {
         if ($index < 0 || $index > $this->length) {
             throw new OutOfBoundsException(
@@ -236,8 +237,8 @@ class ArrayList implements ArrayAccess, ListCollection
             );
         }
 
-        if ($items instanceof Collection) {
-            $items = $items->toArray();
+        if ($items instanceof Traversable) {
+            $items = iterator_to_array($items);
         }
 
         $length = count($items);

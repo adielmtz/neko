@@ -250,7 +250,7 @@ class LinkedList implements ListCollection
      * @param int $index The zero-based index of the node to return.
      *
      * @return LinkedListNode
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
      */
     public function getNodeAt(int $index): LinkedListNode
     {
@@ -280,7 +280,7 @@ class LinkedList implements ListCollection
      * @param mixed $value The new element.
      *
      * @return void
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
      */
     public function set(int $index, mixed $value): void
     {
@@ -297,7 +297,7 @@ class LinkedList implements ListCollection
      *
      * @return void
      * @throws InvalidOperationException
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > ArrayList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > LinkedList::count()).
      */
     public function insert(int $index, mixed $value): void
     {
@@ -354,7 +354,7 @@ class LinkedList implements ListCollection
      *
      * @return void
      * @throws InvalidOperationException
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
      */
     public function removeAt(int $index): void
     {
