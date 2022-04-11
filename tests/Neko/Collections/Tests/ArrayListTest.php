@@ -240,6 +240,12 @@ final class ArrayListTest extends TestCase
         $this->assertSame(2, $this->list->count());
     }
 
+    public function testRemoveRange_ReturnsNumberOfElementsRemoved(): void
+    {
+        $removed = $this->list->removeRange(0, 3);
+        $this->assertSame(3, $removed);
+    }
+
     public function testRemoveIfTrue(): void
     {
         $count = $this->list->removeIf(fn($c) => ord($c) % 2 === 0);

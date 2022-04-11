@@ -335,14 +335,14 @@ class ArrayList implements ArrayAccess, ListCollection
             while ($index < $this->length) {
                 $this->items[$index] = $this->items[$index + $count] ?? null;
                 $index++;
-                $removed++;
             }
 
-            $this->length -= min($count, $this->length);
+            $removed = min($count, $this->length);
+            $this->length -= $removed;
+            $this->version++;
             assert($this->length >= 0);
         }
 
-        $this->version++;
         return $removed;
     }
 
