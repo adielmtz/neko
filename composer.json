@@ -5,6 +5,7 @@
         }
     },
     "require": {
+        "php": ">=8.1",
         "phpunit/phpunit": "^9"
     }
 }
