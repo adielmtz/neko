@@ -18,7 +18,7 @@ final class FileStreamTest extends TestCase
     #region Test Environment SetUp
     public static function setUpBeforeClass(): void
     {
-        self::$persistentStream = new FileStream('./fst-sample-static-file.txt', 'w+b');
+        self::$persistentStream = new FileStream(__DIR__ . '/fst-sample-static-file.txt', 'w+b');
     }
 
     public static function tearDownAfterClass(): void
@@ -29,7 +29,7 @@ final class FileStreamTest extends TestCase
 
     public function setUp(): void
     {
-        $this->disposableStream = new FileStream('./fst-sample-file.txt', 'w+b');
+        $this->disposableStream = new FileStream(__DIR__ . '/fst-sample-file.txt', 'w+b');
     }
 
     public function tearDown(): void
