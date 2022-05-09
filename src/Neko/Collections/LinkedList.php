@@ -50,9 +50,9 @@ class LinkedList implements ListCollection
         $node = $head;
         if ($node !== null) {
             do {
-                $value = $node->getValue();
+                $value = $node->value;
                 $this->addLast($value);
-                $node = $node->getNext();
+                $node = $node->next;
             } while ($node !== $head);
         }
     }
@@ -76,7 +76,7 @@ class LinkedList implements ListCollection
     {
         $current = $this->head;
         while ($current !== null) {
-            $next = $current->getNext();
+            $next = $current->next;
             $current->detach();
             $current = $next;
         }
@@ -111,8 +111,8 @@ class LinkedList implements ListCollection
         $node = $this->head;
         if ($node !== null) {
             do {
-                $array[$index++] = $node->getValue();
-                $node = $node->getNext();
+                $array[$index++] = $node->value;
+                $node = $node->next;
             } while ($node !== $this->head);
         }
     }
@@ -141,8 +141,8 @@ class LinkedList implements ListCollection
         $node = $this->head;
         if ($node !== null) {
             do {
-                yield $node->getValue();
-                $node = $node->getNext();
+                yield $node->value;
+                $node = $node->next;
 
                 if ($version !== $this->version) {
                     throw new InvalidOperationException('List was modified');
@@ -188,7 +188,7 @@ class LinkedList implements ListCollection
         if ($this->head === null) {
             $this->insertNodeOnEmptyList($node);
         } else {
-            $this->insertNodeAfter($this->head->getPrevious(), $node);
+            $this->insertNodeAfter($this->head->previous, $node);
             $this->head = $node;
         }
     }
@@ -207,7 +207,7 @@ class LinkedList implements ListCollection
         if ($this->head === null) {
             $this->insertNodeOnEmptyList($node);
         } else {
-            $this->insertNodeAfter($this->head->getPrevious(), $node);
+            $this->insertNodeAfter($this->head->previous, $node);
         }
     }
 
@@ -221,7 +221,7 @@ class LinkedList implements ListCollection
      */
     public function get(int $index): mixed
     {
-        return $this->getNodeAt($index)->getValue();
+        return $this->getNodeAt($index)->value;
     }
 
     /**
@@ -241,7 +241,7 @@ class LinkedList implements ListCollection
      */
     public function getLast(): ?LinkedListNode
     {
-        return $this->head?->getPrevious();
+        return $this->head?->previous;
     }
 
     /**
@@ -266,7 +266,7 @@ class LinkedList implements ListCollection
                 break;
             }
 
-            $node = $node->getNext();
+            $node = $node->next;
             $index--;
         } while ($node !== $this->head);
 
@@ -284,7 +284,7 @@ class LinkedList implements ListCollection
      */
     public function set(int $index, mixed $value): void
     {
-        $this->getNodeAt($index)->setValue($value);
+        $this->getNodeAt($index)->value = $value;
         $this->version++;
     }
 
@@ -306,7 +306,7 @@ class LinkedList implements ListCollection
         } else {
             $node = $this->getNodeAt($index);
             $newNode = new LinkedListNode($this, $value);
-            $this->insertNodeAfter($node->getPrevious(), $newNode);
+            $this->insertNodeAfter($node->previous, $newNode);
 
             if ($index === 0) {
                 $this->head = $newNode;
@@ -384,7 +384,7 @@ class LinkedList implements ListCollection
     public function removeLast(): void
     {
         if ($this->head !== null) {
-            $this->removeNode($this->head->getPrevious());
+            $this->removeNode($this->head->previous);
         }
     }
 
@@ -402,17 +402,17 @@ class LinkedList implements ListCollection
             throw new InvalidOperationException('Linked List is empty');
         }
 
-        if ($node->getOwner() !== $this) {
+        if ($node->owner !== $this) {
             throw new InvalidOperationException('Node does not belong to this linked list');
         }
 
-        if ($node->getNext() === $node) {
+        if ($node->next === $node) {
             $this->head = null;
         } else {
-            $node->getNext()->setPrevious($node->getPrevious());
-            $node->getPrevious()->setNext($node->getNext());
+            $node->next->previous = $node->previous;
+            $node->previous->next = $node->next;
             if ($node === $this->head) {
-                $this->head = $node->getNext();
+                $this->head = $node->next;
             }
         }
 
@@ -435,11 +435,11 @@ class LinkedList implements ListCollection
         $index = 0;
         if ($node !== null) {
             do {
-                if ($node->getValue() === $value) {
+                if ($node->value === $value) {
                     return $index;
                 }
 
-                $node = $node->getNext();
+                $node = $node->next;
                 $index++;
             } while ($node !== $this->head);
         }
@@ -457,15 +457,15 @@ class LinkedList implements ListCollection
      */
     public function lastIndexOf(mixed $value): int
     {
-        $node = $this->head?->getPrevious();
+        $node = $this->head?->previous;
         $index = $this->length - 1;
         if ($node !== null) {
             do {
-                if ($node->getValue() === $value) {
+                if ($node->value === $value) {
                     return $index;
                 }
 
-                $node = $node->getPrevious();
+                $node = $node->previous;
                 $index--;
             } while ($node !== $this->head);
         }
@@ -485,11 +485,11 @@ class LinkedList implements ListCollection
         $node = $this->head;
         if ($node !== null) {
             do {
-                if ($node->getValue() === $value) {
+                if ($node->value === $value) {
                     return $node;
                 }
 
-                $node = $node->getNext();
+                $node = $node->next;
             } while ($node !== $this->head);
         }
 
@@ -507,12 +507,12 @@ class LinkedList implements ListCollection
     private function insertNodeOnEmptyList(LinkedListNode $node): void
     {
         assert($this->isEmpty() && $this->head === null);
-        if ($node->getOwner() !== $this) {
+        if ($node->owner !== $this) {
             throw new InvalidOperationException('Node belongs to a different list');
         }
 
-        $node->setNext($node);
-        $node->setPrevious($node);
+        $node->next = $node;
+        $node->previous = $node;
         $this->head = $node;
         $this->length++;
         $this->version++;
@@ -529,14 +529,14 @@ class LinkedList implements ListCollection
      */
     private function insertNodeAfter(LinkedListNode $ref, LinkedListNode $node): void
     {
-        if ($ref->getOwner() !== $this || $node->getOwner() !== $this) {
+        if ($ref->owner !== $this || $node->owner !== $this) {
             throw new InvalidOperationException('Node belongs to a different list');
         }
 
-        $node->setNext($ref->getNext());
-        $node->setPrevious($ref);
-        $ref->getNext()->setPrevious($node);
-        $ref->setNext($node);
+        $node->next = $ref->next;
+        $node->previous = $ref;
+        $ref->next->previous = $node;
+        $ref->next = $node;
         $this->length++;
         $this->version++;
     }
