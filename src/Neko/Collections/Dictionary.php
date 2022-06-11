@@ -113,7 +113,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     public function containsValue(mixed $value): bool
     {
         foreach ($this->entries as $entry) {
-            if ($value === $entry->getValue()) {
+            if ($value === $entry->value) {
                 return true;
             }
         }
@@ -158,7 +158,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     {
         $version = $this->version;
         foreach ($this->entries as $entry) {
-            yield $entry->getKey() => $entry->getValue();
+            yield $entry->key => $entry->value;
 
             if ($version !== $this->version) {
                 throw new InvalidOperationException('Dictionary was modified');
@@ -185,7 +185,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     {
         $keys = [];
         foreach ($this->entries as $entry) {
-            $keys[] = $entry->getKey();
+            $keys[] = $entry->key;
         }
 
         return $keys;
@@ -200,7 +200,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     {
         $values = [];
         foreach ($this->entries as $entry) {
-            $values[] = $entry->getValue();
+            $values[] = $entry->value;
         }
 
         return $values;
@@ -230,8 +230,8 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
         }
 
         $entry = new KeyValuePair();
-        $entry->setKey($key);
-        $entry->setValue($value);
+        $entry->key = $key;
+        $entry->value = $value;
         $this->entries[$arrayKey] = $entry;
         $this->length++;
         $this->version++;
@@ -259,7 +259,7 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
             );
         }
 
-        return $this->entries[$arrayKey]->getValue();
+        return $this->entries[$arrayKey]->value;
     }
 
     /**
@@ -278,12 +278,12 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
             $entry = $this->entries[$arrayKey];
         } else {
             $entry = new KeyValuePair();
-            $entry->setKey($key);
+            $entry->key = $key;
             $this->entries[$arrayKey] = $entry;
             $this->length++;
         }
 
-        $entry->setValue($value);
+        $entry->value = $value;
         $this->version++;
     }
 
@@ -317,8 +317,8 @@ final class Dictionary implements ArrayAccess, KeyValuePairCollection
     {
         $flipped = new Dictionary();
         foreach ($this->entries as $entry) {
-            $k = $entry->getKey();
-            $v = $entry->getValue();
+            $k = $entry->key;
+            $v = $entry->value;
 
             // Swap
             $flipped->add($v, $k);
