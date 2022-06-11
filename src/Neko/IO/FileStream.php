@@ -81,7 +81,7 @@ final class FileStream extends Stream
 
         $this->handle = @fopen($filename, $mode);
         if ($this->handle === false) {
-            IOException::throwFromLastError(
+            IOException::throwLastErrorOrDefault(
                 sprintf('fopen(%s, %s) failed', $filename, $mode)
             );
         }
@@ -154,7 +154,7 @@ final class FileStream extends Stream
         $this->ensureStreamIsSeekable();
         $stat = @fstat($this->handle);
         if ($stat === false) {
-            IOException::throwFromLastError(
+            IOException::throwLastErrorOrDefault(
                 sprintf('fstat(%s) failed', $this->filename)
             );
         }
@@ -227,7 +227,7 @@ final class FileStream extends Stream
     {
         $this->ensureStreamIsSeekable();
         if (@fseek($this->handle, $offset, $whence) === -1) {
-            IOException::throwFromLastError(
+            IOException::throwLastErrorOrDefault(
                 sprintf('fseek(%s) failed', $this->filename)
             );
         }
@@ -354,7 +354,7 @@ final class FileStream extends Stream
         $bytes = fwrite($this->handle, $data, $length);
 
         if ($bytes === false) {
-            IOException::throwFromLastError(
+            IOException::throwLastErrorOrDefault(
                 sprintf('fwrite(%s, ..., %d) failed', $this->filename, $length)
             );
         }

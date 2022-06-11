@@ -13,21 +13,21 @@ class IOException extends Exception
     /**
      * Throws an IOException using the last error message.
      *
-     * @param string $message The default message for the exception if there is no error to report.
+     * @param string $defaultMessage The default message for the exception if there is no error to report.
      *
      * @return void
      * @throws IOException
      */
-    public static function throwFromLastError(string $message = ''): void
+    public static function throwLastErrorOrDefault(string $defaultMessage = ''): void
     {
         $error = error_get_last();
         $code = 0;
         if ($error !== null) {
             error_clear_last();
-            $message = $error['message'];
+            $defaultMessage = $error['message'];
             $code = $error['type'];
         }
 
-        throw new IOException($message, $code);
+        throw new IOException($defaultMessage, $code);
     }
 }
