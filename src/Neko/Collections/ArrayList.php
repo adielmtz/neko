@@ -11,7 +11,6 @@ use function count;
 use function floor;
 use function is_array;
 use function iterator_to_array;
-use function min;
 use function sort;
 use function sprintf;
 use function usort;
@@ -143,7 +142,8 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function add(mixed $value): void
     {
-        $this->items[$this->length++] = $value;
+        $this->items[$this->length] = $value;
+        $this->length++;
         $this->version++;
     }
 
@@ -320,7 +320,8 @@ class ArrayList implements ArrayAccess, ListCollection
      *
      * @param int $index The zero-based inclusive index where the range starts.
      * @param int|null $count The number of elements to remove. If $count is less than or equal to zero, nothing will
-     *     be removed. If $count is null, all elements from $index to the end of the list will be removed.
+     * be removed. If $count is null or greater than ArrayList::count(), all elements from $index to the end of the
+     * list will be removed.
      *
      * @return int The number of elements removed from the list.
      * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
@@ -333,21 +334,29 @@ class ArrayList implements ArrayAccess, ListCollection
             );
         }
 
-        if ($count === null) {
+        if ($count === null || $count > $this->length) {
             $count = $this->length - $index;
         }
 
         $removed = 0;
         if ($count > 0) {
-            while ($index < $this->length) {
-                $this->items[$index] = $this->items[$index + $count] ?? null;
+            for ($i = 0; $i < $count; $i++) {
+                $nextIndex = $index + $count;
+                $this->items[$index] = $nextIndex < $this->length ? $this->items[$nextIndex] : null;
                 $index++;
             }
 
-            $removed = min($count, $this->length);
+            $removed = $i;
             $this->length -= $removed;
-            $this->version++;
             assert($this->length >= 0);
+
+            // Clean up
+            $size = count($this->items);
+            for ($i = $this->length; $i < $size; $i++) {
+                $this->items[$i] = null;
+            }
+
+            $this->version++;
         }
 
         return $removed;

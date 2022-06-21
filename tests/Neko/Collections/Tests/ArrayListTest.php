@@ -288,6 +288,20 @@ final class ArrayListTest extends TestCase
         $this->assertSame(3, $removed);
     }
 
+    public function testRemoveRange_RemovesAllValuesIfCountIsLargerThenTheSizeOfTheList(): void
+    {
+        $removed = $this->list->removeRange(0, 10000);
+        $this->assertSame(5, $removed);
+        $this->assertSame(0, $this->list->count());
+    }
+
+    public function testRemoveRange_RemovesRemainingValuesIfCountIsLargerThanTheSizeOfTheList(): void
+    {
+        $removed = $this->list->removeRange(4, 1000);
+        $this->assertSame(1, $removed);
+        $this->assertSame(4, $this->list->count());
+    }
+
     public function testRemoveIfTrue(): void
     {
         $count = $this->list->removeIf(fn($c) => ord($c) % 2 === 0);
