@@ -629,7 +629,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * @return void
      * @throws InvalidOperationException if an element in the list has been modified.
      */
-    public function forEach(callable $action): void
+    public function each(callable $action): void
     {
         $version = $this->version;
         for ($i = 0; $i < $this->length; $i++) {

@@ -378,7 +378,7 @@ final class ArrayListTest extends TestCase
         $expected_str = implode('', $this->list->toArray());
         $actual_str = '';
 
-        $this->list->forEach(function (string $c) use (&$actual_str): void {
+        $this->list->each(function (string $c) use (&$actual_str): void {
             $actual_str .= $c;
         });
 
@@ -388,7 +388,7 @@ final class ArrayListTest extends TestCase
     public function testForEachThrowsExceptionIfCollectionIsModified(): void
     {
         $this->expectException(InvalidOperationException::class);
-        $this->list->forEach(fn($x) => $this->list->add('Not possible!'));
+        $this->list->each(fn($x) => $this->list->add('Not possible!'));
     }
 
     public function testSortWithoutComparator(): void
