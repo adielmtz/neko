@@ -5,9 +5,11 @@ use ArrayAccess;
 use Neko\InvalidOperationException;
 use OutOfBoundsException;
 use Traversable;
+use function array_is_list;
 use function assert;
 use function count;
 use function floor;
+use function is_array;
 use function iterator_to_array;
 use function min;
 use function sort;
@@ -32,8 +34,13 @@ class ArrayList implements ArrayAccess, ListCollection
     public function __construct(?iterable $items = null)
     {
         if ($items !== null) {
-            foreach ($items as $value) {
-                $this->add($value);
+            if (is_array($items) && array_is_list($items)) {
+                $this->items = $items;
+                $this->length = count($items);
+            } else {
+                foreach ($items as $value) {
+                    $this->add($value);
+                }
             }
         }
     }

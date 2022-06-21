@@ -1,12 +1,47 @@
 <?php declare(strict_types=1);
 namespace Neko\Collections\Tests;
 
+use Neko\Collections\ArrayList;
+use Neko\Collections\Dictionary;
 use Neko\Collections\Queue;
 use Neko\InvalidOperationException;
 use PHPUnit\Framework\TestCase;
 
 final class QueueTest extends TestCase
 {
+    public function testConstructorWithArrayArgument(): void
+    {
+        $queue = new Queue(['X', 'Y', 'Z']);
+        $this->assertSame(3, $queue->count());
+        $this->assertSame('X', $queue->dequeue());
+        $this->assertSame('Y', $queue->dequeue());
+        $this->assertSame('Z', $queue->dequeue());
+    }
+
+    public function testConstructorWithIteratorArgument(): void
+    {
+        $argument = new ArrayList(['X', 'Y', 'Z']);
+        $queue = new Queue($argument);
+        $queue->enqueue('A');
+
+        $this->assertSame(4, $queue->count());
+        $this->assertSame('X', $queue->dequeue());
+        $this->assertSame('Y', $queue->dequeue());
+        $this->assertSame('Z', $queue->dequeue());
+        $this->assertSame('A', $queue->dequeue());
+    }
+
+    public function testConstructorWithDictionaryArgument(): void
+    {
+        $argument = new Dictionary(['A' => 'a', 'B' => 'b', 'C' => 'c']);
+        $queue = new Queue($argument);
+
+        $this->assertSame(3, $queue->count());
+        $this->assertSame('a', $queue->dequeue());
+        $this->assertSame('b', $queue->dequeue());
+        $this->assertSame('c', $queue->dequeue());
+    }
+
     public function testIteratorThrowsExceptionIfTheCollectionIsModified(): void
     {
         $this->expectException(InvalidOperationException::class);

@@ -2,6 +2,7 @@
 namespace Neko\Collections\Tests;
 
 use Neko\Collections\ArrayList;
+use Neko\Collections\Dictionary;
 use Neko\InvalidOperationException;
 use OutOfBoundsException;
 use PHPUnit\Framework\TestCase;
@@ -23,6 +24,47 @@ final class ArrayListTest extends TestCase
         $this->list->add('C'); // 2
         $this->list->add('D'); // 3
         $this->list->add('E'); // 4
+    }
+
+    public function testConstructorWithArrayArgument(): ArrayList
+    {
+        $list = new ArrayList(['X', 'Y', 'Z']);
+        $list->add('W');
+
+        $this->assertSame(4, $list->count());
+        $this->assertSame('X', $list->get(0));
+        $this->assertSame('Y', $list->get(1));
+        $this->assertSame('Z', $list->get(2));
+        $this->assertSame('W', $list->get(3));
+        return $list;
+    }
+
+    /**
+     * @depends testConstructorWithArrayArgument
+     */
+    public function testConstructorWithIterableArgument(ArrayList $argument): void
+    {
+        $list = new ArrayList($argument);
+        $list->add('A');
+
+        $this->assertSame(5, $list->count());
+        $this->assertSame('X', $list->get(0));
+        $this->assertSame('Y', $list->get(1));
+        $this->assertSame('Z', $list->get(2));
+        $this->assertSame('W', $list->get(3));
+        $this->assertSame('A', $list->get(4));
+    }
+
+    public function testConstructorWithDictionaryArgument(): void
+    {
+        $argument = new Dictionary();
+        $argument->add('k', 'v');
+        $argument->add('a', 'b');
+
+        $list = new ArrayList($argument);
+        $this->assertSame(2, $list->count());
+        $this->assertSame('v', $list->get(0));
+        $this->assertSame('b', $list->get(1));
     }
 
     public function testIteratorThrowsExceptionIfTheListIsModified(): void

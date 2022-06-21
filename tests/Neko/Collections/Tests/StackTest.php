@@ -1,12 +1,47 @@
 <?php declare(strict_types=1);
 namespace Neko\Collections\Tests;
 
+use Neko\Collections\ArrayList;
+use Neko\Collections\Dictionary;
 use Neko\Collections\Stack;
 use Neko\InvalidOperationException;
 use PHPUnit\Framework\TestCase;
 
 final class StackTest extends TestCase
 {
+    public function testConstructorWithArrayArgument(): void
+    {
+        $stack = new Stack(['X', 'Y', 'Z']);
+        $this->assertSame(3, $stack->count());
+        $this->assertSame('Z', $stack->pop());
+        $this->assertSame('Y', $stack->pop());
+        $this->assertSame('X', $stack->pop());
+    }
+
+    public function testConstructorWithIterableArgument(): void
+    {
+        $argument = new ArrayList(['X', 'Y', 'Z']);
+        $stack = new Stack($argument);
+        $stack->push('A');
+
+        $this->assertSame(4, $stack->count());
+        $this->assertSame('A', $stack->pop());
+        $this->assertSame('Z', $stack->pop());
+        $this->assertSame('Y', $stack->pop());
+        $this->assertSame('X', $stack->pop());
+    }
+
+    public function testConstructorWithDictionaryArgument(): void
+    {
+        $argument = new Dictionary(['A' => 'a', 'B' => 'b', 'C' => 'c']);
+        $stack = new Stack($argument);
+
+        $this->assertSame(3, $stack->count());
+        $this->assertSame('c', $stack->pop());
+        $this->assertSame('b', $stack->pop());
+        $this->assertSame('a', $stack->pop());
+    }
+
     public function testIteratorThrowsExceptionIfTheCollectionIsModified(): void
     {
         $this->expectException(InvalidOperationException::class);

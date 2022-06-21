@@ -2,6 +2,7 @@
 namespace Neko\Collections\Tests;
 
 use InvalidArgumentException;
+use Neko\Collections\ArrayList;
 use Neko\Collections\Dictionary;
 use Neko\Collections\KeyNotFoundException;
 use Neko\InvalidOperationException;
@@ -35,6 +36,49 @@ final class DictionaryTest extends TestCase
         $this->dictionary->set(30, 'thirty');
         $this->dictionary->set(40, 'forty');
         $this->dictionary->set(50, 'fifty');
+    }
+
+    public function testConstructorWithArrayArgument(): void
+    {
+        // int => string
+        $dictionary = new Dictionary(['A', 'B', 'C']);
+        $this->assertSame(3, $dictionary->count());
+        $this->assertSame('A', $dictionary->get(0));
+        $this->assertSame('B', $dictionary->get(1));
+        $this->assertSame('C', $dictionary->get(2));
+    }
+
+    public function testConstructorWithAssociativeArrayArgument(): void
+    {
+        $dictionary = new Dictionary([20 => 'twenty', 'key' => 'value']);
+        $this->assertSame(2, $dictionary->count());
+        $this->assertSame('twenty', $dictionary->get(20));
+        $this->assertSame('value', $dictionary->get('key'));
+    }
+
+    public function testConstructorWithDictionaryArgument(): void
+    {
+        $argument = new Dictionary();
+        $argument->set('sample', 'value');
+
+        $dictionary = new Dictionary($argument);
+        $dictionary->set('hello', 'world');
+
+        $this->assertSame(2, $dictionary->count());
+        $this->assertSame('value', $dictionary->get('sample'));
+        $this->assertSame('world', $dictionary->get('hello'));
+    }
+
+    public function testConstructorWithIterableArgument(): void
+    {
+        $argument = new ArrayList(['A', 'B', 'C', 'D']);
+        $dictionary = new Dictionary($argument);
+
+        $this->assertSame(4, $dictionary->count());
+        $this->assertSame('A', $dictionary->get(0));
+        $this->assertSame('B', $dictionary->get(1));
+        $this->assertSame('C', $dictionary->get(2));
+        $this->assertSame('D', $dictionary->get(3));
     }
 
     public function testIteratorThrowsExceptionIfTheCollectionIsModified(): void
