@@ -16,7 +16,7 @@ use function sprintf;
 /**
  * Represents a collection of keys and values.
  */
-final class Dictionary implements ArrayAccess, KeyValuePairCollection
+class Dictionary implements ArrayAccess, KeyValuePairCollection
 {
     /**
      * @var KeyValuePair[]
