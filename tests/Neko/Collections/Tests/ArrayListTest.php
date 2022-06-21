@@ -481,6 +481,81 @@ final class ArrayListTest extends TestCase
         $this->assertSame('A', $list->get(6));
     }
 
+    public function testSortRange_WithoutComparator(): void
+    {
+        $list = new ArrayList(['a', 'b', 'c', 3, 2, 1, 'x', 'y', 'z']);
+        $list->sortRange(3, 3);
+
+        $this->assertSame('a', $list->get(0));
+        $this->assertSame('b', $list->get(1));
+        $this->assertSame('c', $list->get(2));
+        $this->assertSame(1, $list->get(3));
+        $this->assertSame(2, $list->get(4));
+        $this->assertSame(3, $list->get(5));
+        $this->assertSame('x', $list->get(6));
+        $this->assertSame('y', $list->get(7));
+        $this->assertSame('z', $list->get(8));
+    }
+
+    public function testSortRange_WithComparator(): void
+    {
+        $list = new ArrayList(['a', 'b', 'c', 3, 2, 1, 'x', 'y', 'z']);
+        $list->sortRange(0, 3, fn($a, $b) => $b <=> $a); // descending order
+        $list->sortRange(6, 3, fn($a, $b) => $b <=> $a);
+
+        $this->assertSame('c', $list->get(0));
+        $this->assertSame('b', $list->get(1));
+        $this->assertSame('a', $list->get(2));
+        $this->assertSame(3, $list->get(3));
+        $this->assertSame(2, $list->get(4));
+        $this->assertSame(1, $list->get(5));
+        $this->assertSame('z', $list->get(6));
+        $this->assertSame('y', $list->get(7));
+        $this->assertSame('x', $list->get(8));
+    }
+
+    public function testSortRange_SortStart(): void
+    {
+        $list = new ArrayList(['Z', 'X', 'Y', 'B', 'C', 'A', 'D']);
+        $list->sortRange(0, 3);
+
+        $this->assertSame('X', $list->get(0));
+        $this->assertSame('Y', $list->get(1));
+        $this->assertSame('Z', $list->get(2));
+        $this->assertSame('B', $list->get(3));
+        $this->assertSame('C', $list->get(4));
+        $this->assertSame('A', $list->get(5));
+        $this->assertSame('D', $list->get(6));
+    }
+
+    public function testSortRange_SortBetween(): void
+    {
+        $list = new ArrayList(['Z', 'X', 'Y', 'B', 'C', 'A', 'D']);
+        $list->sortRange(2, 3);
+
+        $this->assertSame('Z', $list->get(0));
+        $this->assertSame('X', $list->get(1));
+        $this->assertSame('B', $list->get(2));
+        $this->assertSame('C', $list->get(3));
+        $this->assertSame('Y', $list->get(4));
+        $this->assertSame('A', $list->get(5));
+        $this->assertSame('D', $list->get(6));
+    }
+
+    public function testSortRange_SortLast(): void
+    {
+        $list = new ArrayList(['Z', 'X', 'Y', 'B', 'C', 'A', 'D']);
+        $list->sortRange(4, 3);
+
+        $this->assertSame('Z', $list->get(0));
+        $this->assertSame('X', $list->get(1));
+        $this->assertSame('Y', $list->get(2));
+        $this->assertSame('B', $list->get(3));
+        $this->assertSame('A', $list->get(4));
+        $this->assertSame('C', $list->get(5));
+        $this->assertSame('D', $list->get(6));
+    }
+
     public function testTrueForAll_ReturnsTrue(): void
     {
         $this->assertTrue($this->list->all(fn($c) => $c >= 'A' && $c <= 'Z'));

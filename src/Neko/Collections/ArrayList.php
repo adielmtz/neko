@@ -543,7 +543,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * Sorts the elements in the list.
      *
      * @param callable|null $comparator A comparator function to use when comparing the elements or NULL to use a
-     *     default comparator.
+     * default comparator.
      *
      * @return void
      */
@@ -565,11 +565,64 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
+     * Sorts a range (or a portion) of the list.
+     *
+     * @param int $index The zero-based inclusive index where the range starts.
+     * @param int|null $count The number of elements in the range to sort. If $count is less than or equal to zero,
+     * nothing will be sorted. If $count is null or greater than ArrayList::count(), all elements from $index to the
+     * end of the list will be sorted.
+     * @param callable|null $comparator A comparator function to use when comparing the elements or NULL to use a
+     * default comparator.
+     *
+     * @return void
+     */
+    public function sortRange(int $index, ?int $count = null, ?callable $comparator = null): void
+    {
+        if ($index < 0 || $index >= $this->length) {
+            throw new OutOfBoundsException(
+                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index)
+            );
+        }
+
+        if ($count === null || $count > $this->length) {
+            $count = $this->length - $index;
+        }
+
+        $slice = [];
+        $copyIndex = $index;
+        $numCopied = 0;
+
+        for ($i = 0; $i < $count; $i++) {
+            $slice[] = $this->items[$index];
+            $index++;
+            $numCopied++;
+        }
+
+        if ($numCopied > 0) {
+            if ($comparator === null) {
+                sort($slice, SORT_REGULAR);
+            } else {
+                usort($slice, $comparator);
+            }
+
+            $idx = 0;
+            for ($i = 0; $i < $numCopied; $i++) {
+                $this->items[$copyIndex] = $slice[$idx];
+                $idx++;
+                $copyIndex++;
+            }
+
+            $this->version++;
+        }
+    }
+
+    /**
      * Returns a range (or a portion) of the list.
      *
      * @param int $index The zero-based inclusive index where the range starts.
      * @param int|null $count The number of elements in the range. If $count is less than or equal to zero, nothing will
-     *     be copied. If $count is null, all elements from $index to the end of the list will be copied.
+     * be copied. If $count is null or greater than ArrayList::count(), all elements from $index to the end of the
+     * list will be copied.
      *
      * @return ArrayList A shallow copy of a range of elements in the list.
      * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
