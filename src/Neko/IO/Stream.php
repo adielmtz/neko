@@ -207,7 +207,7 @@ abstract class Stream
      * @return void
      * @throws InvalidOperationException if the stream is closed.
      */
-    protected abstract function ensureStreamIsOpen(): void;
+    abstract protected function ensureStreamIsOpen(): void;
 
     /**
      * Ensures that the stream is open and is readable before attempting to execute any read operation.
@@ -236,4 +236,12 @@ abstract class Stream
             throw new InvalidOperationException('Stream does not support write');
         }
     }
+
+    /**
+     * Ensures that the stream is open and is seekable before attempting to execute any seek operation.
+     *
+     * @return void
+     * @throws InvalidOperationException if the stream is closed or does not support seeking.
+     */
+    abstract protected function ensureStreamIsSeekable(): void;
 }

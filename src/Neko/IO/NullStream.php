@@ -90,4 +90,16 @@ final class NullStream extends Stream
     protected function ensureStreamIsOpen(): void
     {
     }
+
+    protected function ensureStreamIsReadable(): void
+    {
+    }
+
+    protected function ensureStreamIsWritable(): void
+    {
+    }
+
+    protected function ensureStreamIsSeekable(): void
+    {
+    }
 }

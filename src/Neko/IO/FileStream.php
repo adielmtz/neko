@@ -423,7 +423,7 @@ final class FileStream extends Stream
      * @return void
      * @throws InvalidOperationException if the stream is closed or does not support seeking.
      */
-    private function ensureStreamIsSeekable(): void
+    protected function ensureStreamIsSeekable(): void
     {
         $this->ensureStreamIsOpen();
         if (!$this->can_seek) {

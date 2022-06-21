@@ -294,4 +294,15 @@ class MemoryStream extends Stream
             throw new InvalidOperationException('Stream is closed');
         }
     }
+
+    /**
+     * Ensures that the stream is open and is seekable before attempting to execute any seek operation.
+     *
+     * @return void
+     * @throws InvalidOperationException if the stream is closed or does not support seeking.
+     */
+    protected function ensureStreamIsSeekable(): void
+    {
+        $this->ensureStreamIsOpen();
+    }
 }
