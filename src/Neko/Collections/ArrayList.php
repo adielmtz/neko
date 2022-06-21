@@ -571,8 +571,13 @@ class ArrayList implements ArrayAccess, ListCollection
         }
 
         $slice = new ArrayList();
-        for ($i = 0; $i < $count; $i++) {
-            $slice->add($this->items[$index++]);
+        for (; $index < $this->length; $index++) {
+            if ($count === 0) {
+                break;
+            }
+
+            $slice->add($this->items[$index]);
+            $count--;
         }
 
         return $slice;

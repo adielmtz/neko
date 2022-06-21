@@ -330,6 +330,20 @@ final class ArrayListTest extends TestCase
         $this->assertTrue($slice->isEmpty());
     }
 
+    public function testSliceStopsWhenCountArgumentIsLargerThanTheSizeOfTheList(): void
+    {
+        $slice = $this->list->slice(3, 1000);
+        $this->assertSame(2, $slice->count());
+        $this->assertSame('D', $slice->get(0));
+        $this->assertSame('E', $slice->get(1));
+    }
+
+    public function testSliceReturnsRestOfTheList(): void
+    {
+        $slice = $this->list->slice(0, 100);
+        $this->assertSame(5, $slice->count());
+    }
+
     public function testFilter(): void
     {
         $list = new ArrayList(range(1, 10));
