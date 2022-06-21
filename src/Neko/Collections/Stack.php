@@ -3,8 +3,11 @@ namespace Neko\Collections;
 
 use Neko\InvalidOperationException;
 use Traversable;
+use function array_is_list;
 use function array_pop;
 use function array_reverse;
+use function count;
+use function is_array;
 
 /**
  * Represents a last-in, first-out collection of elements.
@@ -23,8 +26,13 @@ class Stack implements Collection
     public function __construct(?iterable $items = null)
     {
         if ($items !== null) {
-            foreach ($items as $value) {
-                $this->push($value);
+            if (is_array($items) && array_is_list($items)) {
+                $this->items = $items;
+                $this->length = count($items);
+            } else {
+                foreach ($items as $value) {
+                    $this->push($value);
+                }
             }
         }
     }
