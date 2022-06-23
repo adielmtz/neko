@@ -69,8 +69,9 @@ class Queue implements Collection
      */
     public function contains(mixed $value): bool
     {
-        foreach ($this->items as $item) {
-            if ($value === $item) {
+        $tail = $this->head + $this->length;
+        for ($i = $this->head; $i < $tail; $i++) {
+            if ($value === $this->items[$i]) {
                 return true;
             }
         }
@@ -88,8 +89,9 @@ class Queue implements Collection
      */
     public function copyTo(array &$array, int $index = 0): void
     {
-        foreach ($this->items as $item) {
-            $array[$index++] = $item;
+        $tail = $this->head + $this->length;
+        for ($i = $this->head; $i < $tail; $i++) {
+            $array[$index++] = $this->items[$i];
         }
     }
 
@@ -112,8 +114,9 @@ class Queue implements Collection
     public function getIterator(): Traversable
     {
         $version = $this->version;
-        foreach ($this->items as $item) {
-            yield $item;
+        $tail = $this->head + $this->length;
+        for ($i = $this->head; $i < $tail; $i++) {
+            yield $this->items[$i];
 
             if ($version !== $this->version) {
                 throw new InvalidOperationException('Queue was modified');
