@@ -9,8 +9,10 @@ use PHPUnit\Framework\TestCase;
 use function implode;
 use function ord;
 use function range;
+use function serialize;
 use function str_shuffle;
 use function str_split;
+use function unserialize;
 
 final class ArrayListTest extends TestCase
 {
@@ -53,6 +55,57 @@ final class ArrayListTest extends TestCase
         $this->assertSame('Z', $list->get(2));
         $this->assertSame('W', $list->get(3));
         $this->assertSame('A', $list->get(4));
+    }
+
+    public function testSerialize(): string
+    {
+        $list = new ArrayList();
+        $list->add('X');
+        $list->add(504);
+        $list->add([]);
+
+        $serialized = serialize($list);
+        $this->assertNotEmpty($serialized);
+        return $serialized;
+    }
+
+    /**
+     * @depends testSerialize
+     */
+    public function testUnserialize(string $serialized): ArrayList
+    {
+        $restored = unserialize($serialized);
+        $this->assertInstanceOf(ArrayList::class, $restored);
+        return $restored;
+    }
+
+    /**
+     * @depends testUnserialize
+     */
+    public function testUnserializedArrayListKeepsOrderOfElements(ArrayList $restored): void
+    {
+        $this->assertSame(3, $restored->count());
+        $this->assertSame('X', $restored->get(0));
+        $this->assertSame(504, $restored->get(1));
+        $this->assertIsArray($restored->get(2));
+    }
+
+    public function testSerializeEmptyArrayList(): string
+    {
+        $empty = new ArrayList();
+        $serialized = serialize($empty);
+        $this->assertNotEmpty($serialized);
+        return $serialized;
+    }
+
+    /**
+     * @depends testSerializeEmptyArrayList
+     */
+    public function testUnserializeEmptyArrayList(string $serialized): void
+    {
+        $restored = unserialize($serialized);
+        $this->assertInstanceOf(ArrayList::class, $restored);
+        $this->assertSame(0, $restored->count());
     }
 
     public function testConstructorWithDictionaryArgument(): void

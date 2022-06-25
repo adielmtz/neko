@@ -12,6 +12,8 @@ use function fclose;
 use function fopen;
 use function function_exists;
 use function is_resource;
+use function serialize;
+use function unserialize;
 use const M_PI;
 
 final class DictionaryTest extends TestCase
@@ -79,6 +81,59 @@ final class DictionaryTest extends TestCase
         $this->assertSame('B', $dictionary->get(1));
         $this->assertSame('C', $dictionary->get(2));
         $this->assertSame('D', $dictionary->get(3));
+    }
+
+    public function testSerialize(): string
+    {
+        $dictionary = new Dictionary();
+        $dictionary->add('foo', 'bar');
+        $dictionary->add(10, 'ten');
+        $dictionary->add('10', 10);
+        $dictionary->add('array', []);
+
+        $serialized = serialize($dictionary);
+        $this->assertNotEmpty($serialized);
+        return $serialized;
+    }
+
+    /**
+     * @depends testSerialize
+     */
+    public function testUnserialize(string $serialized): Dictionary
+    {
+        $restored = unserialize($serialized);
+        $this->assertInstanceOf(Dictionary::class, $restored);
+        $this->assertSame(4, $restored->count());
+        return $restored;
+    }
+
+    /**
+     * @depends testUnserialize
+     */
+    public function testUnserializedDictionaryKeepsKeyValuePairs(Dictionary $restored): void
+    {
+        $this->assertSame('bar', $restored->get('foo'));
+        $this->assertSame('ten', $restored->get(10));
+        $this->assertSame(10, $restored->get('10'));
+        $this->assertIsArray($restored->get('array'));
+    }
+
+    public function testSerializeEmptyDictionary(): string
+    {
+        $empty = new Dictionary();
+        $serialized = serialize($empty);
+        $this->assertNotEmpty($serialized);
+        return $serialized;
+    }
+
+    /**
+     * @depends testSerializeEmptyDictionary
+     */
+    public function testUnserializeEmptyDictionary(string $serialized): void
+    {
+        $restored = unserialize($serialized);
+        $this->assertInstanceOf(Dictionary::class, $restored);
+        $this->assertSame(0, $restored->count());
     }
 
     public function testIteratorThrowsExceptionIfTheCollectionIsModified(): void

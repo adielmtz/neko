@@ -7,6 +7,8 @@ use Neko\Collections\LinkedListNode;
 use Neko\InvalidOperationException;
 use OutOfBoundsException;
 use PHPUnit\Framework\TestCase;
+use function serialize;
+use function unserialize;
 
 final class LinkedListTest extends TestCase
 {
@@ -61,6 +63,57 @@ final class LinkedListTest extends TestCase
         $this->assertSame(2, $list->count());
         $this->assertSame('v', $list->get(0));
         $this->assertSame('b', $list->get(1));
+    }
+
+    public function testSerialize(): string
+    {
+        $list = new LinkedList();
+        $list->add('X');
+        $list->add(504);
+        $list->add([]);
+
+        $serialized = serialize($list);
+        $this->assertNotEmpty($serialized);
+        return $serialized;
+    }
+
+    /**
+     * @depends testSerialize
+     */
+    public function testUnserialize(string $serialized): LinkedList
+    {
+        $restored = unserialize($serialized);
+        $this->assertInstanceOf(LinkedList::class, $restored);
+        return $restored;
+    }
+
+    /**
+     * @depends testUnserialize
+     */
+    public function testUnserializedLinkedListKeepsOrderOfElements(LinkedList $restored): void
+    {
+        $this->assertSame(3, $restored->count());
+        $this->assertSame('X', $restored->get(0));
+        $this->assertSame(504, $restored->get(1));
+        $this->assertIsArray($restored->get(2));
+    }
+
+    public function testSerializeEmptyLinkedList(): string
+    {
+        $empty = new LinkedList();
+        $serialized = serialize($empty);
+        $this->assertNotEmpty($serialized);
+        return $serialized;
+    }
+
+    /**
+     * @depends testSerializeEmptyLinkedList
+     */
+    public function testUnserializeEmptyLinkedList(string $serialized): void
+    {
+        $restored = unserialize($serialized);
+        $this->assertInstanceOf(LinkedList::class, $restored);
+        $this->assertSame(0, $restored->count());
     }
 
     public function testIterator(): void

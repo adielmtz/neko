@@ -38,6 +38,30 @@ class Queue implements Collection
     }
 
     /**
+     * Serializes the queue.
+     *
+     * @return array
+     */
+    public function __serialize(): array
+    {
+        return $this->toArray();
+    }
+
+    /**
+     * Unserializes the queue.
+     *
+     * @param array $data
+     *
+     * @return void
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->items = $data;
+        $this->head = 0;
+        $this->length = count($data);
+    }
+
+    /**
      * Returns true if the queue contains no elements.
      *
      * @return bool

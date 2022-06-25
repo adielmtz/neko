@@ -6,6 +6,8 @@ use Neko\Collections\Dictionary;
 use Neko\Collections\Queue;
 use Neko\InvalidOperationException;
 use PHPUnit\Framework\TestCase;
+use function serialize;
+use function unserialize;
 
 final class QueueTest extends TestCase
 {
@@ -40,6 +42,57 @@ final class QueueTest extends TestCase
         $this->assertSame('a', $queue->dequeue());
         $this->assertSame('b', $queue->dequeue());
         $this->assertSame('c', $queue->dequeue());
+    }
+
+    public function testSerialize(): string
+    {
+        $queue = new Queue();
+        $queue->enqueue('A');
+        $queue->enqueue('B');
+        $queue->enqueue('C');
+
+        $serialized = serialize($queue);
+        $this->assertNotEmpty($serialized);
+        return $serialized;
+    }
+
+    /**
+     * @depends testSerialize
+     */
+    public function testUnserialize(string $serialized): Queue
+    {
+        $restored = unserialize($serialized);
+        $this->assertInstanceOf(Queue::class, $restored);
+        $this->assertSame(3, $restored->count());
+        return $restored;
+    }
+
+    /**
+     * @depends testUnserialize
+     */
+    public function testUnserializedQueueKeepsFirstInFirstOutOrder(Queue $queue): void
+    {
+        $this->assertSame('A', $queue->dequeue());
+        $this->assertSame('B', $queue->dequeue());
+        $this->assertSame('C', $queue->dequeue());
+    }
+
+    public function testSerializeEmptyQueue(): string
+    {
+        $empty = new Queue();
+        $serialized = serialize($empty);
+        $this->assertNotEmpty($serialized);
+        return $serialized;
+    }
+
+    /**
+     * @depends testSerializeEmptyQueue
+     */
+    public function testUnserializeEmptyQueue(string $serialized): void
+    {
+        $restored = unserialize($serialized);
+        $this->assertInstanceOf(Queue::class, $restored);
+        $this->assertSame(0, $restored->count());
     }
 
     public function testIteratorThrowsExceptionIfTheCollectionIsModified(): void

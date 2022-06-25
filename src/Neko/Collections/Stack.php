@@ -38,6 +38,29 @@ class Stack implements Collection
     }
 
     /**
+     * Serializes the stack.
+     *
+     * @return array
+     */
+    public function __serialize(): array
+    {
+        return $this->items;
+    }
+
+    /**
+     * Unserializes the stack.
+     *
+     * @param array $data
+     *
+     * @return void
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->items = $data;
+        $this->length = count($data);
+    }
+
+    /**
      * Returns true if the stack contains no elements.
      *
      * @return bool

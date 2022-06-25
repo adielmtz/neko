@@ -6,6 +6,8 @@ use Neko\Collections\Dictionary;
 use Neko\Collections\Stack;
 use Neko\InvalidOperationException;
 use PHPUnit\Framework\TestCase;
+use function serialize;
+use function unserialize;
 
 final class StackTest extends TestCase
 {
@@ -40,6 +42,57 @@ final class StackTest extends TestCase
         $this->assertSame('c', $stack->pop());
         $this->assertSame('b', $stack->pop());
         $this->assertSame('a', $stack->pop());
+    }
+
+    public function testSerialize(): string
+    {
+        $stack = new Stack();
+        $stack->push('A');
+        $stack->push('B');
+        $stack->push('C');
+
+        $serialized = serialize($stack);
+        $this->assertNotEmpty($serialized);
+        return $serialized;
+    }
+
+    /**
+     * @depends testSerialize
+     */
+    public function testUnserialize(string $serialized): Stack
+    {
+        $restored = unserialize($serialized);
+        $this->assertInstanceOf(Stack::class, $restored);
+        $this->assertSame(3, $restored->count());
+        return $restored;
+    }
+
+    /**
+     * @depends testUnserialize
+     */
+    public function testUnserializedStackKeepsLastInFirstOutOrder(Stack $stack): void
+    {
+        $this->assertSame('C', $stack->pop());
+        $this->assertSame('B', $stack->pop());
+        $this->assertSame('A', $stack->pop());
+    }
+
+    public function testSerializeEmptyStack(): string
+    {
+        $empty = new Stack();
+        $serialized = serialize($empty);
+        $this->assertNotEmpty($serialized);
+        return $serialized;
+    }
+
+    /**
+     * @depends testSerializeEmptyStack
+     */
+    public function testUnserializeEmptyStack(string $serialized): void
+    {
+        $restored = unserialize($serialized);
+        $this->assertInstanceOf(Stack::class, $restored);
+        $this->assertSame(0, $restored->count());
     }
 
     public function testIteratorThrowsExceptionIfTheCollectionIsModified(): void

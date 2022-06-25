@@ -58,6 +58,30 @@ class LinkedList implements ListCollection
     }
 
     /**
+     * Serializes the list.
+     *
+     * @return array
+     */
+    public function __serialize(): array
+    {
+        return $this->toArray();
+    }
+
+    /**
+     * Unserializes the list.
+     *
+     * @param array $data
+     *
+     * @return void
+     */
+    public function __unserialize(array $data): void
+    {
+        foreach ($data as $value) {
+            $this->addLast($value);
+        }
+    }
+
+    /**
      * Returns true if the list contains no elements.
      *
      * @return bool

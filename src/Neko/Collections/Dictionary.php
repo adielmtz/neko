@@ -7,6 +7,7 @@ use Neko\InvalidOperationException;
 use Neko\NotSupportedException;
 use Traversable;
 use function array_key_exists;
+use function count;
 use function function_exists;
 use function gettype;
 use function is_object;
@@ -45,6 +46,33 @@ class Dictionary implements ArrayAccess, KeyValuePairCollection
                 $this->add($key, $value);
             }
         }
+    }
+
+    /**
+     * Serializes the dictionary.
+     *
+     * @return array
+     */
+    public function __serialize(): array
+    {
+        return $this->toArray();
+    }
+
+    /**
+     * Unserializes the dictionary.
+     *
+     * @param array $data
+     *
+     * @return void
+     */
+    public function __unserialize(array $data): void
+    {
+        foreach ($data as $entry) {
+            $arrayKey = self::createValidArrayKey($entry->key);
+            $this->entries[$arrayKey] = $entry;
+        }
+
+        $this->length = count($this->entries);
     }
 
     /**
