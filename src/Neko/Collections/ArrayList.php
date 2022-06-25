@@ -245,7 +245,7 @@ class ArrayList implements ArrayAccess, ListCollection
         }
 
         if ($items instanceof Traversable) {
-            $items = iterator_to_array($items);
+            $items = iterator_to_array($items, false);
         }
 
         $length = count($items);
@@ -264,8 +264,8 @@ class ArrayList implements ArrayAccess, ListCollection
             $this->items[$i] = $this->items[$i - $length];
         }
 
-        for ($i = 0; $i < $length; $i++) {
-            $this->items[$index++] = $items[$i];
+        foreach ($items as $value) {
+            $this->items[$index++] = $value;
         }
 
         $this->length = $newLength;

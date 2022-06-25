@@ -223,6 +223,20 @@ final class ArrayListTest extends TestCase
         $this->assertSame('Z', $this->list->get(7));
     }
 
+    public function testInsertRange_UsingAnAssociativeArray(): void
+    {
+        $this->list->insertRange(1, ['foo' => 'X', 'bar' => 'Y', 'baz' => 'Z']);
+        $this->assertSame(8, $this->list->count());
+        $this->assertSame('A', $this->list->get(0));
+        $this->assertSame('X', $this->list->get(1));
+        $this->assertSame('Y', $this->list->get(2));
+        $this->assertSame('Z', $this->list->get(3));
+        $this->assertSame('B', $this->list->get(4));
+        $this->assertSame('C', $this->list->get(5));
+        $this->assertSame('D', $this->list->get(6));
+        $this->assertSame('E', $this->list->get(7));
+    }
+
     public function testRemoveAt_(): void
     {
         $this->list->removeAt(2); // [A, B, D, E]
