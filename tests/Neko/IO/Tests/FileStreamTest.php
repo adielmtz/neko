@@ -5,7 +5,9 @@ use Neko\InvalidOperationException;
 use Neko\IO\FileNotFoundException;
 use Neko\IO\FileStream;
 use Neko\IO\IOException;
+use Neko\NotSupportedException;
 use PHPUnit\Framework\TestCase;
+use function serialize;
 use function strlen;
 use function unlink;
 use const PHP_EOL;
@@ -45,6 +47,12 @@ final class FileStreamTest extends TestCase
         $this->assertTrue($this->disposableStream->canRead());
         $this->assertTrue($this->disposableStream->canWrite());
         $this->assertTrue($this->disposableStream->canSeek());
+    }
+
+    public function testFileStreamThrowsNotSupportedExceptionWhenTryingToSerialize(): void
+    {
+        $this->expectException(NotSupportedException::class);
+        serialize($this->disposableStream);
     }
 
     public function testFileStreamThrowsFileNotFoundExceptionWhenOpenModeIsRAndTheFileDoesNotExist(): void

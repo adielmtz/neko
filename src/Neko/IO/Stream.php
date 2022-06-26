@@ -3,6 +3,7 @@ namespace Neko\IO;
 
 use InvalidArgumentException;
 use Neko\InvalidOperationException;
+use Neko\NotSupportedException;
 use function sprintf;
 
 /**
@@ -10,6 +11,21 @@ use function sprintf;
  */
 abstract class Stream
 {
+    /**
+     * Throws a NotSupportedException.
+     *
+     * @return array
+     */
+    public function __serialize(): array
+    {
+        throw new NotSupportedException(
+            sprintf(
+                'Class %s does not support serialization',
+                static::class
+            )
+        );
+    }
+
     /**
      * Returns true if the stream is readable.
      *

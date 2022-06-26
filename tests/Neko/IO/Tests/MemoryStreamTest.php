@@ -3,7 +3,9 @@ namespace Neko\IO\Tests;
 
 use Neko\InvalidOperationException;
 use Neko\IO\MemoryStream;
+use Neko\NotSupportedException;
 use PHPUnit\Framework\TestCase;
+use function serialize;
 use function strlen;
 use const PHP_EOL;
 
@@ -49,6 +51,12 @@ final class MemoryStreamTest extends TestCase
         $this->assertFalse($this->disposableStream->canRead());
         $this->assertFalse($this->disposableStream->canWrite());
         $this->assertFalse($this->disposableStream->canSeek());
+    }
+
+    public function testMemoryStreamThrowsNotSupportedExceptionWhenTryingToSerialize(): void
+    {
+        $this->expectException(NotSupportedException::class);
+        serialize($this->disposableStream);
     }
 
     public function testEndOfStreamThrowsExceptionWhenTheStreamIsClosed(): void
