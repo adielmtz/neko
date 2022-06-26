@@ -3,7 +3,6 @@ namespace Neko\Collections\Tests;
 
 use Neko\Collections\Dictionary;
 use Neko\Collections\LinkedList;
-use Neko\Collections\LinkedListNode;
 use Neko\InvalidOperationException;
 use OutOfBoundsException;
 use PHPUnit\Framework\TestCase;
@@ -308,13 +307,6 @@ final class LinkedListTest extends TestCase
         $this->list->clear();
         $this->list->removeLast();
         $this->assertSame(0, $this->list->count());
-    }
-
-    public function testRemoveNode_ThrowsIfNodeDoesNotBelongToTheList(): void
-    {
-        $this->expectException(InvalidOperationException::class);
-        $fakeNode = new LinkedListNode(new LinkedList(), "WATAME HA WARUKUNAI YO NEE~");
-        $this->list->removeNode($fakeNode);
     }
 
     public function testIndexOf_FindsAValue(): void

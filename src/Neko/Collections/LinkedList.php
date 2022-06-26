@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 namespace Neko\Collections;
 
+use ArrayAccess;
 use Neko\InvalidOperationException;
 use OutOfBoundsException;
 use Traversable;
@@ -10,7 +11,7 @@ use function sprintf;
 /**
  * Represents an ordered collection of elements stored in a doubly linked list.
  */
-class LinkedList implements ListCollection
+class LinkedList implements ArrayAccess, ListCollection
 {
     private ?LinkedListNode $head = null;
     private int $length = 0;
@@ -19,9 +20,7 @@ class LinkedList implements ListCollection
     /**
      * LinkedList constructor.
      *
-     * @param iterable|null $items
-     *
-     * @throws InvalidOperationException
+     * @param iterable|null $items A collection of values that will be copied to the linked list.
      */
     public function __construct(?iterable $items = null)
     {
@@ -33,32 +32,28 @@ class LinkedList implements ListCollection
     }
 
     /**
+     * Creates new nodes for the cloned linked list.
+     *
      * @return void
-     * @throws InvalidOperationException
      */
     public function __clone(): void
     {
-        // Keep a reference to the head of the list
         $head = $this->head;
-
-        // Clean up this cloned instance
         $this->head = null;
         $this->length = 0;
         $this->version = 0;
 
-        // Copy the values
         $node = $head;
         if ($node !== null) {
             do {
-                $value = $node->value;
-                $this->addLast($value);
+                $this->addLast($node->value);
                 $node = $node->next;
             } while ($node !== $head);
         }
     }
 
     /**
-     * Serializes the list.
+     * Serializes the linked list.
      *
      * @return array
      */
@@ -68,7 +63,7 @@ class LinkedList implements ListCollection
     }
 
     /**
-     * Unserializes the list.
+     * Unserializes the linked list.
      *
      * @param array $data
      *
@@ -82,7 +77,7 @@ class LinkedList implements ListCollection
     }
 
     /**
-     * Returns true if the list contains no elements.
+     * Returns true if the linked list contains no elements.
      *
      * @return bool
      */
@@ -92,7 +87,7 @@ class LinkedList implements ListCollection
     }
 
     /**
-     * Removes all elements from the list.
+     * Removes all elements from the linked list.
      *
      * @return void
      */
@@ -111,7 +106,7 @@ class LinkedList implements ListCollection
     }
 
     /**
-     * Returns true if the list contains a specific element.
+     * Returns true if the linked list contains a specific element.
      *
      * @param mixed $value The value to search.
      *
@@ -123,7 +118,7 @@ class LinkedList implements ListCollection
     }
 
     /**
-     * Copies the elements of the list to an array.
+     * Copies the elements of the linked list to an array.
      *
      * @param array $array
      * @param int $index The zero-based index in $array at which copying begins.
@@ -142,7 +137,7 @@ class LinkedList implements ListCollection
     }
 
     /**
-     * Returns an array containing all the elements of the list.
+     * Returns an array containing all the elements of the linked list.
      *
      * @return array
      */
@@ -154,7 +149,7 @@ class LinkedList implements ListCollection
     }
 
     /**
-     * Returns an iterator over the elements in the list.
+     * Returns an iterator over the elements in the linked list.
      *
      * @return Traversable
      * @throws InvalidOperationException
@@ -169,14 +164,14 @@ class LinkedList implements ListCollection
                 $node = $node->next;
 
                 if ($version !== $this->version) {
-                    throw new InvalidOperationException('List was modified');
+                    throw new InvalidOperationException('Linked List was modified');
                 }
             } while ($node !== $this->head);
         }
     }
 
     /**
-     * Returns the number of elements in the list.
+     * Returns the number of elements in the linked list.
      *
      * @return int
      */
@@ -186,12 +181,11 @@ class LinkedList implements ListCollection
     }
 
     /**
-     * Adds an element to the end of the list.
+     * Adds an element to the end of the linked list.
      *
-     * @param mixed $value The element to add to the list.
+     * @param mixed $value The element to add to the linked list.
      *
      * @return void
-     * @throws InvalidOperationException
      */
     public function add(mixed $value): void
     {
@@ -199,39 +193,37 @@ class LinkedList implements ListCollection
     }
 
     /**
-     * Adds an element to the head of the list.
+     * Adds an element to the head of the linked list.
      *
-     * @param mixed $value The element to add to the list.
+     * @param mixed $value The element to add to the linked list.
      *
      * @return void
-     * @throws InvalidOperationException
      */
     public function addFirst(mixed $value): void
     {
-        $node = new LinkedListNode($this, $value);
+        $node = new LinkedListNode($value);
         if ($this->head === null) {
             $this->insertNodeOnEmptyList($node);
         } else {
-            $this->insertNodeAfter($this->head->previous, $node);
+            $this->insertNodeAfter($this->head->prev, $node);
             $this->head = $node;
         }
     }
 
     /**
-     * Adds an element to the tail of the list.
+     * Adds an element to the end of the linked list.
      *
-     * @param mixed $value The element to add to the list.
+     * @param mixed $value The element to add to the linked list.
      *
      * @return void
-     * @throws InvalidOperationException
      */
     public function addLast(mixed $value): void
     {
-        $node = new LinkedListNode($this, $value);
+        $node = new LinkedListNode($value);
         if ($this->head === null) {
             $this->insertNodeOnEmptyList($node);
         } else {
-            $this->insertNodeAfter($this->head->previous, $node);
+            $this->insertNodeAfter($this->head->prev, $node);
         }
     }
 
@@ -245,56 +237,38 @@ class LinkedList implements ListCollection
      */
     public function get(int $index): mixed
     {
-        return $this->getNodeAt($index)->value;
+        $node = $this->findNodeByIndex($index);
+        return $node->value;
     }
 
     /**
-     * Returns the first node of the list or null if the list is empty.
+     * Returns the value of the first node in the linked list.
      *
-     * @return LinkedListNode|null
+     * @return mixed
+     * @throws InvalidOperationException If the linked list is empty.
      */
-    public function getFirst(): ?LinkedListNode
+    public function getFirst(): mixed
     {
-        return $this->head;
-    }
-
-    /**
-     * Returns the last node of the list or null if the list is empty.
-     *
-     * @return LinkedListNode|null
-     */
-    public function getLast(): ?LinkedListNode
-    {
-        return $this->head?->previous;
-    }
-
-    /**
-     * Returns the node at the specified index in the list.
-     *
-     * @param int $index The zero-based index of the node to return.
-     *
-     * @return LinkedListNode
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
-     */
-    public function getNodeAt(int $index): LinkedListNode
-    {
-        if ($index < 0 || $index >= $this->length) {
-            throw new OutOfBoundsException(
-                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= LinkedList::count())', $index)
-            );
+        if ($this->head === null) {
+            throw new InvalidOperationException('Linked List is empty');
         }
 
-        $node = $this->head;
-        do {
-            if ($index === 0) {
-                break;
-            }
+        return $this->head->value;
+    }
 
-            $node = $node->next;
-            $index--;
-        } while ($node !== $this->head);
+    /**
+     * Returns the value of the last node in the linked list.
+     *
+     * @return mixed
+     * @throws InvalidOperationException If the linked list is empty.
+     */
+    public function getLast(): mixed
+    {
+        if ($this->head === null) {
+            throw new InvalidOperationException('Linked List is empty');
+        }
 
-        return $node;
+        return $this->head->prev->value;
     }
 
     /**
@@ -308,7 +282,7 @@ class LinkedList implements ListCollection
      */
     public function set(int $index, mixed $value): void
     {
-        $this->getNodeAt($index)->value = $value;
+        $this->findNodeByIndex($index)->value = $value;
         $this->version++;
     }
 
@@ -316,11 +290,10 @@ class LinkedList implements ListCollection
      * Inserts an element at the specified index.
      *
      * @param int $index The zero-based index at which the element should be inserted.
-     * If the index is equal to the size of the list, the element is added to the end of the list.
+     * If the index is equal to the size of the list, the element is added to the end of the linked list.
      * @param mixed $value The element to insert.
      *
      * @return void
-     * @throws InvalidOperationException
      * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > LinkedList::count()).
      */
     public function insert(int $index, mixed $value): void
@@ -328,37 +301,22 @@ class LinkedList implements ListCollection
         if ($index === $this->length) {
             $this->addLast($value);
         } else {
-            $node = $this->getNodeAt($index);
-            $newNode = new LinkedListNode($this, $value);
-            $this->insertNodeAfter($node->previous, $newNode);
+            $reference = $this->findNodeByIndex($index);
+            $node = new LinkedListNode($value);
+            $this->insertNodeAfter($reference->prev, $node);
 
             if ($index === 0) {
-                $this->head = $newNode;
+                $this->head = $node;
             }
         }
     }
 
     /**
-     * Inserts an element after an existing node in the list.
-     *
-     * @param LinkedListNode $node The node after which to insert the element.
-     * @param mixed $value The element to insert.
-     *
-     * @return void
-     * @throws InvalidOperationException if the node does not belong to the list.
-     */
-    public function insertAfter(LinkedListNode $node, mixed $value): void
-    {
-        $this->insertNodeAfter($node, new LinkedListNode($this, $value));
-    }
-
-    /**
-     * Removes the first occurrence of an element in the list.
+     * Removes the first occurrence of an element in the linked list.
      *
      * @param mixed $value The element to remove.
      *
      * @return bool True if the element existed and was removed; otherwise, false.
-     * @throws InvalidOperationException
      */
     public function remove(mixed $value): bool
     {
@@ -377,20 +335,18 @@ class LinkedList implements ListCollection
      * @param int $index The zero-based index of the element to remove.
      *
      * @return void
-     * @throws InvalidOperationException
      * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
      */
     public function removeAt(int $index): void
     {
-        $node = $this->getNodeAt($index);
+        $node = $this->findNodeByIndex($index);
         $this->removeNode($node);
     }
 
     /**
-     * Removes the first node from the list.
+     * Removes the first element from the linked list.
      *
      * @return void
-     * @throws InvalidOperationException
      */
     public function removeFirst(): void
     {
@@ -400,63 +356,29 @@ class LinkedList implements ListCollection
     }
 
     /**
-     * Removes the last node from the list.
+     * Removes the last element from the linked list.
      *
      * @return void
-     * @throws InvalidOperationException
      */
     public function removeLast(): void
     {
         if ($this->head !== null) {
-            $this->removeNode($this->head->previous);
+            $this->removeNode($this->head->prev);
         }
     }
 
     /**
-     * Removes the specified node from the list.
-     *
-     * @param LinkedListNode $node The node to remove.
-     *
-     * @return void
-     * @throws InvalidOperationException if the list is empty or the node does not belong to the list.
-     */
-    public function removeNode(LinkedListNode $node): void
-    {
-        if ($this->isEmpty()) {
-            throw new InvalidOperationException('Linked List is empty');
-        }
-
-        if ($node->owner !== $this) {
-            throw new InvalidOperationException('Node does not belong to this linked list');
-        }
-
-        if ($node->next === $node) {
-            $this->head = null;
-        } else {
-            $node->next->previous = $node->previous;
-            $node->previous->next = $node->next;
-            if ($node === $this->head) {
-                $this->head = $node->next;
-            }
-        }
-
-        $node->detach();
-        $this->length--;
-        $this->version++;
-    }
-
-    /**
-     * Returns the zero-based index of the first occurrence of the element in the list.
+     * Returns the zero-based index of the first occurrence of the element in the linked list.
      *
      * @param mixed $value The element to search.
      *
-     * @return int The zero-based index of the first occurrence of the element or -1 if the list does not
+     * @return int The zero-based index of the first occurrence of the element or -1 if the linked list does not
      * contain the element.
      */
     public function indexOf(mixed $value): int
     {
-        $node = $this->head;
         $index = 0;
+        $node = $this->head;
         if ($node !== null) {
             do {
                 if ($node->value === $value) {
@@ -472,29 +394,84 @@ class LinkedList implements ListCollection
     }
 
     /**
-     * Returns the zero-based index of the last occurrence of the element in the list.
+     * Returns the zero-based index of the last occurrence of the element in the linked list.
      *
      * @param mixed $value The element to search.
      *
-     * @return int The zero-based index of the last occurrence of the element or -1 if the list does not
+     * @return int The zero-based index of the last occurrence of the element or -1 if the linked list does not
      * contain the element.
      */
     public function lastIndexOf(mixed $value): int
     {
-        $node = $this->head?->previous;
         $index = $this->length - 1;
+        $node = $this->head?->prev;
         if ($node !== null) {
             do {
                 if ($node->value === $value) {
                     return $index;
                 }
 
-                $node = $node->previous;
+                $node = $node->prev;
                 $index--;
             } while ($node !== $this->head);
         }
 
         return -1;
+    }
+
+    /**
+     * Removes the specified node from the linked list.
+     *
+     * @param LinkedListNode $node The node to remove.
+     *
+     * @return void
+     */
+    private function removeNode(LinkedListNode $node): void
+    {
+        if ($node->next === $node) {
+            $this->head = null;
+        } else {
+            $node->next->prev = $node->prev;
+            $node->prev->next = $node->next;
+            if ($node === $this->head) {
+                $this->head = $node->next;
+            }
+        }
+
+        $node->detach();
+        $this->length--;
+        $this->version++;
+    }
+
+    /**
+     * Returns the node at the specified index.
+     *
+     * @param int $index The zero-based index of the node to return
+     *
+     * @return LinkedListNode
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
+     */
+    private function findNodeByIndex(int $index): LinkedListNode
+    {
+        if ($index < 0 || $index >= $this->length) {
+            throw new OutOfBoundsException(
+                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= LinkedList::count())', $index)
+            );
+        }
+
+        if ($index < ($this->length >> 1)) {
+            $node = $this->head;
+            for ($i = 0; $i < $index; $i++) {
+                $node = $node->next;
+            }
+        } else {
+            $node = $this->head->prev;
+            for ($i = $this->length - 1; $i > $index; $i--) {
+                $node = $node->prev;
+            }
+        }
+
+        return $node;
     }
 
     /**
@@ -521,47 +498,51 @@ class LinkedList implements ListCollection
     }
 
     /**
-     * Inserts a node when the list is empty.
+     * Inserts a node when the linked list is empty.
      *
-     * @param LinkedListNode $node
+     * @param LinkedListNode $node The node to insert.
      *
      * @return void
-     * @throws InvalidOperationException if the node does not belong to the list.
      */
     private function insertNodeOnEmptyList(LinkedListNode $node): void
     {
-        assert($this->isEmpty() && $this->head === null);
-        if ($node->owner !== $this) {
-            throw new InvalidOperationException('Node belongs to a different list');
-        }
-
+        assert($this->length === 0 && $this->head === null);
         $node->next = $node;
-        $node->previous = $node;
+        $node->prev = $node;
         $this->head = $node;
         $this->length++;
         $this->version++;
     }
 
-    /**
-     * Inserts a node after an existing node in the list.
-     *
-     * @param LinkedListNode $ref The node after which to insert the element.
-     * @param LinkedListNode $node The node to insert.
-     *
-     * @return void
-     * @throws InvalidOperationException if any of the given nodes does not belong to the list.
-     */
     private function insertNodeAfter(LinkedListNode $ref, LinkedListNode $node): void
     {
-        if ($ref->owner !== $this || $node->owner !== $this) {
-            throw new InvalidOperationException('Node belongs to a different list');
-        }
-
         $node->next = $ref->next;
-        $node->previous = $ref;
-        $ref->next->previous = $node;
+        $node->prev = $ref;
+        $ref->next->prev = $node;
         $ref->next = $node;
         $this->length++;
         $this->version++;
     }
+
+    #region ArrayAccess methods
+    public function offsetExists(mixed $offset): bool
+    {
+        return $offset >= 0 && $offset < $this->length;
+    }
+
+    public function offsetGet(mixed $offset): mixed
+    {
+        return $this->get($offset);
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        $this->set($offset, $value);
+    }
+
+    public function offsetUnset(mixed $offset): void
+    {
+        $this->removeAt($offset);
+    }
+    #endregion
 }

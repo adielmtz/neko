@@ -6,30 +6,23 @@ namespace Neko\Collections;
  */
 final class LinkedListNode
 {
-    public readonly LinkedList $owner;
     public mixed $value;
     public ?LinkedListNode $next = null;
-    public ?LinkedListNode $previous = null;
+    public ?LinkedListNode $prev = null;
 
-    /**
-     * LinkedListNode constructor.
-     *
-     * @param LinkedList $owner The linked list that the node belongs to.
-     */
-    public function __construct(LinkedList $owner, mixed $value = null)
+    public function __construct(mixed $value = null)
     {
-        $this->owner = $owner;
         $this->value = $value;
     }
 
     /**
-     * Detaches the node from the list.
+     * Removes the next and previous nodes.
      *
      * @return void
      */
     public function detach(): void
     {
         $this->next = null;
-        $this->previous = null;
+        $this->prev = null;
     }
 }
