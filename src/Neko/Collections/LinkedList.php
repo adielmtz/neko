@@ -514,11 +514,19 @@ class LinkedList implements ArrayAccess, ListCollection
         $this->version++;
     }
 
+    /**
+     * Inserts a node after the reference node.
+     *
+     * @param LinkedListNode $ref The reference node.
+     * @param LinkedListNode $node The node to insert.
+     *
+     * @return void
+     */
     private function insertNodeAfter(LinkedListNode $ref, LinkedListNode $node): void
     {
         $node->next = $ref->next;
         $node->prev = $ref;
-        $ref->next->prev = $node;
+        $node->next->prev = $node;
         $ref->next = $node;
         $this->length++;
         $this->version++;
