@@ -611,27 +611,23 @@ class ArrayList implements ArrayAccess, ListCollection
             $count = $this->length - $index;
         }
 
-        $slice = [];
-        $copyIndex = $index;
-        $numCopied = 0;
+        if ($count > 0) {
+            $slice = [];
+            $copyIndex = $index;
 
-        for ($i = 0; $i < $count; $i++) {
-            $slice[] = $this->items[$index];
-            $index++;
-            $numCopied++;
-        }
+            for ($i = 0; $i < $count; $i++) {
+                $slice[] = $this->items[$index];
+                $index++;
+            }
 
-        if ($numCopied > 0) {
             if ($comparator === null) {
                 sort($slice, SORT_REGULAR);
             } else {
                 usort($slice, $comparator);
             }
 
-            $idx = 0;
-            for ($i = 0; $i < $numCopied; $i++) {
-                $this->items[$copyIndex] = $slice[$idx];
-                $idx++;
+            for ($i = 0; $i < $count; $i++) {
+                $this->items[$copyIndex] = $slice[$i];
                 $copyIndex++;
             }
 

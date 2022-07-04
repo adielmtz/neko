@@ -623,6 +623,20 @@ final class ArrayListTest extends TestCase
         $this->assertSame('D', $list->get(6));
     }
 
+    public function testSortRange_PassingListCount(): void
+    {
+        $list = new ArrayList(['Z', 'X', 'Y', 'B', 'C', 'A', 'D']);
+        $list->sortRange(0, $list->count());
+
+        $this->assertSame('A', $list->get(0));
+        $this->assertSame('B', $list->get(1));
+        $this->assertSame('C', $list->get(2));
+        $this->assertSame('D', $list->get(3));
+        $this->assertSame('X', $list->get(4));
+        $this->assertSame('Y', $list->get(5));
+        $this->assertSame('Z', $list->get(6));
+    }
+
     public function testTrueForAll_ReturnsTrue(): void
     {
         $this->assertTrue($this->list->all(fn($c) => $c >= 'A' && $c <= 'Z'));
