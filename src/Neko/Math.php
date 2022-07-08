@@ -2,8 +2,6 @@
 namespace Neko;
 
 use InvalidArgumentException;
-use function max;
-use function min;
 
 /**
  * Contains methods for mathematical operations.
@@ -26,7 +24,15 @@ final class Math
             throw new InvalidArgumentException('Minimum value cannot be greater than the maximum value');
         }
 
-        return max($min, min($max, $value));
+        if ($value > $max) {
+            return $max;
+        }
+
+        if ($value < $min) {
+            return $min;
+        }
+
+        return $value;
     }
 
     /**
