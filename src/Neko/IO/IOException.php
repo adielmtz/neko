@@ -11,14 +11,13 @@ use function error_get_last;
 class IOException extends Exception
 {
     /**
-     * Throws an IOException using the last error message.
+     * Returns an IOException that can be thrown, using the last error message.
      *
-     * @param string $defaultMessage The default message for the exception if there is no error to report.
+     * @param string $defaultMessage The default message for the exception if there is no reported error.
      *
-     * @return void
-     * @throws IOException
+     * @return IOException
      */
-    public static function throwLastErrorOrDefault(string $defaultMessage = ''): void
+    public static function fromLastErrorOrDefault(string $defaultMessage = ''): IOException
     {
         $error = error_get_last();
         $code = 0;
@@ -28,6 +27,6 @@ class IOException extends Exception
             $code = $error['type'];
         }
 
-        throw new IOException($defaultMessage, $code);
+        return new IOException($defaultMessage, $code);
     }
 }

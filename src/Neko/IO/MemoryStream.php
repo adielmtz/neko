@@ -35,7 +35,7 @@ class MemoryStream extends Stream
     {
         $this->memory = @fopen('php://memory', 'r+b');
         if ($this->memory === false) {
-            IOException::throwLastErrorOrDefault('fopen(php://memory, r+b) failed');
+            throw IOException::fromLastErrorOrDefault('fopen(php://memory, r+b) failed');
         }
     }
 
