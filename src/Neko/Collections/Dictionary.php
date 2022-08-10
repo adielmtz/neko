@@ -98,7 +98,7 @@ class Dictionary implements ArrayAccess, KeyValuePairCollection
     }
 
     /**
-     * Returns true if the dictionary contains a specific entry.
+     * Returns true if the dictionary contains a specific key/value entry.
      *
      * @param mixed $value The value to search.
      *
@@ -107,10 +107,10 @@ class Dictionary implements ArrayAccess, KeyValuePairCollection
     public function contains(mixed $value): bool
     {
         if ($value instanceof KeyValuePair) {
-            foreach ($this->entries as $entry) {
-                if ($value === $entry) {
-                    return true;
-                }
+            $arrayKey = self::createValidArrayKey($value->key);
+            if (array_key_exists($arrayKey, $this->entries)) {
+                $entry = $this->entries[$arrayKey];
+                return $entry === $value || $entry->value === $value->value;
             }
         }
 

@@ -154,6 +154,22 @@ final class DictionaryTest extends TestCase
         $this->assertSame(0, $this->dictionary->count());
     }
 
+    public function testContainsReturnsTrueWithSimilarKVP(): void
+    {
+        $this->assertTrue($this->dictionary->contains(new KeyValuePair('C', 'c')));
+    }
+
+    public function testContainsReturnsTrueWithOwnEntry(): void
+    {
+        $entries = $this->dictionary->toArray();
+        $this->assertTrue($this->dictionary->contains($entries[0]));
+    }
+
+    public function testContainsReturnsFalse(): void
+    {
+        $this->assertFalse($this->dictionary->contains(new KeyValuePair('C', 'F')));
+    }
+
     public function testContainsKey(): void
     {
         $this->assertTrue($this->dictionary->containsKey('C'));
