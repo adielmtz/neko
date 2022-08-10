@@ -5,6 +5,7 @@ use InvalidArgumentException;
 use Neko\Collections\ArrayList;
 use Neko\Collections\Dictionary;
 use Neko\Collections\KeyNotFoundException;
+use Neko\Collections\KeyValuePair;
 use Neko\InvalidOperationException;
 use PHPUnit\Framework\TestCase;
 use stdClass;
