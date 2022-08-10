@@ -211,6 +211,20 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
+     * Inserts a collection of elements to the end of the linked list.
+     *
+     * @param iterable $items The collection of elements to insert to the linked list.
+     *
+     * @return void
+     */
+    public function addRange(iterable $items): void
+    {
+        foreach ($items as $value) {
+            $this->addLast($value);
+        }
+    }
+
+    /**
      * Adds an element to the head of the linked list.
      *
      * @param mixed $value The element to add to the linked list.
@@ -330,6 +344,43 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
+     * Inserts a collection of elements at the specified index in the linked list.
+     *
+     * @param int $index The zero-based index at which the collection should be inserted.
+     * If the index is equal to the size of the list, the collection is added to the end of the linked list.
+     * @param iterable $items The collection of elements to insert to the linked list.
+     *
+     * @return void
+     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index > LinkedList::count()).
+     */
+    public function insertRange(int $index, iterable $items): void
+    {
+        if ($index === $this->length) {
+            $this->addRange($items);
+        } else {
+            $prev = $this->findNodeByIndex($index)->prev;
+            $next = $prev->next;
+
+            foreach ($items as $value) {
+                $node = new LinkedListNode($value);
+                $prev->next = $node;
+                $node->prev = $prev;
+                $node->next = $next;
+                $next->prev = $node;
+                $prev = $node;
+                $this->length++;
+
+                if ($index === 0) {
+                    $this->head = $node;
+                    $index++;
+                }
+            }
+
+            $this->version++;
+        }
+    }
+
+    /**
      * Removes the first occurrence of an element in the linked list.
      *
      * @param mixed $value The element to remove.
@@ -359,6 +410,33 @@ class LinkedList implements ArrayAccess, ListCollection
     {
         $node = $this->findNodeByIndex($index);
         $this->removeNode($node);
+    }
+
+    /**
+     * Removes a range of elements from the linked list.
+     *
+     * @param int $index The zero-based inclusive index where the range starts.
+     * @param int|null $count The number of elements to remove. If $count is less than or equal to zero, nothing will
+     * be removed. If $count is null or greater than LinkedList::count(), all elements from $index to the end of the
+     * linked list will be removed.
+     *
+     * @return int The number of elements removed from the linked list.
+     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= LinkedList::count()).
+     */
+    public function removeRange(int $index, ?int $count = null): int
+    {
+        $node = $this->findNodeByIndex($index);
+        if ($count === null || $count > $this->length) {
+            $count = $this->length - $index;
+        }
+
+        for ($i = 0; $i < $count; $i++) {
+            $next = $node->next;
+            $this->removeNode($node);
+            $node = $next;
+        }
+
+        return $i;
     }
 
     /**
@@ -475,6 +553,13 @@ class LinkedList implements ArrayAccess, ListCollection
             throw new OutOfBoundsException(
                 sprintf('Index \'%d\' is out of range ($index < 0 || $index >= LinkedList::count())', $index)
             );
+        }
+
+        // quick optimization
+        if ($index === 0) {
+            return $this->head;
+        } else if ($index === $this->length - 1) {
+            return $this->head->prev;
         }
 
         if ($index < ($this->length >> 1)) {

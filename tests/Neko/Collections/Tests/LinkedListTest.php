@@ -253,6 +253,69 @@ final class LinkedListTest extends TestCase
         $this->assertSame('ABC', $list->get(0));
     }
 
+    public function testInsertRange_First(): void
+    {
+        // This test also serves as test for ArrayList::addRange() method.
+        $this->list->insertRange(0, ['X', 'Y', 'Z']); // [X, Y, Z, A, B, C, D, E]
+        $this->assertSame(8, $this->list->count());
+        $this->assertSame('X', $this->list->get(0));
+        $this->assertSame('Y', $this->list->get(1));
+        $this->assertSame('Z', $this->list->get(2));
+        $this->assertSame('A', $this->list->get(3));
+        $this->assertSame('B', $this->list->get(4));
+        $this->assertSame('C', $this->list->get(5));
+        $this->assertSame('D', $this->list->get(6));
+        $this->assertSame('E', $this->list->get(7));
+    }
+
+    public function testInsertRange_FailsWhenIndexIsOutOfBounds(): void
+    {
+        $this->expectException(OutOfBoundsException::class);
+        $this->list->insertRange(100, []);
+    }
+
+    public function testInsertRange_Between(): void
+    {
+        $this->list->insertRange(2, ['X', 'Y', 'Z']); // [A, B, X, Y, Z, C, D, E]
+        $this->assertSame(8, $this->list->count());
+        $this->assertSame('A', $this->list->get(0));
+        $this->assertSame('B', $this->list->get(1));
+        $this->assertSame('X', $this->list->get(2));
+        $this->assertSame('Y', $this->list->get(3));
+        $this->assertSame('Z', $this->list->get(4));
+        $this->assertSame('C', $this->list->get(5));
+        $this->assertSame('D', $this->list->get(6));
+        $this->assertSame('E', $this->list->get(7));
+    }
+
+    public function testInsertRange_Last(): void
+    {
+        $this->list->insertRange(5, ['X', 'Y', 'Z']); // [A, B, C, D, E, X, Y, Z]
+        $this->assertSame(8, $this->list->count());
+        $this->assertSame('A', $this->list->get(0));
+        $this->assertSame('B', $this->list->get(1));
+        $this->assertSame('C', $this->list->get(2));
+        $this->assertSame('D', $this->list->get(3));
+        $this->assertSame('E', $this->list->get(4));
+        $this->assertSame('X', $this->list->get(5));
+        $this->assertSame('Y', $this->list->get(6));
+        $this->assertSame('Z', $this->list->get(7));
+    }
+
+    public function testInsertRange_UsingAnAssociativeArray(): void
+    {
+        $this->list->insertRange(1, ['foo' => 'X', 'bar' => 'Y', 'baz' => 'Z']);
+        $this->assertSame(8, $this->list->count());
+        $this->assertSame('A', $this->list->get(0));
+        $this->assertSame('X', $this->list->get(1));
+        $this->assertSame('Y', $this->list->get(2));
+        $this->assertSame('Z', $this->list->get(3));
+        $this->assertSame('B', $this->list->get(4));
+        $this->assertSame('C', $this->list->get(5));
+        $this->assertSame('D', $this->list->get(6));
+        $this->assertSame('E', $this->list->get(7));
+    }
+
     public function testRemoveReturnsTrue(): void
     {
         $this->assertTrue($this->list->remove('A'));
@@ -319,6 +382,69 @@ final class LinkedListTest extends TestCase
         $this->list->clear();
         $this->list->removeLast();
         $this->assertSame(0, $this->list->count());
+    }
+
+    public function testRemoveRange_First(): void
+    {
+        $this->list->removeRange(0, 3); // [D, E]
+        $this->assertSame(2, $this->list->count());
+        $this->assertSame('D', $this->list->get(0));
+        $this->assertSame('E', $this->list->get(1));
+    }
+
+    public function testRemoveRange_FailsWhenIndexIsOutOfBounds(): void
+    {
+        $this->expectException(OutOfBoundsException::class);
+        $this->list->removeRange(100, 100);
+    }
+
+    public function testRemoveRange_Between(): void
+    {
+        // Remove B, C, D
+        $this->list->removeRange(1, 3); // [A, E]
+        $this->assertSame(2, $this->list->count());
+        $this->assertSame('A', $this->list->get(0));
+        $this->assertSame('E', $this->list->get(1));
+    }
+
+    public function testRemoveRange_Last(): void
+    {
+        // Remove D, E
+        $this->list->removeRange(3, 2); // [A, B, C]
+        $this->assertSame(3, $this->list->count());
+        $this->assertSame('A', $this->list->get(0));
+        $this->assertSame('B', $this->list->get(1));
+        $this->assertSame('C', $this->list->get(2));
+
+        $this->expectException(OutOfBoundsException::class);
+        $this->list->get(3);
+    }
+
+    public function testRemoveRange_WithoutCountParameter(): void
+    {
+        // Remove everything after B
+        $this->list->removeRange(2); // [A, B]
+        $this->assertSame(2, $this->list->count());
+    }
+
+    public function testRemoveRange_ReturnsNumberOfElementsRemoved(): void
+    {
+        $removed = $this->list->removeRange(0, 3);
+        $this->assertSame(3, $removed);
+    }
+
+    public function testRemoveRange_RemovesAllValuesIfCountIsLargerThenTheSizeOfTheList(): void
+    {
+        $removed = $this->list->removeRange(0, 10000);
+        $this->assertSame(5, $removed);
+        $this->assertSame(0, $this->list->count());
+    }
+
+    public function testRemoveRange_RemovesRemainingValuesIfCountIsLargerThanTheSizeOfTheList(): void
+    {
+        $removed = $this->list->removeRange(4, 1000);
+        $this->assertSame(1, $removed);
+        $this->assertSame(4, $this->list->count());
     }
 
     public function testIndexOf_FindsAValue(): void

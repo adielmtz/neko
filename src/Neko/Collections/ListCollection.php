@@ -18,6 +18,15 @@ interface ListCollection extends Collection
     public function add(mixed $value): void;
 
     /**
+     * Inserts a collection of elements to the end of the list.
+     *
+     * @param iterable $items The collection of elements to insert to the list.
+     *
+     * @return void
+     */
+    public function addRange(iterable $items): void;
+
+    /**
      * Returns the element at the specified index.
      *
      * @param int $index The zero-based index of the element to return.
@@ -51,6 +60,18 @@ interface ListCollection extends Collection
     public function insert(int $index, mixed $value): void;
 
     /**
+     * Inserts a collection of elements at the specified index in the list.
+     *
+     * @param int $index The zero-based index at which the collection should be inserted.
+     * If the index is equal to the size of the list, the collection is added to the end of the list.
+     * @param iterable $items The collection of elements to insert to the list.
+     *
+     * @return void
+     * @throws OutOfBoundsException If the index is out of range.
+     */
+    public function insertRange(int $index, iterable $items): void;
+
+    /**
      * Removes the first occurrence of an element in the list.
      *
      * @param mixed $value The element to remove.
@@ -68,6 +89,19 @@ interface ListCollection extends Collection
      * @throws OutOfBoundsException if the index is out of range.
      */
     public function removeAt(int $index): void;
+
+    /**
+     * Removes a range of elements from the list.
+     *
+     * @param int $index The zero-based inclusive index where the range starts.
+     * @param int|null $count The number of elements to remove. If $count is less than or equal to zero, nothing will
+     * be removed. If $count is null or greater than ArrayList::count(), all elements from $index to the end of the
+     * list will be removed.
+     *
+     * @return int The number of elements removed from the list.
+     * @throws OutOfBoundsException if the index is out of range.
+     */
+    public function removeRange(int $index, ?int $count = null): int;
 
     /**
      * Returns the zero-based index of the first occurrence of the element in the list.
