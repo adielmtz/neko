@@ -171,6 +171,36 @@ final class DictionaryTest extends TestCase
         $this->assertFalse($this->dictionary->contains(new KeyValuePair('C', 'F')));
     }
 
+    public function testContainsAllWithArray(): void
+    {
+        $this->assertTrue($this->dictionary->containsAll([
+            new KeyValuePair('C', 'c'),
+            new KeyValuePair('D', 'd'),
+            new KeyValuePair('E', 'e'),
+        ]));
+
+        $this->assertFalse($this->dictionary->containsAll([
+            new KeyValuePair('X', 1),
+            new KeyValuePair('Y', 2),
+            new KeyValuePair('Z', 3),
+        ]));
+    }
+
+    public function testContainsAllWithCollection(): void
+    {
+        $this->assertTrue($this->dictionary->containsAll(new Dictionary([
+            'C' => 'c',
+            'D' => 'd',
+            'E' => 'e',
+        ])));
+
+        $this->assertFalse($this->dictionary->containsAll(new Dictionary([
+            'X' => 1,
+            'Y' => 2,
+            'Z' => 3,
+        ])));
+    }
+
     public function testContainsKey(): void
     {
         $this->assertTrue($this->dictionary->containsKey('C'));

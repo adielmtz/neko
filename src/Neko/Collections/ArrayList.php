@@ -102,6 +102,24 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
+     * Returns true if the list contains all the elements in the specified collection.
+     *
+     * @param iterable $items The collection of elements to search.
+     *
+     * @return bool
+     */
+    public function containsAll(iterable $items): bool
+    {
+        foreach ($items as $value) {
+            if (!$this->contains($value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Copies the elements of the list to an array.
      *
      * @param array $array
@@ -188,7 +206,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * @param int $index The zero-based index of the element to return.
      *
      * @return mixed
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
+     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= ArrayList::count()).
      */
     public function get(int $index): mixed
     {
@@ -208,7 +226,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * @param mixed $value The new element.
      *
      * @return void
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
+     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= ArrayList::count()).
      */
     public function set(int $index, mixed $value): void
     {
@@ -230,7 +248,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * @param mixed $value The element to insert.
      *
      * @return void
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > ArrayList::count()).
+     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index > ArrayList::count()).
      */
     public function insert(int $index, mixed $value): void
     {
@@ -257,7 +275,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * @param iterable $items The collection of elements to insert to the list.
      *
      * @return void
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > ArrayList::count()).
+     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index > ArrayList::count()).
      */
     public function insertRange(int $index, iterable $items): void
     {
@@ -319,7 +337,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * @param int $index The zero-based index of the element to remove.
      *
      * @return void
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
+     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= ArrayList::count()).
      */
     public function removeAt(int $index): void
     {
@@ -347,7 +365,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * list will be removed.
      *
      * @return int The number of elements removed from the list.
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
+     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= ArrayList::count()).
      */
     public function removeRange(int $index, ?int $count = null): int
     {
@@ -644,7 +662,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * list will be copied.
      *
      * @return ArrayList A shallow copy of a range of elements in the list.
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
+     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= ArrayList::count()).
      */
     public function slice(int $index, ?int $count = null): ArrayList
     {

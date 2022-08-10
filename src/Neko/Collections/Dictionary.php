@@ -118,6 +118,32 @@ class Dictionary implements ArrayAccess, KeyValuePairCollection
     }
 
     /**
+     * Returns true if the dictionary contains all the elements in the specified collection.
+     *
+     * @param iterable $items The collection of elements to search.
+     *
+     * @return bool
+     * @throws InvalidArgumentException|KeyNotFoundException If the keys are not valid array keys.
+     */
+    public function containsAll(iterable $items): bool
+    {
+        if ($items instanceof KeyValuePairCollection) {
+            foreach ($items as $key => $value) {
+                $arrayKey = self::createValidArrayKey($key);
+                return array_key_exists($arrayKey, $this->entries) && $this->entries[$arrayKey]->value === $value;
+            }
+        } else {
+            foreach ($items as $value) {
+                if (!$this->contains($value)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Returns true if the dictionary contains a specific key.
      *
      * @param mixed $key The key to search.

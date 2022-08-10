@@ -118,6 +118,24 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
+     * Returns true if the linked list contains all the elements in the specified collection.
+     *
+     * @param iterable $items The collection of elements to check.
+     *
+     * @return bool
+     */
+    public function containsAll(iterable $items): bool
+    {
+        foreach ($items as $value) {
+            if (!$this->contains($value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Copies the elements of the linked list to an array.
      *
      * @param array $array
@@ -233,7 +251,7 @@ class LinkedList implements ArrayAccess, ListCollection
      * @param int $index The zero-based index of the element to return.
      *
      * @return mixed
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
+     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= LinkedList::count()).
      */
     public function get(int $index): mixed
     {
@@ -278,7 +296,7 @@ class LinkedList implements ArrayAccess, ListCollection
      * @param mixed $value The new element.
      *
      * @return void
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
+     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= LinkedList::count()).
      */
     public function set(int $index, mixed $value): void
     {
@@ -294,7 +312,7 @@ class LinkedList implements ArrayAccess, ListCollection
      * @param mixed $value The element to insert.
      *
      * @return void
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > LinkedList::count()).
+     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index > LinkedList::count()).
      */
     public function insert(int $index, mixed $value): void
     {
@@ -335,7 +353,7 @@ class LinkedList implements ArrayAccess, ListCollection
      * @param int $index The zero-based index of the element to remove.
      *
      * @return void
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
+     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= LinkedList::count()).
      */
     public function removeAt(int $index): void
     {
@@ -449,7 +467,7 @@ class LinkedList implements ArrayAccess, ListCollection
      * @param int $index The zero-based index of the node to return
      *
      * @return LinkedListNode
-     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
+     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= LinkedList::count()).
      */
     private function findNodeByIndex(int $index): LinkedListNode
     {

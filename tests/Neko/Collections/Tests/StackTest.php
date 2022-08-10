@@ -138,6 +138,28 @@ final class StackTest extends TestCase
         $this->assertFalse($stack->contains('z'));
     }
 
+    public function testContainsAllWithArray(): void
+    {
+        $queue = new Stack();
+        $queue->push('Pizza');
+        $queue->push('Shishiron');
+        $queue->push('Chloe');
+
+        $this->assertTrue($queue->containsAll(['Chloe', 'Shishiron', 'Pizza']));
+        $this->assertFalse($queue->containsAll(['X', 'Y', 'Z']));
+    }
+
+    public function testContainsAllWithCollection(): void
+    {
+        $queue = new Stack();
+        $queue->push('Pizza');
+        $queue->push('Shishiron');
+        $queue->push('Chloe');
+
+        $this->assertTrue($queue->containsAll(new ArrayList(['Chloe', 'Shishiron', 'Pizza'])));
+        $this->assertFalse($queue->containsAll(new ArrayList(['X', 'Y', 'Z'])));
+    }
+
     /**
      * @depends testPush
      */

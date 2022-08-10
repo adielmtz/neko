@@ -142,6 +142,28 @@ final class QueueTest extends TestCase
         return $queue;
     }
 
+    public function testContainsAllWithArray(): void
+    {
+        $queue = new Queue();
+        $queue->enqueue('Pizza');
+        $queue->enqueue('Shishiron');
+        $queue->enqueue('Chloe');
+
+        $this->assertTrue($queue->containsAll(['Chloe', 'Shishiron', 'Pizza']));
+        $this->assertFalse($queue->containsAll(['X', 'Y', 'Z']));
+    }
+
+    public function testContainsAllWithCollection(): void
+    {
+        $queue = new Queue();
+        $queue->enqueue('Pizza');
+        $queue->enqueue('Shishiron');
+        $queue->enqueue('Chloe');
+
+        $this->assertTrue($queue->containsAll(new ArrayList(['Chloe', 'Shishiron', 'Pizza'])));
+        $this->assertFalse($queue->containsAll(new ArrayList(['X', 'Y', 'Z'])));
+    }
+
     /**
      * @depends testContains
      */

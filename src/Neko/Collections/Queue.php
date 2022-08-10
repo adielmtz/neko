@@ -104,6 +104,24 @@ class Queue implements Collection
     }
 
     /**
+     * Returns true if the queue contains all the elements in the specified collection.
+     *
+     * @param iterable $items The collection of elements to search.
+     *
+     * @return bool
+     */
+    public function containsAll(iterable $items): bool
+    {
+        foreach ($items as $value) {
+            if (!$this->contains($value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Copies the elements of the queue to an array.
      *
      * @param array $array

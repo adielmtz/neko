@@ -151,6 +151,18 @@ final class LinkedListTest extends TestCase
         $this->assertFalse($this->list->contains('X'));
     }
 
+    public function testContainsAllWithArray(): void
+    {
+        $this->assertTrue($this->list->containsAll(['B', 'C', 'D']));
+        $this->assertFalse($this->list->containsAll(['X', 'Y', 'Z']));
+    }
+
+    public function testContainsAllWithCollection(): void
+    {
+        $this->assertTrue($this->list->containsAll(new LinkedList(['B', 'C', 'D'])));
+        $this->assertFalse($this->list->containsAll(new LinkedList(['X', 'Y', 'Z'])));
+    }
+
     public function testAddLast(): void
     {
         $this->list->addLast('F');

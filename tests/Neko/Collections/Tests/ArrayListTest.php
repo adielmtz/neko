@@ -144,6 +144,18 @@ final class ArrayListTest extends TestCase
         $this->assertFalse($this->list->contains('X'));
     }
 
+    public function testContainsAllWithArray(): void
+    {
+        $this->assertTrue($this->list->containsAll(['B', 'C', 'D']));
+        $this->assertFalse($this->list->containsAll(['X', 'Y', 'Z']));
+    }
+
+    public function testContainsAllWithCollection(): void
+    {
+        $this->assertTrue($this->list->containsAll(new ArrayList(['B', 'C', 'D'])));
+        $this->assertFalse($this->list->containsAll(new ArrayList(['X', 'Y', 'Z'])));
+    }
+
     public function testAdd(): void
     {
         $this->list->add('F');

@@ -34,6 +34,15 @@ interface Collection extends Countable, IteratorAggregate
     public function contains(mixed $value): bool;
 
     /**
+     * Returns true if the collection contains all the elements in the specified collection.
+     *
+     * @param iterable $items The collection of elements to search.
+     *
+     * @return bool
+     */
+    public function containsAll(iterable $items): bool;
+
+    /**
      * Copies the elements of the collection to an array.
      *
      * @param array $array

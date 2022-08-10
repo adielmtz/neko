@@ -101,6 +101,24 @@ class Stack implements Collection
     }
 
     /**
+     * Returns true if the stack contains all the elements in the specified collection.
+     *
+     * @param iterable $items The collection of elements to search.
+     *
+     * @return bool
+     */
+    public function containsAll(iterable $items): bool
+    {
+        foreach ($items as $value) {
+            if (!$this->contains($value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Copies the elements of the stack to an array.
      * The elements of the stack are copied in a last-in, first-out order.
      *
