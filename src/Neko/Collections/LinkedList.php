@@ -436,6 +436,8 @@ class LinkedList implements ArrayAccess, ListCollection
             $node = $next;
         }
 
+        $this->length -= $i;
+        $this->version++;
         return $i;
     }
 
