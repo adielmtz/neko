@@ -276,6 +276,7 @@ final class FileStream extends Stream
      * @param int $length The maximum number of bytes to read.
      *
      * @return string The data read from the stream.
+     * @throws IOException if fread failed.
      * @throws InvalidArgumentException if the read length is less than or equal to zero.
      * @throws InvalidOperationException if the stream is closed or does not support reading.
      */
@@ -288,7 +289,7 @@ final class FileStream extends Stream
 
         $data = @fread($this->handle, $length);
         if ($data === false) {
-            IOException::fromLastErrorOrDefault(
+            throw IOException::fromLastErrorOrDefault(
                 sprintf('fread(%s, %d) failed', $this->filename, $length)
             );
         }
