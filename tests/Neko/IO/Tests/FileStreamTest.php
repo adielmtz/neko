@@ -102,14 +102,14 @@ final class FileStreamTest extends TestCase
     public function testRead(): void
     {
         self::$persistentStream->setPosition(0);
-        self::$persistentStream->read($output, 4096);
+        $output = self::$persistentStream->read(4096);
         $this->assertSame(__FILE__, $output);
     }
 
     public function testReadReturnsEmptyStringOnEndOfStream(): void
     {
-        $bytesRead = $this->disposableStream->read($output, 4096);
-        $this->assertSame(0, $bytesRead);
+        $output = $this->disposableStream->read(4096);
+        $this->assertSame(0, strlen($output));
         $this->assertSame('', $output);
     }
 
@@ -117,7 +117,7 @@ final class FileStreamTest extends TestCase
     {
         $this->expectException(InvalidOperationException::class);
         $this->disposableStream->close();
-        $this->disposableStream->read($output, 100);
+        $this->disposableStream->read(100);
     }
 
     public function testTruncate(): void
@@ -145,7 +145,7 @@ final class FileStreamTest extends TestCase
     public function testReadLine(): void
     {
         self::$persistentStream->setPosition(0);
-        self::$persistentStream->read($output, 4096);
+        $output = self::$persistentStream->read(4096);
         $this->assertSame(__FILE__ . PHP_EOL, $output);
     }
 

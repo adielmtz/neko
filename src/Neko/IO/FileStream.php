@@ -271,16 +271,15 @@ final class FileStream extends Stream
     }
 
     /**
-     * Reads a block of bytes from the stream into the $output argument.
+     * Reads a block of bytes from the stream.
      *
-     * @param string|null $output The data read from the stream.
      * @param int $length The maximum number of bytes to read.
      *
-     * @return int The number of bytes read.
+     * @return string The data read from the stream.
      * @throws InvalidArgumentException if the read length is less than or equal to zero.
      * @throws InvalidOperationException if the stream is closed or does not support reading.
      */
-    public function read(?string &$output, int $length): int
+    public function read(int $length): string
     {
         $this->ensureStreamIsReadable();
         if ($length <= 0) {
@@ -289,12 +288,12 @@ final class FileStream extends Stream
 
         $data = @fread($this->handle, $length);
         if ($data === false) {
-            $output = '';
-            return 0;
+            IOException::fromLastErrorOrDefault(
+                sprintf('fread(%s, %d) failed', $this->filename, $length)
+            );
         }
 
-        $output = $data;
-        return strlen($data);
+        return $data;
     }
 
     /**

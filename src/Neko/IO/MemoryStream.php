@@ -152,25 +152,18 @@ class MemoryStream extends Stream
     }
 
     /**
-     * Reads a block of bytes from the stream into the $output argument.
+     * Reads a block of bytes from the stream.
      *
-     * @param string|null $output The data read from the stream.
      * @param int $length The maximum number of bytes to read.
      *
-     * @return int The number of bytes read.
+     * @return string The data read from the stream.
      * @throws InvalidOperationException if the stream is closed or does not support reading.
      */
-    public function read(?string &$output, int $length): int
+    public function read(int $length): string
     {
         $this->ensureStreamIsOpen();
         $buffer = fread($this->memory, $length);
-        if ($buffer === false) {
-            $output = '';
-            return 0;
-        }
-
-        $output = $buffer;
-        return strlen($buffer);
+        return $buffer === false ? '' : $buffer;
     }
 
     /**

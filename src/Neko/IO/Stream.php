@@ -109,16 +109,15 @@ abstract class Stream
     abstract public function seek(int $offset, int $whence): void;
 
     /**
-     * Reads a block of bytes from the stream into the $output argument.
+     * Reads a block of bytes from the stream.
      *
-     * @param string|null $output The data read from the stream.
      * @param int $length The maximum number of bytes to read.
      *
-     * @return int The number of bytes read.
+     * @return string The data read from the stream.
      * @throws IOException
      * @throws InvalidOperationException if the stream is closed or does not support reading.
      */
-    abstract public function read(?string &$output, int $length): int;
+    abstract public function read(int $length): string;
 
     /**
      * Reads a char from the stream.
@@ -212,8 +211,8 @@ abstract class Stream
         }
 
         while (!$this->endOfStream()) {
-            $bytes_read = $this->read($data, $buffer_size);
-            $destination->write($data, $bytes_read);
+            $data = $this->read($buffer_size);
+            $destination->write($data);
         }
     }
 
