@@ -18,7 +18,6 @@ use function ftell;
 use function ftruncate;
 use function fwrite;
 use function sprintf;
-use function str_contains;
 use function stream_get_contents;
 use function stream_get_meta_data;
 use function strlen;
@@ -33,52 +32,34 @@ use const SEEK_SET;
  */
 final class FileStream extends Stream
 {
-    private mixed $handle;
     private string $filename;
-    private bool $is_locked = false;
-    private bool $can_seek = false;
-    private bool $can_read = false;
-    private bool $can_write = false;
+    private mixed $handle;
+    private bool $can_seek;
+    private bool $can_read;
+    private bool $can_write;
 
     /**
      * FileStream constructor.
      *
      * @param string $filename The path to the file to open.
-     * @param string $mode The open mode (see fopen() documentation).
+     * @param FileMode $mode
+     * @param FileAccess $access
      *
      * @throws InvalidArgumentException if the file path or open mode is an empty string.
      * @throws FileNotFoundException if the file cannot be found or does not exist.
      * @throws IOException If the stream cannot be open.
      */
-    public function __construct(string $filename, string $mode)
+    public function __construct(string $filename, FileMode $mode, FileAccess $access)
     {
         if ($filename === '') {
             throw new InvalidArgumentException('File path cannot be empty');
         }
 
-        if ($mode === '') {
-            throw new InvalidArgumentException('Open mode cannot be empty');
+        if ($mode === FileMode::Open && !file_exists($filename)) {
+            throw new FileNotFoundException("Could not find file '$filename'");
         }
 
-        switch ($mode[0]) {
-            case 'r':
-                $this->can_read = true;
-                $this->can_write = str_contains($mode, '+');
-                if (!file_exists($filename)) {
-                    throw new FileNotFoundException("Could not find file '$filename'");
-                }
-                break;
-            case 'w':
-            case 'a':
-            case 'x':
-            case 'c':
-                $this->can_read = str_contains($mode, '+');
-                $this->can_write = true;
-                break;
-            default:
-                throw new InvalidArgumentException("Mode '$mode' is not a valid mode");
-        }
-
+        $mode = $mode->getOpenMode($access);
         $this->handle = @fopen($filename, $mode);
         if ($this->handle === false) {
             throw IOException::fromLastErrorOrDefault(
@@ -88,6 +69,8 @@ final class FileStream extends Stream
 
         $this->filename = $filename;
         $this->can_seek = stream_get_meta_data($this->handle)['seekable'];
+        $this->can_read = $access->canRead();
+        $this->can_write = $access->canWrite();
     }
 
     /**

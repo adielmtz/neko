@@ -2,6 +2,8 @@
 namespace Neko\IO\Tests;
 
 use Neko\InvalidOperationException;
+use Neko\IO\FileAccess;
+use Neko\IO\FileMode;
 use Neko\IO\FileNotFoundException;
 use Neko\IO\FileStream;
 use Neko\IO\IOException;
@@ -20,7 +22,7 @@ final class FileStreamTest extends TestCase
     #region Test Environment SetUp
     public static function setUpBeforeClass(): void
     {
-        self::$persistentStream = new FileStream(__DIR__ . '/fst-sample-static-file.txt', 'w+b');
+        self::$persistentStream = new FileStream(__DIR__ . '/fst-sample-static-file.txt', FileMode::Truncate, FileAccess::ReadWrite);
     }
 
     public static function tearDownAfterClass(): void
@@ -31,7 +33,7 @@ final class FileStreamTest extends TestCase
 
     public function setUp(): void
     {
-        $this->disposableStream = new FileStream(__DIR__ . '/fst-sample-file.txt', 'w+b');
+        $this->disposableStream = new FileStream(__DIR__ . '/fst-sample-file.txt', FileMode::Truncate, FileAccess::ReadWrite);
     }
 
     public function tearDown(): void
@@ -55,16 +57,16 @@ final class FileStreamTest extends TestCase
         serialize($this->disposableStream);
     }
 
-    public function testFileStreamThrowsFileNotFoundExceptionWhenOpenModeIsRAndTheFileDoesNotExist(): void
+    public function testConstructorThrowsFileNotFoundExceptionWhenOpenModeIsRAndTheFileDoesNotExist(): void
     {
         $this->expectException(FileNotFoundException::class);
-        $stream = new FileStream('unknown-filename-foo-bar.txt', 'r+b');
+        $stream = new FileStream('unknown-filename.txt', FileMode::Open, FileAccess::ReadWrite);
     }
 
-    public function testFileStreamThrowsIOExceptionWhenOpenModeIsXAndTheFileAlreadyExist(): void
+    public function testConstructorThrowsIOExceptionWhenOpenModeIsCreateAndTheFileAlreadyExist(): void
     {
         $this->expectException(IOException::class);
-        $stream = new FileStream(__FILE__, 'x+b');
+        $stream = new FileStream(__FILE__, FileMode::Create, FileAccess::ReadWrite);
     }
 
     public function testBasicStreamClosed(): void
