@@ -2,6 +2,7 @@
 namespace Neko\IO;
 
 use InvalidArgumentException;
+use Neko\Closeable;
 use Neko\InvalidOperationException;
 use Neko\NotSupportedException;
 use function sprintf;
@@ -9,7 +10,7 @@ use function sprintf;
 /**
  * Defines an interface for streams.
  */
-abstract class Stream
+abstract class Stream implements Closeable
 {
     /**
      * Throws a NotSupportedException.
@@ -178,13 +179,6 @@ abstract class Stream
      * @throws InvalidOperationException if the stream is closed or does not support writing.
      */
     abstract public function flush(): void;
-
-    /**
-     * Closes the stream.
-     *
-     * @return void
-     */
-    abstract public function close(): void;
 
     /**
      * Reads the data from the stream and writes it to another stream.
