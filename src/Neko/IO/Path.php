@@ -12,6 +12,7 @@ use function str_starts_with;
 use function strlen;
 use function strpos;
 use function substr;
+use const DIRECTORY_SEPARATOR;
 
 /**
  * Contains methods for path string manipulation.
@@ -27,7 +28,7 @@ final class Path
      */
     public static function isDirectorySeparator(string $char): bool
     {
-        return $char === '/' || (Environment::IS_WINDOWS_MACHINE && $char === '\\');
+        return $char === DIRECTORY_SEPARATOR || $char === '/';
     }
 
     /**
