@@ -6,5 +6,10 @@ namespace Neko;
  */
 interface Closeable
 {
+    /**
+     * Closes the resource or operation.
+     *
+     * @return void
+     */
     public function close(): void;
 }
