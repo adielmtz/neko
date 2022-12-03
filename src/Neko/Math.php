@@ -2,6 +2,7 @@
 namespace Neko;
 
 use InvalidArgumentException;
+use function intdiv;
 
 /**
  * Contains methods for mathematical operations.
@@ -53,6 +54,22 @@ final class Math
         }
 
         return $value;
+    }
+
+    /**
+     * Calculates the quotient and remainder of two numbers.
+     *
+     * @param int $a The dividend.
+     * @param int $b The divisor.
+     * @param int|null &$result The resulting remainder..
+     *
+     * @return int The quotient.
+     */
+    public static function divRem(int $a, int $b, ?int &$result): int
+    {
+        $div = intdiv($a, $b);
+        $result = $a - ($div * $b);
+        return $div;
     }
 
     /**

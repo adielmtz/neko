@@ -61,6 +61,23 @@ final class MathTest extends TestCase
     }
     #endregion
 
+    #region Math::divRem() tests
+    public function testDivRemBasic(): void
+    {
+        $div = Math::divRem(4, 2, $remainder);
+        $this->assertSame(2, $div);
+        $this->assertSame(0, $remainder);
+
+        $div = Math::divRem(1, 3, $remainder);
+        $this->assertSame(0, $div);
+        $this->assertSame(1, $remainder);
+
+        $div = Math::divRem(0, 1, $remainder);
+        $this->assertSame(0, $div);
+        $this->assertSame(0, $remainder);
+    }
+    #endregion
+
     #region Math::factorial() tests
     public function testFactorialWithFirst10Values(): void
     {
