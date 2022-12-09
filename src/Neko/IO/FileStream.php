@@ -37,6 +37,7 @@ final class FileStream extends Stream
     private bool $can_seek;
     private bool $can_read;
     private bool $can_write;
+    private bool $is_locked = false;
 
     /**
      * FileStream constructor.
