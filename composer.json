@@ -1,4 +1,7 @@
 {
+    "name": "adielmtz/neko",
+    "license": "MIT",
+    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "Neko\\": "src/Neko"
