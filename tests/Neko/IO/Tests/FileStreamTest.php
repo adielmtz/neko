@@ -46,9 +46,9 @@ final class FileStreamTest extends TestCase
 
     public function testBasic(): void
     {
-        $this->assertTrue($this->disposableStream->canRead());
-        $this->assertTrue($this->disposableStream->canWrite());
-        $this->assertTrue($this->disposableStream->canSeek());
+        $this->assertTrue($this->disposableStream->isReadable());
+        $this->assertTrue($this->disposableStream->isWritable());
+        $this->assertTrue($this->disposableStream->isSeekable());
     }
 
     public function testFileStreamThrowsNotSupportedExceptionWhenTryingToSerialize(): void
@@ -72,9 +72,9 @@ final class FileStreamTest extends TestCase
     public function testBasicStreamClosed(): void
     {
         $this->disposableStream->close();
-        $this->assertFalse($this->disposableStream->canRead());
-        $this->assertFalse($this->disposableStream->canWrite());
-        $this->assertFalse($this->disposableStream->canSeek());
+        $this->assertFalse($this->disposableStream->isReadable());
+        $this->assertFalse($this->disposableStream->isWritable());
+        $this->assertFalse($this->disposableStream->isSeekable());
     }
 
     public function testEndOfStreamThrowsExceptionWhenTheStreamIsClosed(): void

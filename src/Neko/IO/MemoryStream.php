@@ -44,7 +44,7 @@ class MemoryStream extends Stream
      *
      * @return bool
      */
-    public function canRead(): bool
+    public function isReadable(): bool
     {
         return $this->memory !== null;
     }
@@ -54,7 +54,7 @@ class MemoryStream extends Stream
      *
      * @return bool
      */
-    public function canWrite(): bool
+    public function isWritable(): bool
     {
         return $this->memory !== null;
     }
@@ -64,7 +64,7 @@ class MemoryStream extends Stream
      *
      * @return bool
      */
-    public function canSeek(): bool
+    public function isSeekable(): bool
     {
         return $this->memory !== null;
     }

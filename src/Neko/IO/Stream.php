@@ -32,21 +32,21 @@ abstract class Stream implements Closeable
      *
      * @return bool
      */
-    abstract public function canRead(): bool;
+    abstract public function isReadable(): bool;
 
     /**
      * Returns true if the stream is writable.
      *
      * @return bool
      */
-    abstract public function canWrite(): bool;
+    abstract public function isWritable(): bool;
 
     /**
      * Returns true if the stream is seekable.
      *
      * @return bool
      */
-    abstract public function canSeek(): bool;
+    abstract public function isSeekable(): bool;
 
     /**
      * Returns true if the current position in the stream equals the size of the stream.
@@ -227,7 +227,7 @@ abstract class Stream implements Closeable
     protected function ensureStreamIsReadable(): void
     {
         $this->ensureStreamIsOpen();
-        if (!$this->canRead()) {
+        if (!$this->isReadable()) {
             throw new InvalidOperationException('Stream does not support read');
         }
     }
@@ -241,7 +241,7 @@ abstract class Stream implements Closeable
     protected function ensureStreamIsWritable(): void
     {
         $this->ensureStreamIsOpen();
-        if (!$this->canWrite()) {
+        if (!$this->isWritable()) {
             throw new InvalidOperationException('Stream does not support write');
         }
     }

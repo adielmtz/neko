@@ -79,7 +79,7 @@ final class FileStream extends Stream
      *
      * @return bool
      */
-    public function canRead(): bool
+    public function isReadable(): bool
     {
         return $this->can_read;
     }
@@ -89,7 +89,7 @@ final class FileStream extends Stream
      *
      * @return bool
      */
-    public function canWrite(): bool
+    public function isWritable(): bool
     {
         return $this->can_write;
     }
@@ -99,7 +99,7 @@ final class FileStream extends Stream
      *
      * @return bool
      */
-    public function canSeek(): bool
+    public function isSeekable(): bool
     {
         return $this->can_seek;
     }
