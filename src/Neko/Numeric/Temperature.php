@@ -1,13 +1,16 @@
 <?php declare(strict_types=1);
 namespace Neko\Numeric;
 
+use InvalidArgumentException;
+use Neko\Comparable;
+
 /**
- * Represents temperature in celsius.
+ * Represents a temperature value.
  */
-final class Temperature
+final class Temperature implements Comparable
 {
     /**
-     * @var float The temperature in celsius.
+     * @var float The temperature in Celsius.
      */
     private float $value;
 
@@ -55,6 +58,36 @@ final class Temperature
     private function __construct(float $celsius)
     {
         $this->value = $celsius;
+    }
+
+    /**
+     * Compares this temperature with another Temperature instance.
+     *
+     * @param mixed $other The temperature to compare with.
+     *
+     * @return int
+     * @throws InvalidArgumentException If $other is not an instance of Temperature.
+     */
+    public function compareTo(mixed $other): int
+    {
+        if ($other instanceof Temperature) {
+            return $other->value <=> $this->value;
+        }
+
+        throw new InvalidArgumentException('\'$other\' must be of type ' . Temperature::class);
+    }
+
+    /**
+     * Returns true if this temperature equals the other Temperature instance.
+     *
+     * @param mixed $other The temperature object to compare with.
+     *
+     * @return bool
+     */
+    public function equals(mixed $other): bool
+    {
+        return $other instanceof Temperature
+            && $other->value === $this->value;
     }
 
     /**
