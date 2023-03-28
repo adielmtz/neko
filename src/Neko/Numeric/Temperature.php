@@ -10,7 +10,7 @@ use Neko\Comparable;
 final class Temperature implements Comparable
 {
     /**
-     * @var float The temperature in Celsius.
+     * @var float The temperature in Kelvin.
      */
     private float $value;
 
@@ -23,7 +23,7 @@ final class Temperature implements Comparable
      */
     public static function fromCelsius(float $celsius): Temperature
     {
-        return new Temperature($celsius);
+        return new Temperature($celsius + 273.15);
     }
 
     /**
@@ -35,7 +35,7 @@ final class Temperature implements Comparable
      */
     public static function fromFahrenheit(float $fahrenheit): Temperature
     {
-        return new Temperature(($fahrenheit - 32) * 5 / 9);
+        return new Temperature((($fahrenheit - 32) * 5 / 9) + 273.15);
     }
 
     /**
@@ -47,17 +47,17 @@ final class Temperature implements Comparable
      */
     public static function fromKelvin(float $kelvin): Temperature
     {
-        return new Temperature($kelvin - 273.15);
+        return new Temperature($kelvin);
     }
 
     /**
      * Temperature constructor.
      *
-     * @param float $celsius The temperature in celsius.
+     * @param float $kelvin The temperature in Kelvin.
      */
-    private function __construct(float $celsius)
+    private function __construct(float $kelvin)
     {
-        $this->value = $celsius;
+        $this->value = $kelvin;
     }
 
     /**
@@ -97,7 +97,7 @@ final class Temperature implements Comparable
      */
     public function toCelsius(): float
     {
-        return $this->value;
+        return $this->value - 273.15;
     }
 
     /**
@@ -107,7 +107,7 @@ final class Temperature implements Comparable
      */
     public function toFahrenheit(): float
     {
-        return ($this->value * 9 / 5) + 32;
+        return (($this->value - 273.15) * 9 / 5) + 32;
     }
 
     /**
@@ -117,6 +117,6 @@ final class Temperature implements Comparable
      */
     public function toKelvin(): float
     {
-        return $this->value + 273.15;
+        return $this->value;
     }
 }
