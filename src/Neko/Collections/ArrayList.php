@@ -195,9 +195,9 @@ class ArrayList implements ArrayAccess, ListCollection
      *
      * @return void
      */
-    public function addRange(iterable $items): void
+    public function addAll(iterable $items): void
     {
-        $this->insertRange($this->length, $items);
+        $this->insertAll($this->length, $items);
     }
 
     /**
@@ -277,7 +277,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * @return void
      * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index > ArrayList::count()).
      */
-    public function insertRange(int $index, iterable $items): void
+    public function insertAll(int $index, iterable $items): void
     {
         if ($index < 0 || $index > $this->length) {
             throw new OutOfBoundsException(

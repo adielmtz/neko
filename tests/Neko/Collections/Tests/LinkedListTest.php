@@ -256,7 +256,7 @@ final class LinkedListTest extends TestCase
     public function testInsertRange_First(): void
     {
         // This test also serves as test for ArrayList::addRange() method.
-        $this->list->insertRange(0, ['X', 'Y', 'Z']); // [X, Y, Z, A, B, C, D, E]
+        $this->list->insertAll(0, ['X', 'Y', 'Z']); // [X, Y, Z, A, B, C, D, E]
         $this->assertSame(8, $this->list->count());
         $this->assertSame('X', $this->list->get(0));
         $this->assertSame('Y', $this->list->get(1));
@@ -271,12 +271,12 @@ final class LinkedListTest extends TestCase
     public function testInsertRange_FailsWhenIndexIsOutOfBounds(): void
     {
         $this->expectException(OutOfBoundsException::class);
-        $this->list->insertRange(100, []);
+        $this->list->insertAll(100, []);
     }
 
     public function testInsertRange_Between(): void
     {
-        $this->list->insertRange(2, ['X', 'Y', 'Z']); // [A, B, X, Y, Z, C, D, E]
+        $this->list->insertAll(2, ['X', 'Y', 'Z']); // [A, B, X, Y, Z, C, D, E]
         $this->assertSame(8, $this->list->count());
         $this->assertSame('A', $this->list->get(0));
         $this->assertSame('B', $this->list->get(1));
@@ -290,7 +290,7 @@ final class LinkedListTest extends TestCase
 
     public function testInsertRange_Last(): void
     {
-        $this->list->insertRange(5, ['X', 'Y', 'Z']); // [A, B, C, D, E, X, Y, Z]
+        $this->list->insertAll(5, ['X', 'Y', 'Z']); // [A, B, C, D, E, X, Y, Z]
         $this->assertSame(8, $this->list->count());
         $this->assertSame('A', $this->list->get(0));
         $this->assertSame('B', $this->list->get(1));
@@ -304,7 +304,7 @@ final class LinkedListTest extends TestCase
 
     public function testInsertRange_UsingAnAssociativeArray(): void
     {
-        $this->list->insertRange(1, ['foo' => 'X', 'bar' => 'Y', 'baz' => 'Z']);
+        $this->list->insertAll(1, ['foo' => 'X', 'bar' => 'Y', 'baz' => 'Z']);
         $this->assertSame(8, $this->list->count());
         $this->assertSame('A', $this->list->get(0));
         $this->assertSame('X', $this->list->get(1));

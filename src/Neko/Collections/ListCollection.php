@@ -24,7 +24,7 @@ interface ListCollection extends Collection
      *
      * @return void
      */
-    public function addRange(iterable $items): void;
+    public function addAll(iterable $items): void;
 
     /**
      * Returns the element at the specified index.
@@ -69,7 +69,7 @@ interface ListCollection extends Collection
      * @return void
      * @throws OutOfBoundsException If the index is out of range.
      */
-    public function insertRange(int $index, iterable $items): void;
+    public function insertAll(int $index, iterable $items): void;
 
     /**
      * Removes the first occurrence of an element in the list.

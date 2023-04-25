@@ -217,7 +217,7 @@ class LinkedList implements ArrayAccess, ListCollection
      *
      * @return void
      */
-    public function addRange(iterable $items): void
+    public function addAll(iterable $items): void
     {
         foreach ($items as $value) {
             $this->addLast($value);
@@ -353,10 +353,10 @@ class LinkedList implements ArrayAccess, ListCollection
      * @return void
      * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index > LinkedList::count()).
      */
-    public function insertRange(int $index, iterable $items): void
+    public function insertAll(int $index, iterable $items): void
     {
         if ($index === $this->length) {
-            $this->addRange($items);
+            $this->addAll($items);
         } else {
             $prev = $this->findNodeByIndex($index)->prev;
             $next = $prev->next;
