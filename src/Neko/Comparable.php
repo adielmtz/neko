@@ -16,13 +16,4 @@ interface Comparable
      * A value greater than zero if this object is greater than $other.
      */
     public function compareTo(mixed $other): int;
-
-    /**
-     * Returns true if this object equals the given value.
-     *
-     * @param mixed $other The value to compare with.
-     *
-     * @return bool
-     */
-    public function equals(mixed $other): bool;
 }

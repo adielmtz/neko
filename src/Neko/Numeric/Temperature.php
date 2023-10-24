@@ -3,11 +3,12 @@ namespace Neko\Numeric;
 
 use InvalidArgumentException;
 use Neko\Comparable;
+use Neko\Equatable;
 
 /**
  * Represents a temperature value.
  */
-final class Temperature implements Comparable
+final class Temperature implements Comparable, Equatable
 {
     /**
      * @var float The temperature in Kelvin.
