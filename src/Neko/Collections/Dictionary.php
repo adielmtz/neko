@@ -17,7 +17,7 @@ use function sprintf;
 /**
  * Represents a collection of keys and values.
  */
-class Dictionary implements ArrayAccess, KeyValuePairCollection
+class Dictionary implements ArrayAccess, Map
 {
     /**
      * @var KeyValuePair[]
@@ -37,7 +37,7 @@ class Dictionary implements ArrayAccess, KeyValuePairCollection
     {
         if (!function_exists('spl_object_hash')) {
             throw new NotSupportedException(
-                'Dictionary class requires spl_object_hash() function which is not available for this PHP installation'
+                'Dictionary class requires spl_object_hash() function which is not available for this PHP installation',
             );
         }
 
@@ -127,7 +127,7 @@ class Dictionary implements ArrayAccess, KeyValuePairCollection
      */
     public function containsAll(iterable $items): bool
     {
-        if ($items instanceof KeyValuePairCollection) {
+        if ($items instanceof Map) {
             foreach ($items as $key => $value) {
                 $arrayKey = self::createValidArrayKey($key);
                 return array_key_exists($arrayKey, $this->entries) && $this->entries[$arrayKey]->value === $value;
@@ -279,7 +279,7 @@ class Dictionary implements ArrayAccess, KeyValuePairCollection
             }
 
             throw new InvalidArgumentException(
-                sprintf('Key \'%s\' exists in the dictionary', $key)
+                sprintf('Key \'%s\' exists in the dictionary', $key),
             );
         }
 
@@ -309,7 +309,7 @@ class Dictionary implements ArrayAccess, KeyValuePairCollection
             }
 
             throw new KeyNotFoundException(
-                sprintf('Key \'%s\' was not found in the dictionary', $key)
+                sprintf('Key \'%s\' was not found in the dictionary', $key),
             );
         }
 

@@ -6,7 +6,7 @@ use InvalidArgumentException;
 /**
  * Defines a collection of key/value pairs.
  */
-interface KeyValuePairCollection extends Collection
+interface Map extends Collection
 {
     /**
      * Returns true if the collection contains a specific key.
