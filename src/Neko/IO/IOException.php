@@ -2,6 +2,7 @@
 namespace Neko\IO;
 
 use Exception;
+use Throwable;
 use function error_clear_last;
 use function error_get_last;
 
@@ -28,5 +29,17 @@ class IOException extends Exception
         }
 
         return new IOException($defaultMessage, $code);
+    }
+
+    /**
+     * IOException constructor.
+     *
+     * @param string $message The exception message to throw.
+     * @param int $code The exception code.
+     * @param Throwable|null $previous The previous throwable used for the exception chaining.
+     */
+    public function __construct(string $message = '', int $code = 0, ?Throwable $previous = null)
+    {
+        parent::__construct($message, $code, $previous);
     }
 }
