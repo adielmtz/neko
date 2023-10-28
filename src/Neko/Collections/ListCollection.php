@@ -91,19 +91,6 @@ interface ListCollection extends Collection
     public function removeAt(int $index): void;
 
     /**
-     * Removes a range of elements from the list.
-     *
-     * @param int $index The zero-based inclusive index where the range starts.
-     * @param int|null $count The number of elements to remove. If $count is less than or equal to zero, nothing will
-     * be removed. If $count is null or greater than ArrayList::count(), all elements from $index to the end of the
-     * list will be removed.
-     *
-     * @return int The number of elements removed from the list.
-     * @throws OutOfBoundsException if the index is out of range.
-     */
-    public function removeRange(int $index, ?int $count = null): int;
-
-    /**
      * Returns the zero-based index of the first occurrence of the element in the list.
      *
      * @param mixed $value The element to search.
