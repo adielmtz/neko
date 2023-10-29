@@ -5,7 +5,7 @@ use Exception;
 use Throwable;
 
 /**
- * Thrown when a method or function call is not valid in its current state.
+ * This exception is thrown when a method or function call is not valid in its current state.
  */
 class InvalidOperationException extends Exception
 {

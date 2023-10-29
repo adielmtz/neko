@@ -5,8 +5,7 @@ use Countable;
 use IteratorAggregate;
 
 /**
- * The root interface for the collection hierarchy.
- * Defines methods to manipulate a collection of values.
+ * Defines methods to manipulate collections.
  */
 interface Collection extends Countable, IteratorAggregate
 {
@@ -25,27 +24,27 @@ interface Collection extends Countable, IteratorAggregate
     public function clear(): void;
 
     /**
-     * Returns true if the collection contains a specific element.
+     * Returns true if the collection contains the specified element.
      *
-     * @param mixed $value The value to search.
+     * @param mixed $item The element to search.
      *
      * @return bool
      */
-    public function contains(mixed $value): bool;
+    public function contains(mixed $item): bool;
 
     /**
      * Returns true if the collection contains all the elements in the specified collection.
      *
-     * @param iterable $items The collection of elements to search.
+     * @param iterable $items The collection to search.
      *
      * @return bool
      */
     public function containsAll(iterable $items): bool;
 
     /**
-     * Copies the elements of the collection to an array.
+     * Copies the elements of the collection to an array, starting at the specified index.
      *
-     * @param array $array
+     * @param array $array REF: The array where the elements of the collection will be copied.
      * @param int $index The zero-based index in $array at which copying begins.
      *
      * @return void

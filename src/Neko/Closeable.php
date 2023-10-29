@@ -2,12 +2,12 @@
 namespace Neko;
 
 /**
- * Defines an object that can be closed, such as a FileStream.
+ * Defines a method for closing any resource or task associated with an object.
  */
 interface Closeable
 {
     /**
-     * Closes the resource or operation.
+     * Closes the resource or task and releases the associated resources.
      *
      * @return void
      */

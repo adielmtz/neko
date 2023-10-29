@@ -11,7 +11,7 @@ use Neko\Equatable;
 final class Temperature implements Comparable, Equatable
 {
     /**
-     * @var float The temperature in Kelvin.
+     * @var float The temperature in Kelvin units.
      */
     private float $value;
 
@@ -62,12 +62,15 @@ final class Temperature implements Comparable, Equatable
     }
 
     /**
-     * Compares this temperature with another Temperature instance.
+     * Compares this object with another Temperature object and returns an integer indicating the order.
      *
-     * @param mixed $other The temperature to compare with.
+     * @param mixed $other The object to compare.
      *
-     * @return int
-     * @throws InvalidArgumentException If $other is not an instance of Temperature.
+     * @return int Returns a value less than zero if this instance is less than the other value.
+     * Returns zero if this instance is equal to the other value.
+     * Returns a value greater than zero if this instance is greater than the other value.
+     *
+     * @throws InvalidArgumentException if $other is not an instance of Temperature.
      */
     public function compareTo(mixed $other): int
     {
@@ -79,9 +82,9 @@ final class Temperature implements Comparable, Equatable
     }
 
     /**
-     * Returns true if this temperature equals the other Temperature instance.
+     * Returns true if this object is equal to another Temperature object.
      *
-     * @param mixed $other The temperature object to compare with.
+     * @param mixed $other The object to compare.
      *
      * @return bool
      */

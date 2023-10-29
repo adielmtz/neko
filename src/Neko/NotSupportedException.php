@@ -5,7 +5,7 @@ use LogicException;
 use Throwable;
 
 /**
- * This exception is thrown when a method or function call is not supported or its functionality is not available,
+ * This exception is thrown when an operation is not supported or its functionality is not available,
  * such as trying to call a function that requires a specific extension to be enabled.
  */
 class NotSupportedException extends LogicException

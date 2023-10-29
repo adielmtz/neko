@@ -1,23 +1,24 @@
 <?php declare(strict_types=1);
 namespace Neko;
 
+use DivisionByZeroError;
 use InvalidArgumentException;
 use function intdiv;
 
 /**
- * Contains methods for mathematical operations.
+ * Provides methods for common mathematical operations.
  */
 final class Math
 {
     /**
-     * Returns the value clamped to the inclusive range of $min and $max.
+     * Returns the value clamped to the inclusive range of min and max.
      *
-     * @param int|float $value The value to clamp.
-     * @param int|float $min The minimum value.
-     * @param int|float $max The maximum value.
+     * @param int|float $value The value to be clamped.
+     * @param int|float $min The lower bound of the range.
+     * @param int|float $max The upper bound of the range.
      *
      * @return int|float
-     * @throws InvalidArgumentException if the minimum value is greater than the maximum value.
+     * @throws InvalidArgumentException if the min value is greater than the max value.
      */
     public static function clamp(int|float $value, int|float $min, int|float $max): int|float
     {
@@ -39,7 +40,7 @@ final class Math
     /**
      * Returns the value clamped to the inclusive range of 0 and 1.
      *
-     * @param float $value The value to clamp.
+     * @param float $value The value to be clamped.
      *
      * @return float
      */
@@ -61,9 +62,10 @@ final class Math
      *
      * @param int $a The dividend.
      * @param int $b The divisor.
-     * @param int|null &$result The resulting remainder..
+     * @param int|null $result OUT: the resulting remainder.
      *
-     * @return int The quotient.
+     * @return int The quotient of the division.
+     * @throws DivisionByZeroError if the divisor is zero.
      */
     public static function divRem(int $a, int $b, ?int &$result): int
     {
@@ -73,12 +75,12 @@ final class Math
     }
 
     /**
-     * Calculates the factorial of the given value.
+     * Calculates the $n-th factorial.
      *
      * @param int $n The value to calculate its factorial.
      *
      * @return int
-     * @throws InvalidArgumentException if the $n is negative.
+     * @throws InvalidArgumentException if $n is negative.
      */
     public static function factorial(int $n): int
     {

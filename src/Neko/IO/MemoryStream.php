@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 namespace Neko\IO;
 
-use InvalidArgumentException;
 use Neko\InvalidOperationException;
+use Neko\NotSupportedException;
 use function fclose;
 use function feof;
 use function fgetc;
@@ -20,7 +20,7 @@ use const PHP_EOL;
 use const SEEK_SET;
 
 /**
- * Represents a stream in memory.
+ * Represents an IO stream in memory.
  */
 class MemoryStream extends Stream
 {
@@ -29,7 +29,7 @@ class MemoryStream extends Stream
     /**
      * MemoryStream constructor.
      *
-     * @throws IOException If the stream could not be open.
+     * @throws IOException if the stream could not be open.
      */
     public function __construct()
     {
@@ -70,7 +70,7 @@ class MemoryStream extends Stream
     }
 
     /**
-     * Returns true if the current position in the stream equals the size of the stream.
+     * Returns true if the current position is at the end of the stream.
      *
      * @return bool
      * @throws InvalidOperationException if the stream is closed.
@@ -82,7 +82,7 @@ class MemoryStream extends Stream
     }
 
     /**
-     * Returns the size of the stream in bytes.
+     * Gets the size of the stream.
      *
      * @return int
      * @throws InvalidOperationException if the stream is closed.
@@ -94,9 +94,9 @@ class MemoryStream extends Stream
     }
 
     /**
-     * Sets the size, in bytes, of the stream.
+     * Sets the size of the stream.
      *
-     * @param int $size The new size.
+     * @param int $size The size of the stream in bytes.
      *
      * @return void
      * @throws InvalidOperationException if the stream is closed.
@@ -112,7 +112,7 @@ class MemoryStream extends Stream
     }
 
     /**
-     * Gets the current position in the stream.
+     * Gets the current position within the stream.
      *
      * @return int
      * @throws InvalidOperationException if the stream is closed.
@@ -124,9 +124,9 @@ class MemoryStream extends Stream
     }
 
     /**
-     * Sets the current position in the stream to the given value.
+     * Sets the current position within the stream.
      *
-     * @param int $position The position in the stream.
+     * @param int $position The position offset.
      *
      * @return void
      * @throws InvalidOperationException if the stream is closed.
@@ -137,10 +137,10 @@ class MemoryStream extends Stream
     }
 
     /**
-     * Sets the current position in the stream, relative to $whence.
+     * Seeks on the stream moving the current position.
      *
-     * @param int $offset The position relative to $whence from which to begin seeking.
-     * @param int $whence SEEK_SET, SEEK_CUR, or SEEK_END.
+     * @param int $offset The seek offset.
+     * @param int $whence SEEK_SET, SEEK_CUR or SEEK_END.
      *
      * @return void
      * @throws InvalidOperationException if the stream is closed.
@@ -152,12 +152,12 @@ class MemoryStream extends Stream
     }
 
     /**
-     * Reads a block of bytes from the stream.
+     * Reads up to $length bytes from the stream.
      *
-     * @param int $length The maximum number of bytes to read.
+     * @param int $length The amount of bytes to read.
      *
-     * @return string The data read from the stream.
-     * @throws InvalidOperationException if the stream is closed or does not support reading.
+     * @return string The data read from the stream or an empty string if the end of stream was reached.
+     * @throws InvalidOperationException if the stream is closed.
      */
     public function read(int $length): string
     {
@@ -167,10 +167,10 @@ class MemoryStream extends Stream
     }
 
     /**
-     * Reads a char from the stream.
+     * Reads a byte from the stream.
      *
-     * @return string|null The read character or null if the end of the stream has been reached.
-     * @throws InvalidOperationException if the stream is closed or does not support reading.
+     * @return string|null The read byte or NULL if the end of stream was reached.
+     * @throws InvalidOperationException if the stream is closed.
      */
     public function readChar(): ?string
     {
@@ -180,10 +180,10 @@ class MemoryStream extends Stream
     }
 
     /**
-     * Reads the stream until an end-of-line sequence is found.
+     * Reads a line from the stream.
      *
-     * @return string|null The data read from the stream or null if the end of the stream has been reached.
-     * @throws InvalidOperationException if the stream is closed or does not support reading.
+     * @return string|null The data read from the stream or NULL if the end of stream has been reached.
+     * @throws InvalidOperationException if the stream is closed.
      */
     public function readLine(): ?string
     {
@@ -193,10 +193,10 @@ class MemoryStream extends Stream
     }
 
     /**
-     * Reads the remainder of the stream into a string.
+     * Reads the stream until it reaches the end of stream.
      *
      * @return string The data read from the stream.
-     * @throws InvalidOperationException if the stream is closed or does not support reading.
+     * @throws InvalidOperationException if the stream is closed.
      */
     public function readToEnd(): string
     {
@@ -205,14 +205,13 @@ class MemoryStream extends Stream
     }
 
     /**
-     * Writes a block of bytes to the stream.
+     * Writes up to $length bytes to the stream.
      *
      * @param string $data The data to write.
-     * @param int $length The maximum number of bytes to write. If the value is less than zero, writing will stop until
-     *     the end of $data is reached.
+     * @param int $length The amount of bytes to write. If $length is less than zero, the whole string will be written.
      *
      * @return int The number of bytes written.
-     * @throws InvalidOperationException if the stream is closed or does not support writing.
+     * @throws InvalidOperationException if the stream is closed.
      */
     public function write(string $data, int $length = -1): int
     {
@@ -222,12 +221,12 @@ class MemoryStream extends Stream
     }
 
     /**
-     * Writes a string to the stream, followed by an end-of-line sequence.
+     * Writes to the stream followed by an end-of-line sequence.
      *
-     * @param string $data The string to write.
+     * @param string $data The data to write.
      *
-     * @return int The number of bytes written, including the length of the end-of-line sequence.
-     * @throws InvalidOperationException if the stream is closed or does not support writing.
+     * @return int The number of bytes written.
+     * @throws InvalidOperationException if the stream is closed.
      */
     public function writeLine(string $data): int
     {
@@ -235,17 +234,15 @@ class MemoryStream extends Stream
     }
 
     /**
-     * Reads the entire content of the stream and writes it to another stream.
-     * In contrast to Stream::copyTo(), this method places the cursor at the beginning of the stream before starting
-     * the copy.
+     * Copies data from the beginning of this stream to another.
      *
-     * @param Stream $destination The stream where the copy will be written.
-     * @param int $buffer_size The size of the copy buffer.
+     * @param Stream $destination The destination stream where the copied data will be written.
+     * @param int $buffer_size The size of the internal buffer.
      *
      * @return void
-     * @throws IOException
-     * @throws InvalidArgumentException if the buffer size is less than or equal to zero.
-     * @throws InvalidOperationException if the stream is not readable or the destination stream is not writable.
+     * @throws IOException if an IO error occurs.
+     * @throws InvalidOperationException if the stream is closed.
+     * @throws NotSupportedException if the underlying stream implementation does not support this operation.
      */
     public function writeTo(Stream $destination, int $buffer_size = 81920): void
     {
@@ -254,7 +251,7 @@ class MemoryStream extends Stream
     }
 
     /**
-     * Does nothing as the stream is stored in memory.
+     * A no-op since the stream is stored in memory.
      *
      * @return void
      */

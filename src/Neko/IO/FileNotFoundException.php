@@ -4,7 +4,7 @@ namespace Neko\IO;
 use Throwable;
 
 /**
- * This exception is thrown when a file is not found or does not exist.
+ * This exception is thrown when attempting to access a file that is not found or does not exist.
  */
 final class FileNotFoundException extends IOException
 {

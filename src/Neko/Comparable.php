@@ -2,18 +2,18 @@
 namespace Neko;
 
 /**
- * Defines an object that can be compared.
+ * Defines a method for performing comparisons between types.
  */
 interface Comparable
 {
     /**
-     * Compares this object with the given value.
+     * Compares this object with another value and returns an integer indicating the order.
      *
-     * @param mixed $other The value to compare with.
+     * @param mixed $other The value to compare.
      *
-     * @return int A value less than zero if this object is less than $other.
-     * A value equal to zero if this object is equal to $other.
-     * A value greater than zero if this object is greater than $other.
+     * @return int Returns a value less than zero if this instance is less than the other value.
+     * Returns zero if this instance is equal to the other value.
+     * Returns a value greater than zero if this instance is greater than the other value.
      */
     public function compareTo(mixed $other): int;
 }

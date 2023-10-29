@@ -21,7 +21,7 @@ class Queue implements Collection
     /**
      * Queue constructor.
      *
-     * @param iterable|null $items A collection of values that will be copied to the queue.
+     * @param iterable|null $items A collection of initial elements that will be copied to the queue.
      */
     public function __construct(?iterable $items = null)
     {
@@ -50,7 +50,7 @@ class Queue implements Collection
     /**
      * Unserializes the queue.
      *
-     * @param array $data
+     * @param array $data The data provided by unserialize().
      *
      * @return void
      */
@@ -85,17 +85,17 @@ class Queue implements Collection
     }
 
     /**
-     * Returns true if the stack contains a specific element.
+     * Returns true if the queue contains the specified element.
      *
-     * @param mixed $value The value to search.
+     * @param mixed $item The element to search.
      *
      * @return bool
      */
-    public function contains(mixed $value): bool
+    public function contains(mixed $item): bool
     {
         $tail = $this->head + $this->length;
         for ($i = $this->head; $i < $tail; $i++) {
-            if ($value === $this->items[$i]) {
+            if ($item === $this->items[$i]) {
                 return true;
             }
         }
@@ -106,7 +106,7 @@ class Queue implements Collection
     /**
      * Returns true if the queue contains all the elements in the specified collection.
      *
-     * @param iterable $items The collection of elements to search.
+     * @param iterable $items The collection to search.
      *
      * @return bool
      */
@@ -122,9 +122,10 @@ class Queue implements Collection
     }
 
     /**
-     * Copies the elements of the queue to an array.
+     * Copies the elements of the queue to an array, starting at the specified index.
+     * The elements are copied in first-in, first-out order.
      *
-     * @param array $array
+     * @param array $array REF: The array where the elements of the queue will be copied.
      * @param int $index The zero-based index in $array at which copying begins.
      *
      * @return void
@@ -139,6 +140,7 @@ class Queue implements Collection
 
     /**
      * Returns an array containing all the elements of the queue.
+     * The elements are copied in first-in, first-out order.
      *
      * @return array
      */
@@ -148,10 +150,10 @@ class Queue implements Collection
     }
 
     /**
-     * Returns an iterator over the elements in the queue.
+     * Gets an iterator that can traverse through the elements of the queue.
      *
      * @return Traversable
-     * @throws InvalidOperationException
+     * @throws InvalidOperationException if the queue was modified within the iterator.
      */
     public function getIterator(): Traversable
     {
@@ -177,21 +179,21 @@ class Queue implements Collection
     }
 
     /**
-     * Adds an element to the end of the queue.
+     * Adds the element to the end of the queue.
      *
-     * @param mixed $value The element to add.
+     * @param mixed $item The element to add.
      *
      * @return void
      */
-    public function enqueue(mixed $value): void
+    public function enqueue(mixed $item): void
     {
-        $this->items[] = $value;
+        $this->items[] = $item;
         $this->length++;
         $this->version++;
     }
 
     /**
-     * Retrieves and removes the element at the head of the queue.
+     * Removes and returns the element at the beginning of the queue.
      *
      * @return mixed
      * @throws InvalidOperationException if the queue is empty.
@@ -211,11 +213,11 @@ class Queue implements Collection
     }
 
     /**
-     * Removes the element at the head of the queue and copies it to the $result argument.
+     * Tries to remove the element at the beginning of the queue and copies it to the $result argument.
      *
-     * @param mixed $result The value at the head of the queue.
+     * @param mixed $result OUT: The element at the beginning of the queue.
      *
-     * @return bool True if the element was removed; false if the queue is empty.
+     * @return bool True if the element was successfully copied and removed; otherwise false.
      */
     public function tryDequeue(mixed &$result): bool
     {
@@ -233,7 +235,7 @@ class Queue implements Collection
     }
 
     /**
-     * Returns the element at the head of the queue without removing it.
+     * Returns the element at the beginning of the queue without removing it.
      *
      * @return mixed
      * @throws InvalidOperationException if the queue is empty.
@@ -248,11 +250,11 @@ class Queue implements Collection
     }
 
     /**
-     * Retrieves the element at the head of the queue and copies it to the $result argument.
+     * Tries to get the element at the beginning of the queue without removing it and copies it to the $result argument.
      *
-     * @param mixed $result The value at the head of the queue.
+     * @param mixed $result OUT: The element at the beginning of the queue.
      *
-     * @return bool True if there is an element at the head of the queue; false if the queue is empty.
+     * @return bool True if the element was successfully copied; otherwise false.
      */
     public function tryPeek(mixed &$result): bool
     {

@@ -8,12 +8,12 @@ use Neko\NotSupportedException;
 use function sprintf;
 
 /**
- * Defines an interface for streams.
+ * Defines an interface for common IO stream manipulation.
  */
 abstract class Stream implements Closeable
 {
     /**
-     * Throws a NotSupportedException.
+     * Throws an exception. Streams do not support serialization.
      *
      * @return array
      */
@@ -22,8 +22,8 @@ abstract class Stream implements Closeable
         throw new NotSupportedException(
             sprintf(
                 'Class %s does not support serialization',
-                static::class
-            )
+                static::class,
+            ),
         );
     }
 
@@ -49,149 +49,157 @@ abstract class Stream implements Closeable
     abstract public function isSeekable(): bool;
 
     /**
-     * Returns true if the current position in the stream equals the size of the stream.
+     * Returns true if the current position is at the end of the stream.
      *
      * @return bool
-     * @throws IOException
      * @throws InvalidOperationException if the stream is closed.
      */
     abstract public function endOfStream(): bool;
 
     /**
-     * Returns the size of the stream in bytes.
+     * Gets the size of the stream.
      *
      * @return int
-     * @throws IOException
+     * @throws IOException if an IO error occurs.
      * @throws InvalidOperationException if the stream is closed.
+     * @throws NotSupportedException if the underlying stream implementation does not support this operation.
      */
     abstract public function getSize(): int;
 
     /**
-     * Sets the size, in bytes, of the stream.
+     * Sets the size of the stream.
      *
-     * @param int $size The new size.
+     * @param int $size The size of the stream in bytes.
      *
      * @return void
-     * @throws IOException
+     * @throws IOException if an IO error occurs.
      * @throws InvalidOperationException if the stream is closed.
+     * @throws NotSupportedException if the underlying stream implementation does not support this operation.
      */
     abstract public function setSize(int $size): void;
 
     /**
-     * Gets the current position in the stream.
+     * Gets the current position within the stream.
      *
      * @return int
-     * @throws IOException
+     * @throws IOException if an IO error occurs.
      * @throws InvalidOperationException if the stream is closed.
+     * @throws NotSupportedException if the underlying stream implementation does not support this operation.
      */
     abstract public function getPosition(): int;
 
     /**
-     * Sets the current position in the stream to the given value.
+     * Sets the current position within the stream.
      *
-     * @param int $position The position in the stream.
+     * @param int $position The position offset.
      *
      * @return void
-     * @throws IOException
+     * @throws IOException if an IO error occurs.
      * @throws InvalidOperationException if the stream is closed.
+     * @throws NotSupportedException if the underlying stream implementation does not support this operation.
      */
     abstract public function setPosition(int $position): void;
 
     /**
-     * Sets the current position in the stream, relative to $whence.
+     * Seeks on the stream moving the current position.
      *
-     * @param int $offset The position relative to $whence from which to begin seeking.
-     * @param int $whence SEEK_SET, SEEK_CUR, or SEEK_END.
+     * @param int $offset The seek offset.
+     * @param int $whence SEEK_SET, SEEK_CUR or SEEK_END.
      *
      * @return void
-     * @throws IOException
+     * @throws IOException if an IO error occurs.
      * @throws InvalidOperationException if the stream is closed.
+     * @throws NotSupportedException if the underlying stream implementation does not support this operation.
      */
     abstract public function seek(int $offset, int $whence): void;
 
     /**
-     * Reads a block of bytes from the stream.
+     * Reads up to $length bytes from the stream.
      *
-     * @param int $length The maximum number of bytes to read.
+     * @param int $length The amount of bytes to read.
      *
-     * @return string The data read from the stream.
-     * @throws IOException
-     * @throws InvalidOperationException if the stream is closed or does not support reading.
+     * @return string The data read from the stream or an empty string if the end of stream was reached.
+     * @throws IOException if an IO error occurs.
+     * @throws InvalidOperationException if the stream is closed.
+     * @throws NotSupportedException if the underlying stream implementation does not support this operation.
      */
     abstract public function read(int $length): string;
 
     /**
-     * Reads a char from the stream.
+     * Reads a byte from the stream.
      *
-     * @return string|null The read character or null if the end of the stream has been reached.
-     * @throws IOException
-     * @throws InvalidOperationException if the stream is closed or does not support reading.
+     * @return string|null The read byte or NULL if the end of stream was reached.
+     * @throws IOException if an IO error occurs.
+     * @throws InvalidOperationException if the stream is closed.
+     * @throws NotSupportedException if the underlying stream implementation does not support this operation.
      */
     abstract public function readChar(): ?string;
 
     /**
-     * Reads the stream until an end-of-line sequence is found.
+     * Reads a line from the stream.
      *
-     * @return string|null The data read from the stream or null if the end of the stream has been reached.
-     * @throws IOException
-     * @throws InvalidOperationException if the stream is closed or does not support reading.
+     * @return string|null The data read from the stream or NULL if the end of stream has been reached.
+     * @throws IOException if an IO error occurs.
+     * @throws InvalidOperationException if the stream is closed.
+     * @throws NotSupportedException if the underlying stream implementation does not support this operation.
      */
     abstract public function readLine(): ?string;
 
     /**
-     * Reads the remainder of the stream into a string.
+     * Reads the stream until it reaches the end of stream.
      *
      * @return string The data read from the stream.
-     * @throws IOException
-     * @throws InvalidOperationException if the stream is closed or does not support reading.
+     * @throws IOException if an IO error occurs.
+     * @throws InvalidOperationException if the stream is closed.
+     * @throws NotSupportedException if the underlying stream implementation does not support this operation.
      */
     abstract public function readToEnd(): string;
 
     /**
-     * Writes a block of bytes to the stream.
+     * Writes up to $length bytes to the stream.
      *
      * @param string $data The data to write.
-     * @param int $length The maximum number of bytes to write. If the value is less than zero, writing will stop until
-     *     the end of $data is reached.
+     * @param int $length The amount of bytes to write. If $length is less than zero, the whole string will be written.
      *
      * @return int The number of bytes written.
-     * @throws IOException
-     * @throws InvalidOperationException if the stream is closed or does not support writing.
+     * @throws IOException if an IO error occurs.
+     * @throws InvalidOperationException if the stream is closed.
+     * @throws NotSupportedException if the underlying stream implementation does not support this operation.
      */
     abstract public function write(string $data, int $length = -1): int;
 
     /**
-     * Writes a string to the stream, followed by an end-of-line sequence.
+     * Writes to the stream followed by an end-of-line sequence.
      *
-     * @param string $data The string to write.
+     * @param string $data The data to write.
      *
-     * @return int The number of bytes written, including the length of the end-of-line sequence.
-     * @throws IOException
-     * @throws InvalidOperationException if the stream is closed or does not support writing.
+     * @return int The number of bytes written.
+     * @throws IOException if an IO error occurs.
+     * @throws InvalidOperationException if the stream is closed.
+     * @throws NotSupportedException if the underlying stream implementation does not support this operation.
      */
     abstract public function writeLine(string $data): int;
 
     /**
-     * Forces any buffered data to be written into the stream.
+     * Forces all buffered data to be written to the underlying stream implementation.
      *
      * @return void
-     * @throws IOException
-     * @throws InvalidOperationException if the stream is closed or does not support writing.
+     * @throws IOException if an IO error occurs.
+     * @throws InvalidOperationException if the stream is closed.
+     * @throws NotSupportedException if the underlying stream implementation does not support this operation.
      */
     abstract public function flush(): void;
 
     /**
-     * Reads the data from the stream and writes it to another stream.
-     * Copying begins at the current position in this stream and does not reset the position of the destination stream
-     * after the copy is complete.
+     * Copies data from this stream to another.
      *
-     * @param Stream $destination The stream where the copy will be written.
-     * @param int $buffer_size The size of the copy buffer.
+     * @param Stream $destination The destination stream where the copied data will be written.
+     * @param int $buffer_size The size of the internal buffer.
      *
      * @return void
-     * @throws IOException
-     * @throws InvalidArgumentException if the buffer size is less than or equal to zero.
-     * @throws InvalidOperationException if the stream is not readable or the destination stream is not writable.
+     * @throws IOException if an IO error occurs.
+     * @throws InvalidOperationException if the stream is closed.
+     * @throws NotSupportedException if the underlying stream implementation does not support this operation.
      */
     public function copyTo(Stream $destination, int $buffer_size = 81920): void
     {
@@ -200,7 +208,7 @@ abstract class Stream implements Closeable
 
         if ($buffer_size <= 0) {
             throw new InvalidArgumentException(
-                sprintf('Buffer size \'%d\' is not valid. Must be an integer greater than zero', $buffer_size)
+                sprintf('Buffer size \'%d\' is not valid. Must be an integer greater than zero', $buffer_size),
             );
         }
 

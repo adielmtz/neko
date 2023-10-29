@@ -28,7 +28,7 @@ class ArrayList implements ArrayAccess, ListCollection
     /**
      * ArrayList constructor.
      *
-     * @param iterable|null $items A collection of values that will be copied to the list.
+     * @param iterable|null $items A collection of initial elements that will be copied to the list.
      */
     public function __construct(?iterable $items = null)
     {
@@ -57,7 +57,7 @@ class ArrayList implements ArrayAccess, ListCollection
     /**
      * Unserializes the list.
      *
-     * @param array $data
+     * @param array $data The data provided by unserialize().
      *
      * @return void
      */
@@ -90,21 +90,21 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns true if the list contains a specific element.
+     * Returns true if the list contains the specified element.
      *
-     * @param mixed $value The value to search.
+     * @param mixed $item The element to search.
      *
      * @return bool
      */
-    public function contains(mixed $value): bool
+    public function contains(mixed $item): bool
     {
-        return $this->indexOf($value) > -1;
+        return $this->indexOf($item) > -1;
     }
 
     /**
      * Returns true if the list contains all the elements in the specified collection.
      *
-     * @param iterable $items The collection of elements to search.
+     * @param iterable $items The collection to search.
      *
      * @return bool
      */
@@ -120,9 +120,9 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Copies the elements of the list to an array.
+     * Copies the elements of the list to an array, starting at the specified index.
      *
-     * @param array $array
+     * @param array $array REF: the array where the elements of the list will be copied.
      * @param int $index The zero-based index in $array at which copying begins.
      *
      * @return void
@@ -147,10 +147,10 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns an iterator over the elements in the list.
+     * Gets an iterator that can traverse through the elements of the list.
      *
      * @return Traversable
-     * @throws InvalidOperationException
+     * @throws InvalidOperationException if the list was modified within the iterator.
      */
     public function getIterator(): Traversable
     {
@@ -175,23 +175,23 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Adds an element to the end of the list.
+     * Adds the element to the end of the list.
      *
-     * @param mixed $value The element to add to the list.
+     * @param mixed $item The element to add.
      *
      * @return void
      */
-    public function add(mixed $value): void
+    public function add(mixed $item): void
     {
-        $this->items[$this->length] = $value;
+        $this->items[$this->length] = $item;
         $this->length++;
         $this->version++;
     }
 
     /**
-     * Inserts a collection of elements to the end of the list.
+     * Adds all the elements of the collection to the end of the list.
      *
-     * @param iterable $items The collection of elements to insert to the list.
+     * @param iterable $items The collection to add.
      *
      * @return void
      */
@@ -201,18 +201,18 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns the element at the specified index.
+     * Gets the element at the specified index.
      *
      * @param int $index The zero-based index of the element to return.
      *
      * @return mixed
-     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= ArrayList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
      */
     public function get(int $index): mixed
     {
         if ($index < 0 || $index >= $this->length) {
             throw new OutOfBoundsException(
-                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index)
+                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index),
             );
         }
 
@@ -220,41 +220,41 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Replaces the element at the specified index with a different element.
+     * Sets the element at the specified index.
      *
-     * @param int $index The zero-based index of the element to replace.
-     * @param mixed $value The new element.
+     * @param int $index The zero-based index of the element to set.
+     * @param mixed $item The element to set.
      *
      * @return void
-     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= ArrayList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
      */
-    public function set(int $index, mixed $value): void
+    public function set(int $index, mixed $item): void
     {
         if ($index < 0 || $index >= $this->length) {
             throw new OutOfBoundsException(
-                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index)
+                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index),
             );
         }
 
-        $this->items[$index] = $value;
+        $this->items[$index] = $item;
         $this->version++;
     }
 
     /**
      * Inserts an element at the specified index.
      *
-     * @param int $index The zero-based index at which the element should be inserted.
-     * If the index is equal to the size of the list, the element is added to the end of the list.
-     * @param mixed $value The element to insert.
+     * @param int $index The zero-based index at which the element should be inserted. If the index is equal to the
+     *     size of the list, the element is added to the end of the list.
+     * @param mixed $item The element to insert.
      *
      * @return void
-     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index > ArrayList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > ArrayList::count()).
      */
-    public function insert(int $index, mixed $value): void
+    public function insert(int $index, mixed $item): void
     {
         if ($index < 0 || $index > $this->length) {
             throw new OutOfBoundsException(
-                sprintf('Index \'%d\' is out of range ($index < 0 || $index > ArrayList::count())', $index)
+                sprintf('Index \'%d\' is out of range ($index < 0 || $index > ArrayList::count())', $index),
             );
         }
 
@@ -262,26 +262,26 @@ class ArrayList implements ArrayAccess, ListCollection
             $this->items[$i] = $this->items[$i - 1];
         }
 
-        $this->items[$index] = $value;
+        $this->items[$index] = $item;
         $this->length++;
         $this->version++;
     }
 
     /**
-     * Inserts a collection of elements at the specified index in the list.
+     * Inserts all the elements of the collection at the specified index.
      *
-     * @param int $index The zero-based index at which the collection should be inserted.
-     * If the index is equal to the size of the list, the collection is added to the end of the list.
-     * @param iterable $items The collection of elements to insert to the list.
+     * @param int $index The zero-based index at which the collection should be inserted. If the index is equal to the
+     *     size of the list, the element is added to the end of the list.
+     * @param iterable $items The collection to insert.
      *
      * @return void
-     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index > ArrayList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > ArrayList::count()).
      */
     public function insertAll(int $index, iterable $items): void
     {
         if ($index < 0 || $index > $this->length) {
             throw new OutOfBoundsException(
-                sprintf('Index \'%d\' is out of range ($index < 0 || $index > ArrayList::count())', $index)
+                sprintf('Index \'%d\' is out of range ($index < 0 || $index > ArrayList::count())', $index),
             );
         }
 
@@ -314,15 +314,15 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Removes the first occurrence of an element in the list.
+     * Removes the first occurrence of the element from the list.
      *
-     * @param mixed $value The element to remove.
+     * @param mixed $item The element to remove.
      *
-     * @return bool True if the element existed and was removed; otherwise, false.
+     * @return bool True if the element was successfully removed; otherwise false.
      */
-    public function remove(mixed $value): bool
+    public function remove(mixed $item): bool
     {
-        $index = $this->indexOf($value);
+        $index = $this->indexOf($item);
         if ($index > -1) {
             $this->removeAt($index);
             return true;
@@ -332,18 +332,18 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Removes the element at the specified index.
+     * Removes the element at the specified index of the list.
      *
      * @param int $index The zero-based index of the element to remove.
      *
      * @return void
-     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= ArrayList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
      */
     public function removeAt(int $index): void
     {
         if ($index < 0 || $index >= $this->length) {
             throw new OutOfBoundsException(
-                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index)
+                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index),
             );
         }
 
@@ -359,19 +359,19 @@ class ArrayList implements ArrayAccess, ListCollection
     /**
      * Removes a range of elements from the list.
      *
-     * @param int $index The zero-based inclusive index where the range starts.
+     * @param int $index The zero-based index where the range starts.
      * @param int|null $count The number of elements to remove. If $count is less than or equal to zero, nothing will
-     * be removed. If $count is null or greater than ArrayList::count(), all elements from $index to the end of the
-     * list will be removed.
+     *     be removed from the list. If $count is null or greater than the size of the list, all the elements from
+     *     $index to the end of the list will be removed.
      *
      * @return int The number of elements removed from the list.
-     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= ArrayList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
      */
     public function removeRange(int $index, ?int $count = null): int
     {
         if ($index < 0 || $index >= $this->length) {
             throw new OutOfBoundsException(
-                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index)
+                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index),
             );
         }
 
@@ -404,9 +404,9 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Removes all elements of the list that satisfy the given predicate.
+     * Removes the elements that satisfy the specified condition.
      *
-     * @param callable $match A predicate function which returns true for elements to remove.
+     * @param callable $match A callable which accepts one argument and returns true for the elements to remove.
      *
      * @return int The number of elements removed.
      */
@@ -445,17 +445,16 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns the zero-based index of the first occurrence of the element in the list.
+     * Returns the zero-based index of the first occurrence of the element.
      *
-     * @param mixed $value The element to search.
+     * @param mixed $item The element to search.
      *
-     * @return int The zero-based index of the first occurrence of the element or -1 if the list does not
-     * contain the element.
+     * @return int The index of the element if found in the list; otherwise -1.
      */
-    public function indexOf(mixed $value): int
+    public function indexOf(mixed $item): int
     {
         for ($i = 0; $i < $this->length; $i++) {
-            if ($value === $this->items[$i]) {
+            if ($item === $this->items[$i]) {
                 return $i;
             }
         }
@@ -464,17 +463,16 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns the zero-based index of the last occurrence of the element in the list.
+     * Returns the zero-based index of the last occurrence of the element.
      *
-     * @param mixed $value The element to search.
+     * @param mixed $item The element to search.
      *
-     * @return int The zero-based index of the last occurrence of the element or -1 if the list does not
-     * contain the element.
+     * @return int The index of the element if found in the list; otherwise -1.
      */
-    public function lastIndexOf(mixed $value): int
+    public function lastIndexOf(mixed $item): int
     {
         for ($i = $this->length - 1; $i >= 0; $i--) {
-            if ($value === $this->items[$i]) {
+            if ($item === $this->items[$i]) {
                 return $i;
             }
         }
@@ -486,13 +484,13 @@ class ArrayList implements ArrayAccess, ListCollection
      * Returns the zero-based index of the element using a binary search algorithm.
      * This method assumes that the list is sorted.
      *
-     * @param mixed $value The element to search.
-     * @param callable|null $comparator A comparator function to use when comparing the elements or NULL to use a
-     *     default comparator.
+     * @param mixed $item The element to search.
+     * @param callable|null $comparator A callable that accepts two arguments and returns an integer. Pass NULL to use
+     *     a default comparator.
      *
-     * @return int The zero-based index of the element or -1 if the list does not contain the element.
+     * @return int The index of the element if found in the list; otherwise -1.
      */
-    public function binarySearch(mixed $value, ?callable $comparator = null): int
+    public function binarySearch(mixed $item, ?callable $comparator = null): int
     {
         if (!$this->isEmpty()) {
             if ($comparator === null) {
@@ -504,7 +502,7 @@ class ArrayList implements ArrayAccess, ListCollection
             $h = $this->length - 1;
             while ($l <= $h) {
                 $m = (int) floor(($l + $h) / 2);
-                $c = $comparator($value, $this->items[$m]);
+                $c = $comparator($item, $this->items[$m]);
 
                 if ($c === 0) {
                     return $m;
@@ -520,12 +518,12 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns the zero-based index of the first occurrence of the element that matches the predicate.
+     * Returns the zero-based index of the first occurrence of the element that satisfies the specified condition.
      *
-     * @param callable $match A predicate function which returns true for element's index to return.
+     * @param callable $match A callable that takes one argument and returns true if the element satisfies the
+     *     condition.
      *
-     * @return int The zero-based index of the first occurrence of the element or -1 if the list does not
-     * contain the element.
+     * @return int The index of the element that satisfies the condition; otherwise -1.
      */
     public function findIndex(callable $match): int
     {
@@ -539,12 +537,12 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns the zero-based index of the last occurrence of the element that matches the predicate.
+     * Returns the zero-based index of the last occurrence of the element that satisfies the specified condition.
      *
-     * @param callable $match A predicate function which returns true for element's index to return.
+     * @param callable $match A callable that takes one argument and returns true if the element satisfies the
+     *     condition.
      *
-     * @return int The zero-based index of the last occurrence of the element or -1 if the list does not
-     * contain the element.
+     * @return int The index of the element that satisfies the condition; otherwise -1.
      */
     public function findLastIndex(callable $match): int
     {
@@ -583,8 +581,8 @@ class ArrayList implements ArrayAccess, ListCollection
     /**
      * Sorts the elements in the list.
      *
-     * @param callable|null $comparator A comparator function to use when comparing the elements or NULL to use a
-     * default comparator.
+     * @param callable|null $comparator A callable that takes two arguments and returns an integer determining the sort
+     *     order. Pass NULL to use a default comparator.
      *
      * @return void
      */
@@ -606,22 +604,23 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Sorts a range (or a portion) of the list.
+     * Sorts a range of elements in the list.
      *
-     * @param int $index The zero-based inclusive index where the range starts.
-     * @param int|null $count The number of elements in the range to sort. If $count is less than or equal to zero,
-     * nothing will be sorted. If $count is null or greater than ArrayList::count(), all elements from $index to the
-     * end of the list will be sorted.
-     * @param callable|null $comparator A comparator function to use when comparing the elements or NULL to use a
-     * default comparator.
+     * @param int $index The zero-based index where the range starts.
+     * @param int|null $count The number of elements to sort. If $count is less than or equal to zero, nothing will be
+     *     sorted. If $count is null or greater than the size of the list, all the elements from $index to the end of
+     *     the list will be sorted.
+     * @param callable|null $comparator A callable that takes two arguments and returns an integer determining the sort
+     *     order. Pass NULL to use a default comparator.
      *
      * @return void
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > ArrayList::count()).
      */
     public function sortRange(int $index, ?int $count = null, ?callable $comparator = null): void
     {
         if ($index < 0 || $index >= $this->length) {
             throw new OutOfBoundsException(
-                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index)
+                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index),
             );
         }
 
@@ -654,21 +653,21 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns a range (or a portion) of the list.
+     * Returns a new ArrayList containing a range of the elements from the list.
      *
-     * @param int $index The zero-based inclusive index where the range starts.
-     * @param int|null $count The number of elements in the range. If $count is less than or equal to zero, nothing will
-     * be copied. If $count is null or greater than ArrayList::count(), all elements from $index to the end of the
-     * list will be copied.
+     * @param int $index The zero-based index where the range starts.
+     * @param int|null $count The number of elements in the range. If $count is less than or equal to zero, nothing
+     *     will be copied to the range. If $count is null or greater than the size of the list, all the elements from
+     *     $index to the end of the list will be copied.
      *
-     * @return ArrayList A shallow copy of a range of elements in the list.
-     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= ArrayList::count()).
+     * @return ArrayList A shallow copy of a range of elements from the list.
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > ArrayList::count()).
      */
     public function slice(int $index, ?int $count = null): ArrayList
     {
         if ($index < 0 || $index >= $this->length) {
             throw new OutOfBoundsException(
-                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index)
+                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index),
             );
         }
 
@@ -686,11 +685,12 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns a new list containing all the elements of the list that satisfy the given predicate.
+     * Returns a new ArrayList that contains the elements that satisfy the specified condition.
      *
-     * @param callable $match A predicate function which returns true for elements to keep.
+     * @param callable $match A callable that takes one argument and returns true if the element satisfies the
+     *     condition.
      *
-     * @return ArrayList A shallow copy of the elements that satisfy the predicate.
+     * @return ArrayList A shallow copy of the elements that satisfy the condition.
      */
     public function filter(callable $match): ArrayList
     {
@@ -706,11 +706,11 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns a new list containing all the elements of the list after applying a callback function.
+     * Returns a new ArrayList that contains all the elements of the list after applying a callback to each of them.
      *
-     * @param callable $callback The callback function which returns the transformed element.
+     * @param callable $callback A callable that takes one argument and returns a value that will be copied to the list.
      *
-     * @return ArrayList A new list that contains the transformed elements.
+     * @return ArrayList The list that contains the elements.
      */
     public function map(callable $callback): ArrayList
     {
@@ -724,12 +724,12 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Executes the given function for each element of the list.
+     * Performs the specified action on each element of the list.
      *
-     * @param callable $action The function to execute for each element.
+     * @param callable $action A callable that takes one argument.
      *
      * @return void
-     * @throws InvalidOperationException if an element in the list has been modified.
+     * @throws InvalidOperationException if the list was modified within the callback function.
      */
     public function forEach(callable $action): void
     {
@@ -744,9 +744,10 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns true if all elements in the list satisfy the given predicate.
+     * Returns true if all elements in the list satisfy the specified condition.
      *
-     * @param callable $match A predicate function which returns true for elements that satisfy the condition.
+     * @param callable $match A callable that takes one argument and returns true if the element satisfies the
+     *     condition.
      *
      * @return bool
      */
@@ -762,9 +763,10 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns true if at least one element in the list satisfies the given predicate.
+     * Returns true if at least one element in the list satisfies the specified condition.
      *
-     * @param callable $match A predicate function which returns true for elements that satisfy the condition.
+     * @param callable $match A callable that takes one argument and returns true if the element satisfies the
+     *     condition.
      *
      * @return bool
      */

@@ -6,7 +6,7 @@ use function preg_replace_callback;
 use const DIRECTORY_SEPARATOR;
 
 /**
- * Provides information about the current system environment.
+ * Provides information about the current system and environment.
  */
 final class Environment
 {
@@ -14,11 +14,11 @@ final class Environment
     public const IS_UNIX_MACHINE = DIRECTORY_SEPARATOR === '/';
 
     /**
-     * Returns the value of the environment variable or NULL if the variable does not exist.
+     * Gets the value of the environment variable.
      *
      * @param string $name The name of the environment variable.
      *
-     * @return string|null
+     * @return string|null The value of the environment variable or NULL if it was not found.
      */
     public static function getEnvironmentVariable(string $name): ?string
     {
@@ -27,10 +27,10 @@ final class Environment
     }
 
     /**
-     * Returns the home directory path.
+     * Gets the home directory path.
      *
      * @return string
-     * @throws NotSupportedException If the home directory path cannot be found.
+     * @throws NotSupportedException if the home directory path cannot be retrieved.
      */
     public static function getHomeDirectory(): string
     {
@@ -49,12 +49,12 @@ final class Environment
     }
 
     /**
-     * Expands environment variables in the string.
-     * The variables in the string must be Unix-style variables.
+     * Expands the name of each environment variable in the given string.
+     * The variables in the string are expected to be in unix-style $VAR.
      *
-     * @param string $str The string to process.
+     * @param string $str The string to expand.
      *
-     * @return string
+     * @return string The expanded string.
      */
     public static function expandEnvironmentVariables(string $str): string
     {

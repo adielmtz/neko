@@ -3,6 +3,9 @@ namespace Neko\IO;
 
 use InvalidArgumentException;
 
+/**
+ * Specifies the mode a file should be open.
+ */
 enum FileMode: string
 {
     case Append = 'a';       // Opens or creates
@@ -11,6 +14,14 @@ enum FileMode: string
     case OpenOrCreate = 'c'; // Opens or creates.
     case Truncate = 'w';     // Opens and truncates or creates empty file
 
+    /**
+     * Gets the open mode for fopen().
+     *
+     * @param FileAccess $access The FileAccess combination.
+     *
+     * @return string A string that can be passed to fopen.
+     * @throws InvalidArgumentException if the FileAccess permission is missing for a particular open mode.
+     */
     public function getOpenMode(FileAccess $access): string
     {
         switch ($this) {
@@ -25,8 +36,8 @@ enum FileMode: string
                             FileMode::class,
                             $this->name,
                             FileAccess::class,
-                            FileAccess::Write->name
-                        )
+                            FileAccess::Write->name,
+                        ),
                     );
                 }
 
@@ -40,8 +51,8 @@ enum FileMode: string
                             FileMode::class,
                             $this->name,
                             FileAccess::class,
-                            FileAccess::Read->name
-                        )
+                            FileAccess::Read->name,
+                        ),
                     );
                 }
 

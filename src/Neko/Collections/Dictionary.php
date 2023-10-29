@@ -15,7 +15,7 @@ use function spl_object_hash;
 use function sprintf;
 
 /**
- * Represents a collection of keys and values.
+ * Represents a collection of key/value pairs.
  */
 class Dictionary implements ArrayAccess, Map
 {
@@ -29,9 +29,9 @@ class Dictionary implements ArrayAccess, Map
     /**
      * Dictionary constructor.
      *
-     * @param iterable|null $items A collection of values that will be copied to the dictionary.
+     * @param iterable|null $items A collection of initial elements that will be copied to the dictionary.
      *
-     * @throws NotSupportedException
+     * @throws NotSupportedException if spl_object_hash is not available.
      */
     public function __construct(?iterable $items = null)
     {
@@ -61,7 +61,7 @@ class Dictionary implements ArrayAccess, Map
     /**
      * Unserializes the dictionary.
      *
-     * @param array $data
+     * @param array $data The data provided by unserialize().
      *
      * @return void
      */
@@ -98,19 +98,19 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Returns true if the dictionary contains a specific key/value entry.
+     * Returns true if the dictionary contains the specified key/value pair.
      *
-     * @param mixed $value The value to search.
+     * @param mixed $item The key/value pair to search.
      *
      * @return bool
      */
-    public function contains(mixed $value): bool
+    public function contains(mixed $item): bool
     {
-        if ($value instanceof KeyValuePair) {
-            $arrayKey = self::createValidArrayKey($value->key);
+        if ($item instanceof KeyValuePair) {
+            $arrayKey = self::createValidArrayKey($item->key);
             if (array_key_exists($arrayKey, $this->entries)) {
                 $entry = $this->entries[$arrayKey];
-                return $entry === $value || $entry->value === $value->value;
+                return $entry === $item || $entry->value === $item->value;
             }
         }
 
@@ -120,10 +120,9 @@ class Dictionary implements ArrayAccess, Map
     /**
      * Returns true if the dictionary contains all the elements in the specified collection.
      *
-     * @param iterable $items The collection of elements to search.
+     * @param iterable $items The collection to search.
      *
      * @return bool
-     * @throws InvalidArgumentException|KeyNotFoundException If the keys are not valid array keys.
      */
     public function containsAll(iterable $items): bool
     {
@@ -144,12 +143,12 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Returns true if the dictionary contains a specific key.
+     * Returns true if the dictionary contains the specified key.
      *
-     * @param mixed $key The key to search.
+     * @param mixed $key The key to lookup.
      *
      * @return bool
-     * @throws InvalidArgumentException if the key is of type array or a resource.
+     * @throws InvalidArgumentException if the key is null, an array or a resource.
      */
     public function containsKey(mixed $key): bool
     {
@@ -158,7 +157,7 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Returns true if the dictionary contains a specific value.
+     * Returns true if the dictionary contains the specified value.
      *
      * @param mixed $value The value to search.
      *
@@ -176,9 +175,9 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Copies the entries of the dictionary to an array.
+     * Copies the entries of the dictionary to an array, starting at the specified index.
      *
-     * @param array $array
+     * @param array $array REF: The array where the elements of the dictionary will be copied.
      * @param int $index The zero-based index in $array at which copying begins.
      *
      * @return void
@@ -191,9 +190,9 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Returns an array containing all the entries of the dictionary.
+     * Returns an array containing all the elements of the collection.
      *
-     * @return array
+     * @return KeyValuePair[]
      */
     public function toArray(): array
     {
@@ -203,10 +202,10 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Returns an iterator over the entries in the list.
+     * Gets an iterator that can traverse through the entries of the dictionary.
      *
      * @return Traversable
-     * @throws InvalidOperationException
+     * @throws InvalidOperationException if the dictionary was modified within the iterator.
      */
     public function getIterator(): Traversable
     {
@@ -221,7 +220,7 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Returns the number of entries in the list.
+     * Returns the number of entries in the dictionary.
      *
      * @return int
      */
@@ -261,14 +260,14 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Adds a key and a value pair to the dictionary.
+     * Adds a value associated to the specified key.
      *
-     * @param mixed $key The key that maps to the value.
-     * @param mixed $value The value of the element to add.
+     * @param mixed $key The key associated with the value.
+     * @param mixed $value The value to add.
      *
      * @return void
-     * @throws InvalidArgumentException if the key is of type array or a resource or the key already exists in the
-     *     dictionary.
+     * @throws InvalidArgumentException if the key is null, an array or a resource or if the specified key already
+     *     exists in the dictionary.
      */
     public function add(mixed $key, mixed $value): void
     {
@@ -292,13 +291,13 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Returns the value associated to the specified key.
+     * Gets the value associated to the specified key.
      *
-     * @param mixed $key The key associated with the value to return.
+     * @param mixed $key The key to lookup.
      *
      * @return mixed
-     * @throws InvalidArgumentException if the key is of type array or a resource.
-     * @throws KeyNotFoundException if the key does not exist in the dictionary.
+     * @throws KeyNotFoundException if the dictionary does not contain the specified key.
+     * @throws InvalidArgumentException if the key is null, an array or a resource.
      */
     public function get(mixed $key): mixed
     {
@@ -317,13 +316,13 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Replaces the value associated to the specified key or sets a new key and value pair to the dictionary.
+     * Sets or replaces the value associated to the specified key.
      *
-     * @param mixed $key The key of the value to set or replace.
-     * @param mixed $value The value of the element to set or replace.
+     * @param mixed $key The key associated with the value.
+     * @param mixed $value The value to set.
      *
      * @return void
-     * @throws InvalidArgumentException if the key is of type array or a resource.
+     * @throws InvalidArgumentException if the key is null, an array or a resource.
      */
     public function set(mixed $key, mixed $value): void
     {
@@ -342,12 +341,12 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Removes the value associated to the specified key.
+     * Removes the value associated with the specified key.
      *
      * @param mixed $key The key associated with the value to remove.
      *
-     * @return bool True if the element existed and was removed; otherwise, false.
-     * @throws InvalidArgumentException if the key is of type array or a resource.
+     * @return bool True if the value was successfully removed; otherwise false.
+     * @throws InvalidArgumentException if the key is null, an array or a resource.
      */
     public function remove(mixed $key): bool
     {
@@ -363,9 +362,10 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Returns a new dictionary containing the entries of the dictionary by exchanging the keys with the values.
+     * Returns a new dictionary containing all the entries after exchanging the keys for their values.
      *
      * @return Dictionary
+     * @throws InvalidArgumentException if the key is null, an array or a resource.
      */
     public function flip(): Dictionary
     {

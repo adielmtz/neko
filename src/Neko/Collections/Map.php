@@ -1,25 +1,22 @@
 <?php declare(strict_types=1);
 namespace Neko\Collections;
 
-use InvalidArgumentException;
-
 /**
  * Defines a collection of key/value pairs.
  */
 interface Map extends Collection
 {
     /**
-     * Returns true if the collection contains a specific key.
+     * Returns true if the map contains the specified key.
      *
-     * @param mixed $key The key to search.
+     * @param mixed $key The key to lookup.
      *
      * @return bool
-     * @throws InvalidArgumentException if the key is of type array or a resource.
      */
     public function containsKey(mixed $key): bool;
 
     /**
-     * Returns true if the collection contains a specific value.
+     * Returns true if the map contains the specified value.
      *
      * @param mixed $value The value to search.
      *
@@ -28,60 +25,55 @@ interface Map extends Collection
     public function containsValue(mixed $value): bool;
 
     /**
-     * Returns an array containing all the keys of the collection.
+     * Returns an array containing the keys of the map.
      *
      * @return array
      */
     public function getKeys(): array;
 
     /**
-     * Returns an array containing all the values of the collection.
+     * Returns an array containing the values of the map.
      *
      * @return array
      */
     public function getValues(): array;
 
     /**
-     * Adds a key and a value pair to the collection.
+     * Adds a value associated to the specified key.
      *
-     * @param mixed $key The key that maps to the value.
-     * @param mixed $value The value of the element to add.
+     * @param mixed $key The key associated with the value.
+     * @param mixed $value The value to add.
      *
      * @return void
-     * @throws InvalidArgumentException if the key is of type array or a resource or the key already exists in the
-     *     collection.
      */
     public function add(mixed $key, mixed $value): void;
 
     /**
-     * Returns the value associated to the specified key.
+     * Gets the value associated to the specified key.
      *
-     * @param mixed $key The key associated with the value to return.
+     * @param mixed $key The key to lookup.
      *
      * @return mixed
-     * @throws InvalidArgumentException if the key is of type array or a resource.
-     * @throws KeyNotFoundException if the key does not exist in the dictionary.
+     * @throws KeyNotFoundException if the map does not contain the specified key.
      */
     public function get(mixed $key): mixed;
 
     /**
-     * Replaces the value associated to the specified key or sets a new key and value pair to the collection.
+     * Sets or replaces the value associated to the specified key.
      *
-     * @param mixed $key The key of the value to set or replace.
-     * @param mixed $value The value of the element to set or replace.
+     * @param mixed $key The key associated with the value.
+     * @param mixed $value The value to set.
      *
      * @return void
-     * @throws InvalidArgumentException if the key is of type array or a resource.
      */
     public function set(mixed $key, mixed $value): void;
 
     /**
-     * Removes the value associated to the specified key.
+     * Removes the value associated with the specified key.
      *
      * @param mixed $key The key associated with the value to remove.
      *
-     * @return bool True if the element existed and was removed; otherwise, false.
-     * @throws InvalidArgumentException if the key is of type array or a resource.
+     * @return bool True if the value was successfully removed; otherwise false.
      */
     public function remove(mixed $key): bool;
 }

@@ -7,9 +7,9 @@ namespace Neko;
 interface Equatable
 {
     /**
-     * Returns true if this object is equal to the given value.
+     * Returns true if this object is equal to another value.
      *
-     * @param mixed $other The value to compare with.
+     * @param mixed $other The value to compare.
      *
      * @return bool
      */

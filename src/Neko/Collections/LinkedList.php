@@ -20,7 +20,7 @@ class LinkedList implements ArrayAccess, ListCollection
     /**
      * LinkedList constructor.
      *
-     * @param iterable|null $items A collection of values that will be copied to the linked list.
+     * @param iterable|null $items A collection of initial elements that will be copied to the list.
      */
     public function __construct(?iterable $items = null)
     {
@@ -32,7 +32,7 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Creates new nodes for the cloned linked list.
+     * Handles clone operator.
      *
      * @return void
      */
@@ -53,7 +53,7 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Serializes the linked list.
+     * Serializes the list.
      *
      * @return array
      */
@@ -63,9 +63,9 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Unserializes the linked list.
+     * Unserializes the list.
      *
-     * @param array $data
+     * @param array $data The data provided by unserialize().
      *
      * @return void
      */
@@ -77,7 +77,7 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns true if the linked list contains no elements.
+     * Returns true if the list contains no elements.
      *
      * @return bool
      */
@@ -87,7 +87,7 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Removes all elements from the linked list.
+     * Removes all elements from the list.
      *
      * @return void
      */
@@ -106,21 +106,21 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns true if the linked list contains a specific element.
+     * Returns true if the list contains the specified element.
      *
-     * @param mixed $value The value to search.
+     * @param mixed $item The element to search.
      *
      * @return bool
      */
-    public function contains(mixed $value): bool
+    public function contains(mixed $item): bool
     {
-        return $this->indexOf($value) > -1;
+        return $this->indexOf($item) > -1;
     }
 
     /**
-     * Returns true if the linked list contains all the elements in the specified collection.
+     * Returns true if the list contains all the elements in the specified collection.
      *
-     * @param iterable $items The collection of elements to check.
+     * @param iterable $items The collection to search.
      *
      * @return bool
      */
@@ -136,9 +136,9 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Copies the elements of the linked list to an array.
+     * Copies the elements of the list to an array, starting at the specified index.
      *
-     * @param array $array
+     * @param array $array REF: the array where the elements of the list will be copied.
      * @param int $index The zero-based index in $array at which copying begins.
      *
      * @return void
@@ -155,7 +155,7 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns an array containing all the elements of the linked list.
+     * Returns an array containing all the elements of the list.
      *
      * @return array
      */
@@ -167,10 +167,10 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns an iterator over the elements in the linked list.
+     * Gets an iterator that can traverse through the elements of the list.
      *
      * @return Traversable
-     * @throws InvalidOperationException
+     * @throws InvalidOperationException if the list was modified within the iterator.
      */
     public function getIterator(): Traversable
     {
@@ -189,7 +189,7 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns the number of elements in the linked list.
+     * Returns the number of elements in the list.
      *
      * @return int
      */
@@ -199,21 +199,21 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Adds an element to the end of the linked list.
+     * Adds the element to the end of the list.
      *
-     * @param mixed $value The element to add to the linked list.
+     * @param mixed $item The element to add.
      *
      * @return void
      */
-    public function add(mixed $value): void
+    public function add(mixed $item): void
     {
-        $this->addLast($value);
+        $this->addLast($item);
     }
 
     /**
-     * Inserts a collection of elements to the end of the linked list.
+     * Adds all the elements of the collection to the end of the list.
      *
-     * @param iterable $items The collection of elements to insert to the linked list.
+     * @param iterable $items The collection to add.
      *
      * @return void
      */
@@ -225,15 +225,15 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Adds an element to the head of the linked list.
+     * Adds the element to the top of the list.
      *
-     * @param mixed $value The element to add to the linked list.
+     * @param mixed $item The element to add.
      *
      * @return void
      */
-    public function addFirst(mixed $value): void
+    public function addFirst(mixed $item): void
     {
-        $node = new LinkedListNode($value);
+        $node = new LinkedListNode($item);
         if ($this->head === null) {
             $this->insertNodeOnEmptyList($node);
         } else {
@@ -243,15 +243,15 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Adds an element to the end of the linked list.
+     * Adds the element to the end of the list.
      *
-     * @param mixed $value The element to add to the linked list.
+     * @param mixed $item The element to add.
      *
      * @return void
      */
-    public function addLast(mixed $value): void
+    public function addLast(mixed $item): void
     {
-        $node = new LinkedListNode($value);
+        $node = new LinkedListNode($item);
         if ($this->head === null) {
             $this->insertNodeOnEmptyList($node);
         } else {
@@ -260,12 +260,12 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns the element at the specified index.
+     * Gets the element at the specified index.
      *
      * @param int $index The zero-based index of the element to return.
      *
      * @return mixed
-     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= LinkedList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
      */
     public function get(int $index): mixed
     {
@@ -274,10 +274,10 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns the value of the first node in the linked list.
+     * Gets the element located at the top of the list.
      *
      * @return mixed
-     * @throws InvalidOperationException If the linked list is empty.
+     * @throws InvalidOperationException if the list is empty.
      */
     public function getFirst(): mixed
     {
@@ -289,10 +289,10 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns the value of the last node in the linked list.
+     * Gets the element located at the end of the list.
      *
      * @return mixed
-     * @throws InvalidOperationException If the linked list is empty.
+     * @throws InvalidOperationException if the list is empty.
      */
     public function getLast(): mixed
     {
@@ -304,37 +304,37 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Replaces the element at the specified index with a different element.
+     * Sets the element at the specified index.
      *
-     * @param int $index The zero-based index of the element to replace.
-     * @param mixed $value The new element.
+     * @param int $index The zero-based index of the element to set.
+     * @param mixed $item The element to set.
      *
      * @return void
-     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= LinkedList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
      */
-    public function set(int $index, mixed $value): void
+    public function set(int $index, mixed $item): void
     {
-        $this->findNodeByIndex($index)->value = $value;
+        $this->findNodeByIndex($index)->value = $item;
         $this->version++;
     }
 
     /**
      * Inserts an element at the specified index.
      *
-     * @param int $index The zero-based index at which the element should be inserted.
-     * If the index is equal to the size of the list, the element is added to the end of the linked list.
-     * @param mixed $value The element to insert.
+     * @param int $index The zero-based index at which the element should be inserted. If the index is equal to the
+     *     size of the list, the element is added to the end of the list.
+     * @param mixed $item The element to insert.
      *
      * @return void
-     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index > LinkedList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > LinkedList::count()).
      */
-    public function insert(int $index, mixed $value): void
+    public function insert(int $index, mixed $item): void
     {
         if ($index === $this->length) {
-            $this->addLast($value);
+            $this->addLast($item);
         } else {
             $reference = $this->findNodeByIndex($index);
-            $node = new LinkedListNode($value);
+            $node = new LinkedListNode($item);
             $this->insertNodeAfter($reference->prev, $node);
 
             if ($index === 0) {
@@ -344,14 +344,14 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Inserts a collection of elements at the specified index in the linked list.
+     * Inserts all the elements of the collection at the specified index.
      *
-     * @param int $index The zero-based index at which the collection should be inserted.
-     * If the index is equal to the size of the list, the collection is added to the end of the linked list.
-     * @param iterable $items The collection of elements to insert to the linked list.
+     * @param int $index The zero-based index at which the collection should be inserted. If the index is equal to the
+     *     size of the list, the element is added to the end of the list.
+     * @param iterable $items The collection to insert.
      *
      * @return void
-     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index > LinkedList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > LinkedList::count()).
      */
     public function insertAll(int $index, iterable $items): void
     {
@@ -381,15 +381,15 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Removes the first occurrence of an element in the linked list.
+     * Removes the first occurrence of the element from the list.
      *
-     * @param mixed $value The element to remove.
+     * @param mixed $item The element to remove.
      *
-     * @return bool True if the element existed and was removed; otherwise, false.
+     * @return bool True if the element was successfully removed; otherwise false.
      */
-    public function remove(mixed $value): bool
+    public function remove(mixed $item): bool
     {
-        $node = $this->findNodeByValue($value);
+        $node = $this->findNodeByValue($item);
         if ($node !== null) {
             $this->removeNode($node);
             return true;
@@ -399,12 +399,12 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Removes the element at the specified index.
+     * Removes the element at the specified index of the list.
      *
      * @param int $index The zero-based index of the element to remove.
      *
      * @return void
-     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= LinkedList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
      */
     public function removeAt(int $index): void
     {
@@ -413,15 +413,15 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Removes a range of elements from the linked list.
+     * Removes a range of elements from the list.
      *
-     * @param int $index The zero-based inclusive index where the range starts.
+     * @param int $index The zero-based index where the range starts.
      * @param int|null $count The number of elements to remove. If $count is less than or equal to zero, nothing will
-     * be removed. If $count is null or greater than LinkedList::count(), all elements from $index to the end of the
-     * linked list will be removed.
+     *     be removed from the list. If $count is null or greater than the size of the list, all the elements from
+     *     $index to the end of the list will be removed.
      *
-     * @return int The number of elements removed from the linked list.
-     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= LinkedList::count()).
+     * @return int The number of elements removed from the list.
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
      */
     public function removeRange(int $index, ?int $count = null): int
     {
@@ -440,7 +440,7 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Removes the first element from the linked list.
+     * Removes the element located at the top of the list.
      *
      * @return void
      */
@@ -452,7 +452,7 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Removes the last element from the linked list.
+     * Removes the element located at the end of the list.
      *
      * @return void
      */
@@ -464,20 +464,19 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns the zero-based index of the first occurrence of the element in the linked list.
+     * Returns the zero-based index of the first occurrence of the element.
      *
-     * @param mixed $value The element to search.
+     * @param mixed $item The element to search.
      *
-     * @return int The zero-based index of the first occurrence of the element or -1 if the linked list does not
-     * contain the element.
+     * @return int The index of the element if found in the list; otherwise -1.
      */
-    public function indexOf(mixed $value): int
+    public function indexOf(mixed $item): int
     {
         $index = 0;
         $node = $this->head;
         if ($node !== null) {
             do {
-                if ($node->value === $value) {
+                if ($node->value === $item) {
                     return $index;
                 }
 
@@ -490,20 +489,19 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns the zero-based index of the last occurrence of the element in the linked list.
+     * Returns the zero-based index of the last occurrence of the element.
      *
-     * @param mixed $value The element to search.
+     * @param mixed $item The element to search.
      *
-     * @return int The zero-based index of the last occurrence of the element or -1 if the linked list does not
-     * contain the element.
+     * @return int The index of the element if found in the list; otherwise -1.
      */
-    public function lastIndexOf(mixed $value): int
+    public function lastIndexOf(mixed $item): int
     {
         $index = $this->length - 1;
         $node = $this->head?->prev;
         if ($node !== null) {
             do {
-                if ($node->value === $value) {
+                if ($node->value === $item) {
                     return $index;
                 }
 
@@ -516,7 +514,7 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Removes the specified node from the linked list.
+     * Removes the node from the linked list.
      *
      * @param LinkedListNode $node The node to remove.
      *
@@ -540,18 +538,18 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns the node at the specified index.
+     * Returns the node located at the specified index.
      *
-     * @param int $index The zero-based index of the node to return
+     * @param int $index The zero-based index of the node to return.
      *
      * @return LinkedListNode
-     * @throws OutOfBoundsException If the index is out of range ($index < 0 || $index >= LinkedList::count()).
+     * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= LinkedList::count()).
      */
     private function findNodeByIndex(int $index): LinkedListNode
     {
         if ($index < 0 || $index >= $this->length) {
             throw new OutOfBoundsException(
-                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= LinkedList::count())', $index)
+                sprintf('Index \'%d\' is out of range ($index < 0 || $index >= LinkedList::count())', $index),
             );
         }
 
@@ -578,11 +576,11 @@ class LinkedList implements ArrayAccess, ListCollection
     }
 
     /**
-     * Returns the first node that contains the given value.
+     * Returns the first node that contains the specified value.
      *
      * @param mixed $value The value to search.
      *
-     * @return LinkedListNode|null
+     * @return LinkedListNode|null The first occurrence of the node that contains the value; otherwise NULL.
      */
     private function findNodeByValue(mixed $value): ?LinkedListNode
     {
