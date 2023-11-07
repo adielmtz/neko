@@ -1,14 +1,14 @@
 {
-    "name": "adielmtz/neko",
-    "license": "MIT",
-    "minimum-stability": "dev",
-    "autoload": {
-        "psr-4": {
-            "Neko\\": "src/Neko"
-        }
-    },
-    "require-dev": {
-        "php": ">=8.1",
-        "phpunit/phpunit": "^9"
+  "name": "adielmtz/neko",
+  "license": "MIT",
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+      "Neko\\": "src/Neko"
     }
+  },
+  "require-dev": {
+    "php": ">=8.2",
+    "phpunit/phpunit": "^9"
+  }
 }

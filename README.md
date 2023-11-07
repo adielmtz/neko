@@ -1,2 +1,2 @@
 # Neko
-A class library for PHP 8.1
+A class library for PHP 8.2
