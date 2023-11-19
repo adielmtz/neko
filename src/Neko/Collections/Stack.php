@@ -1,13 +1,13 @@
 <?php declare(strict_types=1);
 namespace Neko\Collections;
 
+use Generator;
 use Neko\InvalidOperationException;
 use Traversable;
-use function array_is_list;
 use function array_pop;
 use function array_reverse;
 use function count;
-use function is_array;
+use function iterator_to_array;
 
 /**
  * Represents a last-in, first-out collection of elements.
@@ -15,7 +15,7 @@ use function is_array;
 class Stack implements Collection
 {
     private array $items = [];
-    private int $length = 0;
+    private int $size = 0;
     private int $version = 0;
 
     /**
@@ -26,14 +26,8 @@ class Stack implements Collection
     public function __construct(?iterable $items = null)
     {
         if ($items !== null) {
-            if (is_array($items) && array_is_list($items)) {
-                $this->items = $items;
-                $this->length = count($items);
-            } else {
-                foreach ($items as $value) {
-                    $this->push($value);
-                }
-            }
+            $this->items = iterator_to_array($items, false);
+            $this->size = count($this->items);
         }
     }
 
@@ -57,7 +51,7 @@ class Stack implements Collection
     public function __unserialize(array $data): void
     {
         $this->items = $data;
-        $this->length = count($data);
+        $this->size = count($data);
     }
 
     /**
@@ -67,7 +61,7 @@ class Stack implements Collection
      */
     public function isEmpty(): bool
     {
-        return $this->length === 0;
+        return $this->size === 0;
     }
 
     /**
@@ -78,7 +72,7 @@ class Stack implements Collection
     public function clear(): void
     {
         $this->items = [];
-        $this->length = 0;
+        $this->size = 0;
         $this->version++;
     }
 
@@ -91,7 +85,7 @@ class Stack implements Collection
      */
     public function contains(mixed $item): bool
     {
-        for ($i = 0; $i < $this->length; $i++) {
+        for ($i = $this->size - 1; $i >= 0; $i--) {
             if ($item === $this->items[$i]) {
                 return true;
             }
@@ -109,8 +103,8 @@ class Stack implements Collection
      */
     public function containsAll(iterable $items): bool
     {
-        foreach ($items as $value) {
-            if (!$this->contains($value)) {
+        foreach ($items as $item) {
+            if (!$this->contains($item)) {
                 return false;
             }
         }
@@ -129,7 +123,7 @@ class Stack implements Collection
      */
     public function copyTo(array &$array, int $index = 0): void
     {
-        for ($i = $this->length - 1; $i >= 0; $i--) {
+        for ($i = $this->size - 1; $i >= 0; $i--) {
             $array[$index++] = $this->items[$i];
         }
     }
@@ -154,7 +148,7 @@ class Stack implements Collection
     public function getIterator(): Traversable
     {
         $version = $this->version;
-        for ($i = $this->length - 1; $i >= 0; $i--) {
+        for ($i = $this->size - 1; $i >= 0; $i--) {
             yield $this->items[$i];
 
             if ($version !== $this->version) {
@@ -170,7 +164,7 @@ class Stack implements Collection
      */
     public function count(): int
     {
-        return $this->length;
+        return $this->size;
     }
 
     /**
@@ -183,7 +177,7 @@ class Stack implements Collection
     public function push(mixed $item): void
     {
         $this->items[] = $item;
-        $this->length++;
+        $this->size++;
         $this->version++;
     }
 
@@ -199,7 +193,7 @@ class Stack implements Collection
             throw new InvalidOperationException('Stack is empty');
         }
 
-        $this->length--;
+        $this->size--;
         $this->version++;
         return array_pop($this->items);
     }
@@ -218,9 +212,9 @@ class Stack implements Collection
             return false;
         }
 
-        $this->length--;
-        $this->version++;
         $result = array_pop($this->items);
+        $this->size--;
+        $this->version++;
         return true;
     }
 
@@ -236,7 +230,7 @@ class Stack implements Collection
             throw new InvalidOperationException('Stack is empty');
         }
 
-        return $this->items[$this->length - 1];
+        return $this->items[$this->size - 1];
     }
 
     /**
@@ -253,7 +247,7 @@ class Stack implements Collection
             return false;
         }
 
-        $result = $this->items[$this->length - 1];
+        $result = $this->items[$this->size - 1];
         return true;
     }
 }

@@ -3,10 +3,9 @@ namespace Neko\Collections;
 
 use Neko\InvalidOperationException;
 use Traversable;
-use function array_is_list;
 use function array_values;
 use function count;
-use function is_array;
+use function iterator_to_array;
 
 /**
  * Represents a first-in, first-out collection of elements.
@@ -15,7 +14,7 @@ class Queue implements Collection
 {
     private array $items = [];
     private int $head = 0;
-    private int $length = 0;
+    private int $size = 0;
     private int $version = 0;
 
     /**
@@ -26,14 +25,8 @@ class Queue implements Collection
     public function __construct(?iterable $items = null)
     {
         if ($items !== null) {
-            if (is_array($items) && array_is_list($items)) {
-                $this->items = $items;
-                $this->length = count($items);
-            } else {
-                foreach ($items as $value) {
-                    $this->enqueue($value);
-                }
-            }
+            $this->items = iterator_to_array($items, false);
+            $this->size = count($this->items);
         }
     }
 
@@ -58,7 +51,7 @@ class Queue implements Collection
     {
         $this->items = $data;
         $this->head = 0;
-        $this->length = count($data);
+        $this->size = count($data);
     }
 
     /**
@@ -68,7 +61,7 @@ class Queue implements Collection
      */
     public function isEmpty(): bool
     {
-        return $this->length === 0;
+        return $this->size === 0;
     }
 
     /**
@@ -80,7 +73,7 @@ class Queue implements Collection
     {
         $this->items = [];
         $this->head = 0;
-        $this->length = 0;
+        $this->size = 0;
         $this->version++;
     }
 
@@ -93,7 +86,7 @@ class Queue implements Collection
      */
     public function contains(mixed $item): bool
     {
-        $tail = $this->head + $this->length;
+        $tail = $this->head + $this->size;
         for ($i = $this->head; $i < $tail; $i++) {
             if ($item === $this->items[$i]) {
                 return true;
@@ -112,8 +105,8 @@ class Queue implements Collection
      */
     public function containsAll(iterable $items): bool
     {
-        foreach ($items as $value) {
-            if (!$this->contains($value)) {
+        foreach ($items as $item) {
+            if (!$this->contains($item)) {
                 return false;
             }
         }
@@ -132,7 +125,7 @@ class Queue implements Collection
      */
     public function copyTo(array &$array, int $index = 0): void
     {
-        $tail = $this->head + $this->length;
+        $tail = $this->head + $this->size;
         for ($i = $this->head; $i < $tail; $i++) {
             $array[$index++] = $this->items[$i];
         }
@@ -158,7 +151,7 @@ class Queue implements Collection
     public function getIterator(): Traversable
     {
         $version = $this->version;
-        $tail = $this->head + $this->length;
+        $tail = $this->head + $this->size;
         for ($i = $this->head; $i < $tail; $i++) {
             yield $this->items[$i];
 
@@ -175,7 +168,7 @@ class Queue implements Collection
      */
     public function count(): int
     {
-        return $this->length;
+        return $this->size;
     }
 
     /**
@@ -188,7 +181,7 @@ class Queue implements Collection
     public function enqueue(mixed $item): void
     {
         $this->items[] = $item;
-        $this->length++;
+        $this->size++;
         $this->version++;
     }
 
@@ -206,7 +199,7 @@ class Queue implements Collection
 
         $value = $this->items[$this->head];
         unset($this->items[$this->head]);
-        $this->length--;
+        $this->size--;
         $this->head++;
         $this->version++;
         return $value;
@@ -228,7 +221,7 @@ class Queue implements Collection
 
         $result = $this->items[$this->head];
         unset($this->items[$this->head]);
-        $this->length--;
+        $this->size--;
         $this->head++;
         $this->version++;
         return true;
