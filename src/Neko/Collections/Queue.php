@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 namespace Neko\Collections;
 
+use Iterator;
 use Neko\InvalidOperationException;
-use Traversable;
 use function array_values;
 use function count;
 use function iterator_to_array;
@@ -145,10 +145,10 @@ class Queue implements Collection
     /**
      * Gets an iterator that can traverse through the elements of the queue.
      *
-     * @return Traversable
+     * @return Iterator
      * @throws InvalidOperationException if the queue was modified within the iterator.
      */
-    public function getIterator(): Traversable
+    public function getIterator(): Iterator
     {
         $version = $this->version;
         $tail = $this->head + $this->size;

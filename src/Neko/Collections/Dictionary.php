@@ -3,9 +3,9 @@ namespace Neko\Collections;
 
 use ArrayAccess;
 use InvalidArgumentException;
+use Iterator;
 use Neko\InvalidOperationException;
 use Neko\NotSupportedException;
-use Traversable;
 use function array_key_exists;
 use function count;
 use function function_exists;
@@ -204,10 +204,10 @@ class Dictionary implements ArrayAccess, Map
     /**
      * Gets an iterator that can traverse through the entries of the dictionary.
      *
-     * @return Traversable
+     * @return Iterator
      * @throws InvalidOperationException if the dictionary was modified within the iterator.
      */
-    public function getIterator(): Traversable
+    public function getIterator(): Iterator
     {
         $version = $this->version;
         foreach ($this->entries as $entry) {

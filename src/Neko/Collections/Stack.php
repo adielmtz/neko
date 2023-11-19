@@ -1,9 +1,8 @@
 <?php declare(strict_types=1);
 namespace Neko\Collections;
 
-use Generator;
+use Iterator;
 use Neko\InvalidOperationException;
-use Traversable;
 use function array_pop;
 use function array_reverse;
 use function count;
@@ -142,10 +141,10 @@ class Stack implements Collection
     /**
      * Gets an iterator that can traverse through the elements of the stack.
      *
-     * @return Traversable
+     * @return Iterator
      * @throws InvalidOperationException if the stack was modified within the iterator.
      */
-    public function getIterator(): Traversable
+    public function getIterator(): Iterator
     {
         $version = $this->version;
         for ($i = $this->size - 1; $i >= 0; $i--) {

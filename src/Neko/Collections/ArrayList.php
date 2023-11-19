@@ -2,6 +2,7 @@
 namespace Neko\Collections;
 
 use ArrayAccess;
+use Iterator;
 use Neko\InvalidOperationException;
 use OutOfBoundsException;
 use Traversable;
@@ -149,10 +150,10 @@ class ArrayList implements ArrayAccess, ListCollection
     /**
      * Gets an iterator that can traverse through the elements of the list.
      *
-     * @return Traversable
+     * @return Iterator
      * @throws InvalidOperationException if the list was modified within the iterator.
      */
-    public function getIterator(): Traversable
+    public function getIterator(): Iterator
     {
         $version = $this->version;
         for ($i = 0; $i < $this->length; $i++) {

@@ -2,9 +2,9 @@
 namespace Neko\Collections;
 
 use ArrayAccess;
+use Iterator;
 use Neko\InvalidOperationException;
 use OutOfBoundsException;
-use Traversable;
 use function assert;
 use function sprintf;
 
@@ -169,10 +169,10 @@ class LinkedList implements ArrayAccess, ListCollection
     /**
      * Gets an iterator that can traverse through the elements of the list.
      *
-     * @return Traversable
+     * @return Iterator
      * @throws InvalidOperationException if the list was modified within the iterator.
      */
-    public function getIterator(): Traversable
+    public function getIterator(): Iterator
     {
         $version = $this->version;
         $node = $this->head;
