@@ -4,6 +4,7 @@ namespace Neko;
 use DivisionByZeroError;
 use InvalidArgumentException;
 use function intdiv;
+use const M_PI;
 
 /**
  * Provides methods for common mathematical operations.
@@ -94,6 +95,30 @@ final class Math
         }
 
         return $result;
+    }
+
+    /**
+     * Converts an angle in degrees to its equivalent in radians.
+     *
+     * @param float $degrees The angle in degrees.
+     *
+     * @return float
+     */
+    public static function toRadians(float $degrees): float
+    {
+        return $degrees * (M_PI / 180);
+    }
+
+    /**
+     * Converts an angle in radians to its equivalent in degrees.
+     *
+     * @param float $radians The angle in radians.
+     *
+     * @return float
+     */
+    public static function toDegrees(float $radians): float
+    {
+        return $radians * (180 / M_PI);
     }
 
     /**
