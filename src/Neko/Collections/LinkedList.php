@@ -14,7 +14,7 @@ use function sprintf;
 class LinkedList implements ArrayAccess, ListCollection
 {
     private ?LinkedListNode $head = null;
-    private int $length = 0;
+    private int $size = 0;
     private int $version = 0;
 
     /**
@@ -40,7 +40,7 @@ class LinkedList implements ArrayAccess, ListCollection
     {
         $head = $this->head;
         $this->head = null;
-        $this->length = 0;
+        $this->size = 0;
         $this->version = 0;
 
         $node = $head;
@@ -83,7 +83,7 @@ class LinkedList implements ArrayAccess, ListCollection
      */
     public function isEmpty(): bool
     {
-        return $this->length === 0;
+        return $this->size === 0;
     }
 
     /**
@@ -101,7 +101,7 @@ class LinkedList implements ArrayAccess, ListCollection
         }
 
         $this->head = null;
-        $this->length = 0;
+        $this->size = 0;
         $this->version++;
     }
 
@@ -195,7 +195,7 @@ class LinkedList implements ArrayAccess, ListCollection
      */
     public function count(): int
     {
-        return $this->length;
+        return $this->size;
     }
 
     /**
@@ -330,7 +330,7 @@ class LinkedList implements ArrayAccess, ListCollection
      */
     public function insert(int $index, mixed $item): void
     {
-        if ($index === $this->length) {
+        if ($index === $this->size) {
             $this->addLast($item);
         } else {
             $reference = $this->findNodeByIndex($index);
@@ -355,7 +355,7 @@ class LinkedList implements ArrayAccess, ListCollection
      */
     public function insertAll(int $index, iterable $items): void
     {
-        if ($index === $this->length) {
+        if ($index === $this->size) {
             $this->addAll($items);
         } else {
             $prev = $this->findNodeByIndex($index)->prev;
@@ -368,7 +368,7 @@ class LinkedList implements ArrayAccess, ListCollection
                 $node->next = $next;
                 $next->prev = $node;
                 $prev = $node;
-                $this->length++;
+                $this->size++;
 
                 if ($index === 0) {
                     $this->head = $node;
@@ -426,8 +426,8 @@ class LinkedList implements ArrayAccess, ListCollection
     public function removeRange(int $index, ?int $count = null): int
     {
         $node = $this->findNodeByIndex($index);
-        if ($count === null || $count > $this->length) {
-            $count = $this->length - $index;
+        if ($count === null || $count > $this->size) {
+            $count = $this->size - $index;
         }
 
         for ($i = 0; $i < $count; $i++) {
@@ -497,7 +497,7 @@ class LinkedList implements ArrayAccess, ListCollection
      */
     public function lastIndexOf(mixed $item): int
     {
-        $index = $this->length - 1;
+        $index = $this->size - 1;
         $node = $this->head?->prev;
         if ($node !== null) {
             do {
@@ -533,7 +533,7 @@ class LinkedList implements ArrayAccess, ListCollection
         }
 
         $node->detach();
-        $this->length--;
+        $this->size--;
         $this->version++;
     }
 
@@ -547,7 +547,7 @@ class LinkedList implements ArrayAccess, ListCollection
      */
     private function findNodeByIndex(int $index): LinkedListNode
     {
-        if ($index < 0 || $index >= $this->length) {
+        if ($index < 0 || $index >= $this->size) {
             throw new OutOfBoundsException(
                 sprintf('Index \'%d\' is out of range ($index < 0 || $index >= LinkedList::count())', $index),
             );
@@ -556,18 +556,18 @@ class LinkedList implements ArrayAccess, ListCollection
         // quick optimization
         if ($index === 0) {
             return $this->head;
-        } else if ($index === $this->length - 1) {
+        } else if ($index === $this->size - 1) {
             return $this->head->prev;
         }
 
-        if ($index < ($this->length >> 1)) {
+        if ($index < ($this->size >> 1)) {
             $node = $this->head;
             for ($i = 0; $i < $index; $i++) {
                 $node = $node->next;
             }
         } else {
             $node = $this->head->prev;
-            for ($i = $this->length - 1; $i > $index; $i--) {
+            for ($i = $this->size - 1; $i > $index; $i--) {
                 $node = $node->prev;
             }
         }
@@ -607,11 +607,11 @@ class LinkedList implements ArrayAccess, ListCollection
      */
     private function insertNodeOnEmptyList(LinkedListNode $node): void
     {
-        assert($this->length === 0 && $this->head === null);
+        assert($this->size === 0 && $this->head === null);
         $node->next = $node;
         $node->prev = $node;
         $this->head = $node;
-        $this->length++;
+        $this->size++;
         $this->version++;
     }
 
@@ -629,14 +629,14 @@ class LinkedList implements ArrayAccess, ListCollection
         $node->prev = $ref;
         $node->next->prev = $node;
         $ref->next = $node;
-        $this->length++;
+        $this->size++;
         $this->version++;
     }
 
     #region ArrayAccess methods
     public function offsetExists(mixed $offset): bool
     {
-        return $offset >= 0 && $offset < $this->length;
+        return $offset >= 0 && $offset < $this->size;
     }
 
     public function offsetGet(mixed $offset): mixed

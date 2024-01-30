@@ -23,7 +23,7 @@ use const SORT_REGULAR;
 class ArrayList implements ArrayAccess, ListCollection
 {
     private array $items = [];
-    private int $length = 0;
+    private int $size = 0;
     private int $version = 0;
 
     /**
@@ -36,7 +36,7 @@ class ArrayList implements ArrayAccess, ListCollection
         if ($items !== null) {
             if (is_array($items) && array_is_list($items)) {
                 $this->items = $items;
-                $this->length = count($items);
+                $this->size = count($items);
             } else {
                 foreach ($items as $value) {
                     $this->add($value);
@@ -65,7 +65,7 @@ class ArrayList implements ArrayAccess, ListCollection
     public function __unserialize(array $data): void
     {
         $this->items = $data;
-        $this->length = count($data);
+        $this->size = count($data);
     }
 
     /**
@@ -75,7 +75,7 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function isEmpty(): bool
     {
-        return $this->length === 0;
+        return $this->size === 0;
     }
 
     /**
@@ -86,7 +86,7 @@ class ArrayList implements ArrayAccess, ListCollection
     public function clear(): void
     {
         $this->items = [];
-        $this->length = 0;
+        $this->size = 0;
         $this->version++;
     }
 
@@ -130,7 +130,7 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function copyTo(array &$array, int $index = 0): void
     {
-        for ($i = 0; $i < $this->length; $i++) {
+        for ($i = 0; $i < $this->size; $i++) {
             $array[$index++] = $this->items[$i];
         }
     }
@@ -156,7 +156,7 @@ class ArrayList implements ArrayAccess, ListCollection
     public function getIterator(): Iterator
     {
         $version = $this->version;
-        for ($i = 0; $i < $this->length; $i++) {
+        for ($i = 0; $i < $this->size; $i++) {
             yield $this->items[$i];
 
             if ($version !== $this->version) {
@@ -172,7 +172,7 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function count(): int
     {
-        return $this->length;
+        return $this->size;
     }
 
     /**
@@ -184,8 +184,8 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function add(mixed $item): void
     {
-        $this->items[$this->length] = $item;
-        $this->length++;
+        $this->items[$this->size] = $item;
+        $this->size++;
         $this->version++;
     }
 
@@ -198,7 +198,7 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function addAll(iterable $items): void
     {
-        $this->insertAll($this->length, $items);
+        $this->insertAll($this->size, $items);
     }
 
     /**
@@ -211,7 +211,7 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function get(int $index): mixed
     {
-        if ($index < 0 || $index >= $this->length) {
+        if ($index < 0 || $index >= $this->size) {
             throw new OutOfBoundsException(
                 sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index),
             );
@@ -231,7 +231,7 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function set(int $index, mixed $item): void
     {
-        if ($index < 0 || $index >= $this->length) {
+        if ($index < 0 || $index >= $this->size) {
             throw new OutOfBoundsException(
                 sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index),
             );
@@ -253,18 +253,18 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function insert(int $index, mixed $item): void
     {
-        if ($index < 0 || $index > $this->length) {
+        if ($index < 0 || $index > $this->size) {
             throw new OutOfBoundsException(
                 sprintf('Index \'%d\' is out of range ($index < 0 || $index > ArrayList::count())', $index),
             );
         }
 
-        for ($i = $this->length; $i > $index; $i--) {
+        for ($i = $this->size; $i > $index; $i--) {
             $this->items[$i] = $this->items[$i - 1];
         }
 
         $this->items[$index] = $item;
-        $this->length++;
+        $this->size++;
         $this->version++;
     }
 
@@ -280,7 +280,7 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function insertAll(int $index, iterable $items): void
     {
-        if ($index < 0 || $index > $this->length) {
+        if ($index < 0 || $index > $this->size) {
             throw new OutOfBoundsException(
                 sprintf('Index \'%d\' is out of range ($index < 0 || $index > ArrayList::count())', $index),
             );
@@ -291,7 +291,7 @@ class ArrayList implements ArrayAccess, ListCollection
         }
 
         $length = count($items);
-        $newLength = $this->length + $length;
+        $newLength = $this->size + $length;
 
         // == Example ==
         // insert [X,Y,Z] at index 3
@@ -310,7 +310,7 @@ class ArrayList implements ArrayAccess, ListCollection
             $this->items[$index++] = $value;
         }
 
-        $this->length = $newLength;
+        $this->size = $newLength;
         $this->version++;
     }
 
@@ -342,18 +342,18 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function removeAt(int $index): void
     {
-        if ($index < 0 || $index >= $this->length) {
+        if ($index < 0 || $index >= $this->size) {
             throw new OutOfBoundsException(
                 sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index),
             );
         }
 
-        $this->length--;
-        for (; $index < $this->length; $index++) {
+        $this->size--;
+        for (; $index < $this->size; $index++) {
             $this->items[$index] = $this->items[$index + 1];
         }
 
-        $this->items[$this->length] = null;
+        $this->items[$this->size] = null;
         $this->version++;
     }
 
@@ -370,31 +370,31 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function removeRange(int $index, ?int $count = null): int
     {
-        if ($index < 0 || $index >= $this->length) {
+        if ($index < 0 || $index >= $this->size) {
             throw new OutOfBoundsException(
                 sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index),
             );
         }
 
-        if ($count === null || $count > $this->length) {
-            $count = $this->length - $index;
+        if ($count === null || $count > $this->size) {
+            $count = $this->size - $index;
         }
 
         $removed = 0;
         if ($count > 0) {
             for ($i = 0; $i < $count; $i++) {
                 $nextIndex = $index + $count;
-                $this->items[$index] = $nextIndex < $this->length ? $this->items[$nextIndex] : null;
+                $this->items[$index] = $nextIndex < $this->size ? $this->items[$nextIndex] : null;
                 $index++;
             }
 
             $removed = $i;
-            $this->length -= $removed;
-            assert($this->length >= 0);
+            $this->size -= $removed;
+            assert($this->size >= 0);
 
             // Clean up
             $size = count($this->items);
-            for ($i = $this->length; $i < $size; $i++) {
+            for ($i = $this->size; $i < $size; $i++) {
                 $this->items[$i] = null;
             }
 
@@ -414,31 +414,31 @@ class ArrayList implements ArrayAccess, ListCollection
     public function removeIf(callable $match): int
     {
         $freeIndex = 0;
-        while ($freeIndex < $this->length && !$match($this->items[$freeIndex])) {
+        while ($freeIndex < $this->size && !$match($this->items[$freeIndex])) {
             $freeIndex++;
         }
 
-        if ($freeIndex >= $this->length) {
+        if ($freeIndex >= $this->size) {
             return 0;
         }
 
         $current = $freeIndex + 1;
-        while ($current < $this->length) {
-            while ($current < $this->length && $match($this->items[$current])) {
+        while ($current < $this->size) {
+            while ($current < $this->size && $match($this->items[$current])) {
                 $current++;
             }
 
-            if ($current < $this->length) {
+            if ($current < $this->size) {
                 $this->items[$freeIndex++] = $this->items[$current++];
             }
         }
 
-        $result = $this->length - $freeIndex;
-        $this->length = $freeIndex;
+        $result = $this->size - $freeIndex;
+        $this->size = $freeIndex;
 
         // Clean up unused indexes
         $size = count($this->items);
-        for ($i = $this->length; $i < $size; $i++) {
+        for ($i = $this->size; $i < $size; $i++) {
             $this->items[$i] = null;
         }
 
@@ -454,7 +454,7 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function indexOf(mixed $item): int
     {
-        for ($i = 0; $i < $this->length; $i++) {
+        for ($i = 0; $i < $this->size; $i++) {
             if ($item === $this->items[$i]) {
                 return $i;
             }
@@ -472,7 +472,7 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function lastIndexOf(mixed $item): int
     {
-        for ($i = $this->length - 1; $i >= 0; $i--) {
+        for ($i = $this->size - 1; $i >= 0; $i--) {
             if ($item === $this->items[$i]) {
                 return $i;
             }
@@ -500,7 +500,7 @@ class ArrayList implements ArrayAccess, ListCollection
             }
 
             $l = 0;
-            $h = $this->length - 1;
+            $h = $this->size - 1;
             while ($l <= $h) {
                 $m = (int) floor(($l + $h) / 2);
                 $c = $comparator($item, $this->items[$m]);
@@ -528,7 +528,7 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function findIndex(callable $match): int
     {
-        for ($i = 0; $i < $this->length; $i++) {
+        for ($i = 0; $i < $this->size; $i++) {
             if ($match($this->items[$i])) {
                 return $i;
             }
@@ -547,7 +547,7 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function findLastIndex(callable $match): int
     {
-        for ($i = $this->length - 1; $i >= 0; $i--) {
+        for ($i = $this->size - 1; $i >= 0; $i--) {
             if ($match($this->items[$i])) {
                 return $i;
             }
@@ -564,7 +564,7 @@ class ArrayList implements ArrayAccess, ListCollection
     public function reverse(): void
     {
         $start = 0;
-        $end = $this->length - 1;
+        $end = $this->size - 1;
         while ($start < $end) {
             $a = $this->items[$start];
             $b = $this->items[$end];
@@ -590,7 +590,7 @@ class ArrayList implements ArrayAccess, ListCollection
     public function sort(?callable $comparator = null): void
     {
         $items = $this->items;
-        if (count($items) > $this->length) {
+        if (count($items) > $this->size) {
             $items = $this->toArray();
         }
 
@@ -619,14 +619,14 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function sortRange(int $index, ?int $count = null, ?callable $comparator = null): void
     {
-        if ($index < 0 || $index >= $this->length) {
+        if ($index < 0 || $index >= $this->size) {
             throw new OutOfBoundsException(
                 sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index),
             );
         }
 
-        if ($count === null || $count > $this->length) {
-            $count = $this->length - $index;
+        if ($count === null || $count > $this->size) {
+            $count = $this->size - $index;
         }
 
         if ($count > 0) {
@@ -666,14 +666,14 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function slice(int $index, ?int $count = null): ArrayList
     {
-        if ($index < 0 || $index >= $this->length) {
+        if ($index < 0 || $index >= $this->size) {
             throw new OutOfBoundsException(
                 sprintf('Index \'%d\' is out of range ($index < 0 || $index >= ArrayList::count())', $index),
             );
         }
 
-        if ($count === null || $count > $this->length) {
-            $count = $this->length - $index;
+        if ($count === null || $count > $this->size) {
+            $count = $this->size - $index;
         }
 
         $slice = new ArrayList();
@@ -696,7 +696,7 @@ class ArrayList implements ArrayAccess, ListCollection
     public function filter(callable $match): ArrayList
     {
         $filter = new ArrayList();
-        for ($i = 0; $i < $this->length; $i++) {
+        for ($i = 0; $i < $this->size; $i++) {
             $value = $this->items[$i];
             if ($match($value)) {
                 $filter->add($value);
@@ -716,7 +716,7 @@ class ArrayList implements ArrayAccess, ListCollection
     public function map(callable $callback): ArrayList
     {
         $map = new ArrayList();
-        for ($i = 0; $i < $this->length; $i++) {
+        for ($i = 0; $i < $this->size; $i++) {
             $value = $callback($this->items[$i]);
             $map->add($value);
         }
@@ -735,7 +735,7 @@ class ArrayList implements ArrayAccess, ListCollection
     public function forEach(callable $action): void
     {
         $version = $this->version;
-        for ($i = 0; $i < $this->length; $i++) {
+        for ($i = 0; $i < $this->size; $i++) {
             if ($version !== $this->version) {
                 throw new InvalidOperationException('List was modified');
             }
@@ -754,7 +754,7 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function all(callable $match): bool
     {
-        for ($i = 0; $i < $this->length; $i++) {
+        for ($i = 0; $i < $this->size; $i++) {
             if (!$match($this->items[$i])) {
                 return false;
             }
@@ -773,7 +773,7 @@ class ArrayList implements ArrayAccess, ListCollection
      */
     public function any(callable $match): bool
     {
-        for ($i = 0; $i < $this->length; $i++) {
+        for ($i = 0; $i < $this->size; $i++) {
             if ($match($this->items[$i])) {
                 return true;
             }
@@ -785,7 +785,7 @@ class ArrayList implements ArrayAccess, ListCollection
     #region ArrayAccess methods
     public function offsetExists(mixed $offset): bool
     {
-        return $offset >= 0 && $offset < $this->length;
+        return $offset >= 0 && $offset < $this->size;
     }
 
     public function offsetGet(mixed $offset): mixed

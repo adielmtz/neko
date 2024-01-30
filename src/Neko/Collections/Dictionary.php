@@ -23,7 +23,7 @@ class Dictionary implements ArrayAccess, Map
      * @var KeyValuePair[]
      */
     private array $entries = [];
-    private int $length = 0;
+    private int $size = 0;
     private int $version = 0;
 
     /**
@@ -72,7 +72,7 @@ class Dictionary implements ArrayAccess, Map
             $this->entries[$arrayKey] = $entry;
         }
 
-        $this->length = count($this->entries);
+        $this->size = count($this->entries);
     }
 
     /**
@@ -82,7 +82,7 @@ class Dictionary implements ArrayAccess, Map
      */
     public function isEmpty(): bool
     {
-        return $this->length === 0;
+        return $this->size === 0;
     }
 
     /**
@@ -93,7 +93,7 @@ class Dictionary implements ArrayAccess, Map
     public function clear(): void
     {
         $this->entries = [];
-        $this->length = 0;
+        $this->size = 0;
         $this->version++;
     }
 
@@ -226,7 +226,7 @@ class Dictionary implements ArrayAccess, Map
      */
     public function count(): int
     {
-        return $this->length;
+        return $this->size;
     }
 
     /**
@@ -286,7 +286,7 @@ class Dictionary implements ArrayAccess, Map
         $entry->key = $key;
         $entry->value = $value;
         $this->entries[$arrayKey] = $entry;
-        $this->length++;
+        $this->size++;
         $this->version++;
     }
 
@@ -333,7 +333,7 @@ class Dictionary implements ArrayAccess, Map
             $entry = new KeyValuePair();
             $entry->key = $key;
             $this->entries[$arrayKey] = $entry;
-            $this->length++;
+            $this->size++;
         }
 
         $entry->value = $value;
@@ -353,7 +353,7 @@ class Dictionary implements ArrayAccess, Map
         $arrayKey = self::createValidArrayKey($key);
         if (array_key_exists($arrayKey, $this->entries)) {
             unset($this->entries[$arrayKey]);
-            $this->length--;
+            $this->size--;
             $this->version++;
             return true;
         }
