@@ -6,6 +6,7 @@ use InvalidArgumentException;
 use Iterator;
 use Neko\InvalidOperationException;
 use Neko\NotSupportedException;
+use Override;
 use function array_key_exists;
 use function count;
 use function function_exists;
@@ -80,6 +81,7 @@ class Dictionary implements ArrayAccess, Map
      *
      * @return bool
      */
+    #[Override]
     public function isEmpty(): bool
     {
         return $this->size === 0;
@@ -90,6 +92,7 @@ class Dictionary implements ArrayAccess, Map
      *
      * @return void
      */
+    #[Override]
     public function clear(): void
     {
         $this->entries = [];
@@ -104,6 +107,7 @@ class Dictionary implements ArrayAccess, Map
      *
      * @return bool
      */
+    #[Override]
     public function contains(mixed $item): bool
     {
         if ($item instanceof KeyValuePair) {
@@ -124,6 +128,7 @@ class Dictionary implements ArrayAccess, Map
      *
      * @return bool
      */
+    #[Override]
     public function containsAll(iterable $items): bool
     {
         if ($items instanceof Map) {
@@ -150,6 +155,7 @@ class Dictionary implements ArrayAccess, Map
      * @return bool
      * @throws InvalidArgumentException if the key is null, an array or a resource.
      */
+    #[Override]
     public function containsKey(mixed $key): bool
     {
         $arrayKey = self::createValidArrayKey($key);
@@ -163,6 +169,7 @@ class Dictionary implements ArrayAccess, Map
      *
      * @return bool
      */
+    #[Override]
     public function containsValue(mixed $value): bool
     {
         foreach ($this->entries as $entry) {
@@ -182,6 +189,7 @@ class Dictionary implements ArrayAccess, Map
      *
      * @return void
      */
+    #[Override]
     public function copyTo(array &$array, int $index = 0): void
     {
         foreach ($this->entries as $entry) {
@@ -194,6 +202,7 @@ class Dictionary implements ArrayAccess, Map
      *
      * @return KeyValuePair[]
      */
+    #[Override]
     public function toArray(): array
     {
         $entries = [];
@@ -207,6 +216,7 @@ class Dictionary implements ArrayAccess, Map
      * @return Iterator
      * @throws InvalidOperationException if the dictionary was modified within the iterator.
      */
+    #[Override]
     public function getIterator(): Iterator
     {
         $version = $this->version;
@@ -224,6 +234,7 @@ class Dictionary implements ArrayAccess, Map
      *
      * @return int
      */
+    #[Override]
     public function count(): int
     {
         return $this->size;
@@ -234,6 +245,7 @@ class Dictionary implements ArrayAccess, Map
      *
      * @return array
      */
+    #[Override]
     public function getKeys(): array
     {
         $keys = [];
@@ -249,6 +261,7 @@ class Dictionary implements ArrayAccess, Map
      *
      * @return array
      */
+    #[Override]
     public function getValues(): array
     {
         $values = [];
@@ -269,6 +282,7 @@ class Dictionary implements ArrayAccess, Map
      * @throws InvalidArgumentException if the key is null, an array or a resource or if the specified key already
      *     exists in the dictionary.
      */
+    #[Override]
     public function add(mixed $key, mixed $value): void
     {
         $arrayKey = self::createValidArrayKey($key);
@@ -299,6 +313,7 @@ class Dictionary implements ArrayAccess, Map
      * @throws KeyNotFoundException if the dictionary does not contain the specified key.
      * @throws InvalidArgumentException if the key is null, an array or a resource.
      */
+    #[Override]
     public function get(mixed $key): mixed
     {
         $arrayKey = self::createValidArrayKey($key);
@@ -324,6 +339,7 @@ class Dictionary implements ArrayAccess, Map
      * @return void
      * @throws InvalidArgumentException if the key is null, an array or a resource.
      */
+    #[Override]
     public function set(mixed $key, mixed $value): void
     {
         $arrayKey = self::createValidArrayKey($key);
@@ -348,6 +364,7 @@ class Dictionary implements ArrayAccess, Map
      * @return bool True if the value was successfully removed; otherwise false.
      * @throws InvalidArgumentException if the key is null, an array or a resource.
      */
+    #[Override]
     public function remove(mixed $key): bool
     {
         $arrayKey = self::createValidArrayKey($key);
@@ -382,21 +399,25 @@ class Dictionary implements ArrayAccess, Map
     }
 
     #region ArrayAccess methods
+    #[Override]
     public function offsetExists(mixed $offset): bool
     {
         return $this->containsKey($offset);
     }
 
+    #[Override]
     public function offsetGet(mixed $offset): mixed
     {
         return $this->get($offset);
     }
 
+    #[Override]
     public function offsetSet(mixed $offset, mixed $value): void
     {
         $this->set($offset, $value);
     }
 
+    #[Override]
     public function offsetUnset(mixed $offset): void
     {
         $this->remove($offset);

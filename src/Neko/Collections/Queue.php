@@ -3,6 +3,7 @@ namespace Neko\Collections;
 
 use Iterator;
 use Neko\InvalidOperationException;
+use Override;
 use function array_values;
 use function count;
 use function iterator_to_array;
@@ -59,6 +60,7 @@ class Queue implements Collection
      *
      * @return bool
      */
+    #[Override]
     public function isEmpty(): bool
     {
         return $this->size === 0;
@@ -69,6 +71,7 @@ class Queue implements Collection
      *
      * @return void
      */
+    #[Override]
     public function clear(): void
     {
         $this->items = [];
@@ -84,6 +87,7 @@ class Queue implements Collection
      *
      * @return bool
      */
+    #[Override]
     public function contains(mixed $item): bool
     {
         $tail = $this->head + $this->size;
@@ -103,6 +107,7 @@ class Queue implements Collection
      *
      * @return bool
      */
+    #[Override]
     public function containsAll(iterable $items): bool
     {
         foreach ($items as $item) {
@@ -123,6 +128,7 @@ class Queue implements Collection
      *
      * @return void
      */
+    #[Override]
     public function copyTo(array &$array, int $index = 0): void
     {
         $tail = $this->head + $this->size;
@@ -137,6 +143,7 @@ class Queue implements Collection
      *
      * @return array
      */
+    #[Override]
     public function toArray(): array
     {
         return array_values($this->items);
@@ -148,6 +155,7 @@ class Queue implements Collection
      * @return Iterator
      * @throws InvalidOperationException if the queue was modified within the iterator.
      */
+    #[Override]
     public function getIterator(): Iterator
     {
         $version = $this->version;
@@ -166,6 +174,7 @@ class Queue implements Collection
      *
      * @return int
      */
+    #[Override]
     public function count(): int
     {
         return $this->size;

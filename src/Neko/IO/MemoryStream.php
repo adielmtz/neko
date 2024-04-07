@@ -3,6 +3,7 @@ namespace Neko\IO;
 
 use Neko\InvalidOperationException;
 use Neko\NotSupportedException;
+use Override;
 use function fclose;
 use function feof;
 use function fgetc;
@@ -44,6 +45,7 @@ class MemoryStream extends Stream
      *
      * @return bool
      */
+    #[Override]
     public function isReadable(): bool
     {
         return $this->memory !== null;
@@ -54,6 +56,7 @@ class MemoryStream extends Stream
      *
      * @return bool
      */
+    #[Override]
     public function isWritable(): bool
     {
         return $this->memory !== null;
@@ -64,6 +67,7 @@ class MemoryStream extends Stream
      *
      * @return bool
      */
+    #[Override]
     public function isSeekable(): bool
     {
         return $this->memory !== null;
@@ -75,6 +79,7 @@ class MemoryStream extends Stream
      * @return bool
      * @throws InvalidOperationException if the stream is closed.
      */
+    #[Override]
     public function endOfStream(): bool
     {
         $this->ensureStreamIsOpen();
@@ -87,6 +92,7 @@ class MemoryStream extends Stream
      * @return int
      * @throws InvalidOperationException if the stream is closed.
      */
+    #[Override]
     public function getSize(): int
     {
         $this->ensureStreamIsOpen();
@@ -101,6 +107,7 @@ class MemoryStream extends Stream
      * @return void
      * @throws InvalidOperationException if the stream is closed.
      */
+    #[Override]
     public function setSize(int $size): void
     {
         $this->ensureStreamIsOpen();
@@ -117,6 +124,7 @@ class MemoryStream extends Stream
      * @return int
      * @throws InvalidOperationException if the stream is closed.
      */
+    #[Override]
     public function getPosition(): int
     {
         $this->ensureStreamIsOpen();
@@ -131,6 +139,7 @@ class MemoryStream extends Stream
      * @return void
      * @throws InvalidOperationException if the stream is closed.
      */
+    #[Override]
     public function setPosition(int $position): void
     {
         $this->seek($position, SEEK_SET);
@@ -145,6 +154,7 @@ class MemoryStream extends Stream
      * @return void
      * @throws InvalidOperationException if the stream is closed.
      */
+    #[Override]
     public function seek(int $offset, int $whence): void
     {
         $this->ensureStreamIsOpen();
@@ -159,6 +169,7 @@ class MemoryStream extends Stream
      * @return string The data read from the stream or an empty string if the end of stream was reached.
      * @throws InvalidOperationException if the stream is closed.
      */
+    #[Override]
     public function read(int $length): string
     {
         $this->ensureStreamIsOpen();
@@ -172,6 +183,7 @@ class MemoryStream extends Stream
      * @return string|null The read byte or NULL if the end of stream was reached.
      * @throws InvalidOperationException if the stream is closed.
      */
+    #[Override]
     public function readChar(): ?string
     {
         $this->ensureStreamIsOpen();
@@ -185,6 +197,7 @@ class MemoryStream extends Stream
      * @return string|null The data read from the stream or NULL if the end of stream has been reached.
      * @throws InvalidOperationException if the stream is closed.
      */
+    #[Override]
     public function readLine(): ?string
     {
         $this->ensureStreamIsOpen();
@@ -198,6 +211,7 @@ class MemoryStream extends Stream
      * @return string The data read from the stream.
      * @throws InvalidOperationException if the stream is closed.
      */
+    #[Override]
     public function readToEnd(): string
     {
         $this->ensureStreamIsOpen();
@@ -213,6 +227,7 @@ class MemoryStream extends Stream
      * @return int The number of bytes written.
      * @throws InvalidOperationException if the stream is closed.
      */
+    #[Override]
     public function write(string $data, int $length = -1): int
     {
         $this->ensureStreamIsOpen();
@@ -228,6 +243,7 @@ class MemoryStream extends Stream
      * @return int The number of bytes written.
      * @throws InvalidOperationException if the stream is closed.
      */
+    #[Override]
     public function writeLine(string $data): int
     {
         return $this->write($data . PHP_EOL);
@@ -255,6 +271,7 @@ class MemoryStream extends Stream
      *
      * @return void
      */
+    #[Override]
     public function flush(): void
     {
     }
@@ -264,6 +281,7 @@ class MemoryStream extends Stream
      *
      * @return void
      */
+    #[Override]
     public function close(): void
     {
         if ($this->memory !== null) {
@@ -278,6 +296,7 @@ class MemoryStream extends Stream
      * @return void
      * @throws InvalidOperationException if the stream is closed.
      */
+    #[Override]
     protected function ensureStreamIsOpen(): void
     {
         if ($this->memory === null) {
@@ -291,6 +310,7 @@ class MemoryStream extends Stream
      * @return void
      * @throws InvalidOperationException if the stream is closed or does not support seeking.
      */
+    #[Override]
     protected function ensureStreamIsSeekable(): void
     {
         $this->ensureStreamIsOpen();

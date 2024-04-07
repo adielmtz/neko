@@ -4,6 +4,7 @@ namespace Neko\IO;
 use InvalidArgumentException;
 use Neko\InvalidOperationException;
 use Neko\NotSupportedException;
+use Override;
 use function fclose;
 use function feof;
 use function fflush;
@@ -80,6 +81,7 @@ final class FileStream extends Stream
      *
      * @return bool
      */
+    #[Override]
     public function isReadable(): bool
     {
         return $this->can_read;
@@ -90,6 +92,7 @@ final class FileStream extends Stream
      *
      * @return bool
      */
+    #[Override]
     public function isWritable(): bool
     {
         return $this->can_write;
@@ -100,6 +103,7 @@ final class FileStream extends Stream
      *
      * @return bool
      */
+    #[Override]
     public function isSeekable(): bool
     {
         return $this->can_seek;
@@ -121,6 +125,7 @@ final class FileStream extends Stream
      * @return bool
      * @throws InvalidOperationException if the stream is closed.
      */
+    #[Override]
     public function endOfStream(): bool
     {
         $this->ensureStreamIsOpen();
@@ -135,6 +140,7 @@ final class FileStream extends Stream
      * @throws InvalidOperationException if the stream is closed.
      * @throws NotSupportedException if the stream does not support seeking.
      */
+    #[Override]
     public function getSize(): int
     {
         $this->ensureStreamIsSeekable();
@@ -158,6 +164,7 @@ final class FileStream extends Stream
      * @throws InvalidOperationException if the stream is closed.
      * @throws NotSupportedException if the stream does not support seeking.
      */
+    #[Override]
     public function setSize(int $size): void
     {
         if ($size < 0) {
@@ -180,6 +187,7 @@ final class FileStream extends Stream
      * @throws InvalidOperationException if the stream is closed.
      * @throws NotSupportedException if the stream does not support seeking.
      */
+    #[Override]
     public function getPosition(): int
     {
         $this->ensureStreamIsSeekable();
@@ -196,6 +204,7 @@ final class FileStream extends Stream
      * @throws InvalidOperationException if the stream is closed.
      * @throws NotSupportedException if the stream does not support seeking.
      */
+    #[Override]
     public function setPosition(int $position): void
     {
         $this->seek($position, SEEK_SET);
@@ -212,6 +221,7 @@ final class FileStream extends Stream
      * @throws InvalidOperationException if the stream is closed.
      * @throws NotSupportedException if the stream does not support seek.
      */
+    #[Override]
     public function seek(int $offset, int $whence): void
     {
         $this->ensureStreamIsSeekable();
@@ -270,6 +280,7 @@ final class FileStream extends Stream
      * @throws InvalidOperationException if the stream is closed.
      * @throws NotSupportedException if the stream does not support read.
      */
+    #[Override]
     public function read(int $length): string
     {
         $this->ensureStreamIsReadable();
@@ -295,6 +306,7 @@ final class FileStream extends Stream
      * @throws InvalidOperationException if the stream is closed.
      * @throws NotSupportedException if the stream does not support read.
      */
+    #[Override]
     public function readChar(): ?string
     {
         $this->ensureStreamIsReadable();
@@ -310,6 +322,7 @@ final class FileStream extends Stream
      * @throws InvalidOperationException if the stream is closed.
      * @throws NotSupportedException if the stream does not support read.
      */
+    #[Override]
     public function readLine(): ?string
     {
         $this->ensureStreamIsReadable();
@@ -325,6 +338,7 @@ final class FileStream extends Stream
      * @throws InvalidOperationException if the stream is closed.
      * @throws NotSupportedException if the stream does not support read.
      */
+    #[Override]
     public function readToEnd(): string
     {
         $this->ensureStreamIsReadable();
@@ -343,6 +357,7 @@ final class FileStream extends Stream
      * @throws InvalidOperationException if the stream is closed.
      * @throws NotSupportedException if the stream does not support write.
      */
+    #[Override]
     public function write(string $data, int $length = -1): int
     {
         $this->ensureStreamIsWritable();
@@ -368,6 +383,7 @@ final class FileStream extends Stream
      * @throws InvalidOperationException if the stream is closed.
      * @throws NotSupportedException if the stream does not support write.
      */
+    #[Override]
     public function writeLine(string $data): int
     {
         return $this->write($data . PHP_EOL);
@@ -381,6 +397,7 @@ final class FileStream extends Stream
      * @throws InvalidOperationException if the stream is closed.
      * @throws NotSupportedException if the stream does not support write.
      */
+    #[Override]
     public function flush(): void
     {
         $this->ensureStreamIsWritable();
@@ -392,6 +409,7 @@ final class FileStream extends Stream
      *
      * @return void
      */
+    #[Override]
     public function close(): void
     {
         if ($this->handle !== null) {
@@ -409,6 +427,7 @@ final class FileStream extends Stream
      * @return void
      * @throws InvalidOperationException if the stream is closed.
      */
+    #[Override]
     protected function ensureStreamIsOpen(): void
     {
         if ($this->handle === null) {
@@ -422,6 +441,7 @@ final class FileStream extends Stream
      * @return void
      * @throws InvalidOperationException if the stream is closed or does not support seeking.
      */
+    #[Override]
     protected function ensureStreamIsSeekable(): void
     {
         $this->ensureStreamIsOpen();

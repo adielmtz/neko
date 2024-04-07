@@ -3,6 +3,7 @@ namespace Neko\Collections;
 
 use Iterator;
 use Neko\InvalidOperationException;
+use Override;
 use function array_pop;
 use function array_reverse;
 use function count;
@@ -58,6 +59,7 @@ class Stack implements Collection
      *
      * @return bool
      */
+    #[Override]
     public function isEmpty(): bool
     {
         return $this->size === 0;
@@ -68,6 +70,7 @@ class Stack implements Collection
      *
      * @return void
      */
+    #[Override]
     public function clear(): void
     {
         $this->items = [];
@@ -82,6 +85,7 @@ class Stack implements Collection
      *
      * @return bool
      */
+    #[Override]
     public function contains(mixed $item): bool
     {
         for ($i = $this->size - 1; $i >= 0; $i--) {
@@ -100,6 +104,7 @@ class Stack implements Collection
      *
      * @return bool
      */
+    #[Override]
     public function containsAll(iterable $items): bool
     {
         foreach ($items as $item) {
@@ -120,6 +125,7 @@ class Stack implements Collection
      *
      * @return void
      */
+    #[Override]
     public function copyTo(array &$array, int $index = 0): void
     {
         for ($i = $this->size - 1; $i >= 0; $i--) {
@@ -133,6 +139,7 @@ class Stack implements Collection
      *
      * @return array
      */
+    #[Override]
     public function toArray(): array
     {
         return array_reverse($this->items);
@@ -144,6 +151,7 @@ class Stack implements Collection
      * @return Iterator
      * @throws InvalidOperationException if the stack was modified within the iterator.
      */
+    #[Override]
     public function getIterator(): Iterator
     {
         $version = $this->version;
@@ -161,6 +169,7 @@ class Stack implements Collection
      *
      * @return int
      */
+    #[Override]
     public function count(): int
     {
         return $this->size;

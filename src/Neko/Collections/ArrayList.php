@@ -5,6 +5,7 @@ use ArrayAccess;
 use Iterator;
 use Neko\InvalidOperationException;
 use OutOfBoundsException;
+use Override;
 use Traversable;
 use function assert;
 use function count;
@@ -65,6 +66,7 @@ class ArrayList implements ArrayAccess, ListCollection
      *
      * @return bool
      */
+    #[Override]
     public function isEmpty(): bool
     {
         return $this->size === 0;
@@ -75,6 +77,7 @@ class ArrayList implements ArrayAccess, ListCollection
      *
      * @return void
      */
+    #[Override]
     public function clear(): void
     {
         $this->items = [];
@@ -89,6 +92,7 @@ class ArrayList implements ArrayAccess, ListCollection
      *
      * @return bool
      */
+    #[Override]
     public function contains(mixed $item): bool
     {
         return $this->indexOf($item) > -1;
@@ -101,6 +105,7 @@ class ArrayList implements ArrayAccess, ListCollection
      *
      * @return bool
      */
+    #[Override]
     public function containsAll(iterable $items): bool
     {
         foreach ($items as $value) {
@@ -120,6 +125,7 @@ class ArrayList implements ArrayAccess, ListCollection
      *
      * @return void
      */
+    #[Override]
     public function copyTo(array &$array, int $index = 0): void
     {
         for ($i = 0; $i < $this->size; $i++) {
@@ -132,6 +138,7 @@ class ArrayList implements ArrayAccess, ListCollection
      *
      * @return array
      */
+    #[Override]
     public function toArray(): array
     {
         $values = [];
@@ -145,6 +152,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * @return Iterator
      * @throws InvalidOperationException if the list was modified within the iterator.
      */
+    #[Override]
     public function getIterator(): Iterator
     {
         $version = $this->version;
@@ -162,6 +170,7 @@ class ArrayList implements ArrayAccess, ListCollection
      *
      * @return int
      */
+    #[Override]
     public function count(): int
     {
         return $this->size;
@@ -174,6 +183,7 @@ class ArrayList implements ArrayAccess, ListCollection
      *
      * @return void
      */
+    #[Override]
     public function add(mixed $item): void
     {
         $this->items[$this->size] = $item;
@@ -188,6 +198,7 @@ class ArrayList implements ArrayAccess, ListCollection
      *
      * @return void
      */
+    #[Override]
     public function addAll(iterable $items): void
     {
         $this->insertAll($this->size, $items);
@@ -201,6 +212,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * @return mixed
      * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
      */
+    #[Override]
     public function get(int $index): mixed
     {
         if ($index < 0 || $index >= $this->size) {
@@ -221,6 +233,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * @return void
      * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
      */
+    #[Override]
     public function set(int $index, mixed $item): void
     {
         if ($index < 0 || $index >= $this->size) {
@@ -243,6 +256,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * @return void
      * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > ArrayList::count()).
      */
+    #[Override]
     public function insert(int $index, mixed $item): void
     {
         if ($index < 0 || $index > $this->size) {
@@ -270,6 +284,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * @return void
      * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index > ArrayList::count()).
      */
+    #[Override]
     public function insertAll(int $index, iterable $items): void
     {
         if ($index < 0 || $index > $this->size) {
@@ -313,6 +328,7 @@ class ArrayList implements ArrayAccess, ListCollection
      *
      * @return bool True if the element was successfully removed; otherwise false.
      */
+    #[Override]
     public function remove(mixed $item): bool
     {
         $index = $this->indexOf($item);
@@ -332,6 +348,7 @@ class ArrayList implements ArrayAccess, ListCollection
      * @return void
      * @throws OutOfBoundsException if the index is out of range ($index < 0 || $index >= ArrayList::count()).
      */
+    #[Override]
     public function removeAt(int $index): void
     {
         if ($index < 0 || $index >= $this->size) {
@@ -444,6 +461,7 @@ class ArrayList implements ArrayAccess, ListCollection
      *
      * @return int The index of the element if found in the list; otherwise -1.
      */
+    #[Override]
     public function indexOf(mixed $item): int
     {
         for ($i = 0; $i < $this->size; $i++) {
@@ -462,6 +480,7 @@ class ArrayList implements ArrayAccess, ListCollection
      *
      * @return int The index of the element if found in the list; otherwise -1.
      */
+    #[Override]
     public function lastIndexOf(mixed $item): int
     {
         for ($i = $this->size - 1; $i >= 0; $i--) {
@@ -775,21 +794,25 @@ class ArrayList implements ArrayAccess, ListCollection
     }
 
     #region ArrayAccess methods
+    #[Override]
     public function offsetExists(mixed $offset): bool
     {
         return $offset >= 0 && $offset < $this->size;
     }
 
+    #[Override]
     public function offsetGet(mixed $offset): mixed
     {
         return $this->get($offset);
     }
 
+    #[Override]
     public function offsetSet(mixed $offset, mixed $value): void
     {
         $this->set($offset, $value);
     }
 
+    #[Override]
     public function offsetUnset(mixed $offset): void
     {
         $this->removeAt($offset);

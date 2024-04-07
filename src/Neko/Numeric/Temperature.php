@@ -4,6 +4,7 @@ namespace Neko\Numeric;
 use InvalidArgumentException;
 use Neko\Comparable;
 use Neko\Equatable;
+use Override;
 
 /**
  * Represents a temperature value.
@@ -72,6 +73,7 @@ final class Temperature implements Comparable, Equatable
      *
      * @throws InvalidArgumentException if $other is not an instance of Temperature.
      */
+    #[Override]
     public function compareTo(mixed $other): int
     {
         if ($other instanceof Temperature) {
@@ -88,6 +90,7 @@ final class Temperature implements Comparable, Equatable
      *
      * @return bool
      */
+    #[Override]
     public function equals(mixed $other): bool
     {
         return $other instanceof Temperature
