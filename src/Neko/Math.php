@@ -4,6 +4,8 @@ namespace Neko;
 use DivisionByZeroError;
 use InvalidArgumentException;
 use function intdiv;
+use function max;
+use function min;
 use const M_PI;
 
 /**
@@ -19,7 +21,7 @@ final class Math
      * @param int|float $max The upper bound of the range.
      *
      * @return int|float
-     * @throws InvalidArgumentException if the min value is greater than the max value.
+     * @throws InvalidArgumentException if `$min > $max`.
      */
     public static function clamp(int|float $value, int|float $min, int|float $max): int|float
     {
@@ -27,15 +29,7 @@ final class Math
             throw new InvalidArgumentException('Minimum value cannot be greater than the maximum value');
         }
 
-        if ($value > $max) {
-            return $max;
-        }
-
-        if ($value < $min) {
-            return $min;
-        }
-
-        return $value;
+        return max($min, min($value, $max));
     }
 
     /**
@@ -47,15 +41,7 @@ final class Math
      */
     public static function clamp01(float $value): float
     {
-        if ($value > 1.0) {
-            return 1.0;
-        }
-
-        if ($value < 0.0) {
-            return 0.0;
-        }
-
-        return $value;
+        return self::clamp($value, 0.0, 1.0);
     }
 
     /**
@@ -63,7 +49,7 @@ final class Math
      *
      * @param int $a The dividend.
      * @param int $b The divisor.
-     * @param int|null $result OUT: the resulting remainder.
+     * @param int|null $result OUT: the remainder.
      *
      * @return int The quotient of the division.
      * @throws DivisionByZeroError if the divisor is zero.
@@ -86,12 +72,13 @@ final class Math
     public static function factorial(int $n): int
     {
         if ($n < 0) {
-            throw new InvalidArgumentException('Value must be greater than or equal to zero');
+            throw new InvalidArgumentException('$n must be greater than or equal to zero');
         }
 
         $result = 1;
-        for (; $n > 0; $n--) {
+        while ($n > 0) {
             $result *= $n;
+            $n--;
         }
 
         return $result;
