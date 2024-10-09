@@ -5,6 +5,7 @@ use Neko\Collections\ArrayList;
 use Neko\Collections\Dictionary;
 use Neko\Collections\Stack;
 use Neko\InvalidOperationException;
+use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
 use function serialize;
 use function unserialize;
@@ -56,9 +57,7 @@ final class StackTest extends TestCase
         return $serialized;
     }
 
-    /**
-     * @depends testSerialize
-     */
+    #[Depends('testSerialize')]
     public function testUnserialize(string $serialized): Stack
     {
         $restored = unserialize($serialized);
@@ -67,9 +66,7 @@ final class StackTest extends TestCase
         return $restored;
     }
 
-    /**
-     * @depends testUnserialize
-     */
+    #[Depends('testUnserialize')]
     public function testUnserializedStackKeepsLastInFirstOutOrder(Stack $stack): void
     {
         $this->assertSame('C', $stack->pop());
@@ -85,9 +82,7 @@ final class StackTest extends TestCase
         return $serialized;
     }
 
-    /**
-     * @depends testSerializeEmptyStack
-     */
+    #[Depends('testSerializeEmptyStack')]
     public function testUnserializeEmptyStack(string $serialized): void
     {
         $restored = unserialize($serialized);
@@ -118,9 +113,7 @@ final class StackTest extends TestCase
         return $stack;
     }
 
-    /**
-     * @depends testEmpty
-     */
+    #[Depends('testEmpty')]
     public function testPush(Stack $stack): Stack
     {
         $value = 'Watame';
@@ -160,9 +153,7 @@ final class StackTest extends TestCase
         $this->assertFalse($queue->containsAll(new ArrayList(['X', 'Y', 'Z'])));
     }
 
-    /**
-     * @depends testPush
-     */
+    #[Depends('testPush')]
     public function testPop(Stack $stack): void
     {
         $this->assertSame('Watame', $stack->pop());
@@ -188,9 +179,7 @@ final class StackTest extends TestCase
         return $stack;
     }
 
-    /**
-     * @depends testTryPop_Success
-     */
+    #[Depends('testTryPop_Success')]
     public function testTryPop_Failure(Stack $stack): void
     {
         $this->assertFalse($stack->tryPop($result));

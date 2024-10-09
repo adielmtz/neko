@@ -5,6 +5,7 @@ use Neko\Collections\ArrayList;
 use Neko\Collections\Dictionary;
 use Neko\InvalidOperationException;
 use OutOfBoundsException;
+use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
 use function implode;
 use function ord;
@@ -41,9 +42,7 @@ final class ArrayListTest extends TestCase
         return $list;
     }
 
-    /**
-     * @depends testConstructorWithArrayArgument
-     */
+    #[Depends('testConstructorWithArrayArgument')]
     public function testConstructorWithIterableArgument(ArrayList $argument): void
     {
         $list = new ArrayList($argument);
@@ -69,9 +68,7 @@ final class ArrayListTest extends TestCase
         return $serialized;
     }
 
-    /**
-     * @depends testSerialize
-     */
+    #[Depends('testSerialize')]
     public function testUnserialize(string $serialized): ArrayList
     {
         $restored = unserialize($serialized);
@@ -79,9 +76,7 @@ final class ArrayListTest extends TestCase
         return $restored;
     }
 
-    /**
-     * @depends testUnserialize
-     */
+    #[Depends('testUnserialize')]
     public function testUnserializedArrayListKeepsOrderOfElements(ArrayList $restored): void
     {
         $this->assertSame(3, $restored->count());
@@ -98,9 +93,7 @@ final class ArrayListTest extends TestCase
         return $serialized;
     }
 
-    /**
-     * @depends testSerializeEmptyArrayList
-     */
+    #[Depends('testSerializeEmptyArrayList')]
     public function testUnserializeEmptyArrayList(string $serialized): void
     {
         $restored = unserialize($serialized);

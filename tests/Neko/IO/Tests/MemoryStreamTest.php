@@ -4,6 +4,7 @@ namespace Neko\IO\Tests;
 use Neko\InvalidOperationException;
 use Neko\IO\MemoryStream;
 use Neko\NotSupportedException;
+use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
 use function serialize;
 use function strlen;
@@ -110,9 +111,7 @@ final class MemoryStreamTest extends TestCase
         $this->assertSame(0, self::$persistentStream->getSize());
     }
 
-    /**
-     * @depends testTruncate
-     */
+    #[Depends('testTruncate')]
     public function testWriteLine(): void
     {
         $text = __FILE__;
@@ -123,9 +122,7 @@ final class MemoryStreamTest extends TestCase
         $this->assertSame($expectedBytes, self::$persistentStream->getSize());
     }
 
-    /**
-     * @depends testWriteLine
-     */
+    #[Depends('testWriteLine')]
     public function testReadLine(): void
     {
         self::$persistentStream->setPosition(0);
@@ -133,9 +130,7 @@ final class MemoryStreamTest extends TestCase
         $this->assertSame(__FILE__ . PHP_EOL, $output);
     }
 
-    /**
-     * @depends testWriteLine
-     */
+    #[Depends('testWriteLine')]
     public function testCopyTo(): void
     {
         self::$persistentStream->setPosition(0);

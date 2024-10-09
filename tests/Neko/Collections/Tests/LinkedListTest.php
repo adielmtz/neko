@@ -5,6 +5,7 @@ use Neko\Collections\Dictionary;
 use Neko\Collections\LinkedList;
 use Neko\InvalidOperationException;
 use OutOfBoundsException;
+use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
 use function serialize;
 use function unserialize;
@@ -36,9 +37,7 @@ final class LinkedListTest extends TestCase
         return $list;
     }
 
-    /**
-     * @depends testConstructorWithArrayArgument
-     */
+    #[Depends('testConstructorWithArrayArgument')]
     public function testConstructorWithIterableArgument(LinkedList $argument): void
     {
         $list = new LinkedList($argument);
@@ -76,9 +75,7 @@ final class LinkedListTest extends TestCase
         return $serialized;
     }
 
-    /**
-     * @depends testSerialize
-     */
+    #[Depends('testSerialize')]
     public function testUnserialize(string $serialized): LinkedList
     {
         $restored = unserialize($serialized);
@@ -86,9 +83,7 @@ final class LinkedListTest extends TestCase
         return $restored;
     }
 
-    /**
-     * @depends testUnserialize
-     */
+    #[Depends('testUnserialize')]
     public function testUnserializedLinkedListKeepsOrderOfElements(LinkedList $restored): void
     {
         $this->assertSame(3, $restored->count());
@@ -105,9 +100,7 @@ final class LinkedListTest extends TestCase
         return $serialized;
     }
 
-    /**
-     * @depends testSerializeEmptyLinkedList
-     */
+    #[Depends('testSerializeEmptyLinkedList')]
     public function testUnserializeEmptyLinkedList(string $serialized): void
     {
         $restored = unserialize($serialized);

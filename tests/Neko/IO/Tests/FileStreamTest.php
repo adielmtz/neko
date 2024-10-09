@@ -8,6 +8,7 @@ use Neko\IO\FileNotFoundException;
 use Neko\IO\FileStream;
 use Neko\IO\IOException;
 use Neko\NotSupportedException;
+use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
 use function serialize;
 use function strlen;
@@ -128,9 +129,7 @@ final class FileStreamTest extends TestCase
         $this->assertSame(0, self::$persistentStream->getSize());
     }
 
-    /**
-     * @depends testTruncate
-     */
+    #[Depends('testTruncate')]
     public function testWriteLine(): void
     {
         $text = __FILE__;
@@ -141,9 +140,7 @@ final class FileStreamTest extends TestCase
         $this->assertSame($expectedBytes, self::$persistentStream->getSize());
     }
 
-    /**
-     * @depends testWriteLine
-     */
+    #[Depends('testWriteLine')]
     public function testReadLine(): void
     {
         self::$persistentStream->setPosition(0);
@@ -151,9 +148,7 @@ final class FileStreamTest extends TestCase
         $this->assertSame(__FILE__ . PHP_EOL, $output);
     }
 
-    /**
-     * @depends testWriteLine
-     */
+    #[Depends('testWriteLine')]
     public function testCopyTo(): void
     {
         self::$persistentStream->setPosition(0);

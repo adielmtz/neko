@@ -5,6 +5,7 @@ use Neko\Collections\ArrayList;
 use Neko\Collections\Dictionary;
 use Neko\Collections\Queue;
 use Neko\InvalidOperationException;
+use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
 use function serialize;
 use function unserialize;
@@ -56,9 +57,7 @@ final class QueueTest extends TestCase
         return $serialized;
     }
 
-    /**
-     * @depends testSerialize
-     */
+    #[Depends('testSerialize')]
     public function testUnserialize(string $serialized): Queue
     {
         $restored = unserialize($serialized);
@@ -67,9 +66,7 @@ final class QueueTest extends TestCase
         return $restored;
     }
 
-    /**
-     * @depends testUnserialize
-     */
+    #[Depends('testUnserialize')]
     public function testUnserializedQueueKeepsFirstInFirstOutOrder(Queue $queue): void
     {
         $this->assertSame('A', $queue->dequeue());
@@ -85,9 +82,7 @@ final class QueueTest extends TestCase
         return $serialized;
     }
 
-    /**
-     * @depends testSerializeEmptyQueue
-     */
+    #[Depends('testSerializeEmptyQueue')]
     public function testUnserializeEmptyQueue(string $serialized): void
     {
         $restored = unserialize($serialized);
@@ -119,9 +114,7 @@ final class QueueTest extends TestCase
         return $queue;
     }
 
-    /**
-     * @depends testEmpty
-     */
+    #[Depends('testEmpty')]
     public function testEnqueue(Queue $queue): Queue
     {
         $value = 'Pekora';
@@ -132,9 +125,7 @@ final class QueueTest extends TestCase
         return $queue;
     }
 
-    /**
-     * @depends testEnqueue
-     */
+    #[Depends('testEnqueue')]
     public function testContains(Queue $queue): Queue
     {
         $this->assertTrue($queue->contains('Pekora'));
@@ -164,9 +155,7 @@ final class QueueTest extends TestCase
         $this->assertFalse($queue->containsAll(new ArrayList(['X', 'Y', 'Z'])));
     }
 
-    /**
-     * @depends testContains
-     */
+    #[Depends('testContains')]
     public function testDequeue(Queue $queue): void
     {
         $this->assertSame('Pekora', $queue->dequeue());
@@ -192,9 +181,7 @@ final class QueueTest extends TestCase
         return $queue;
     }
 
-    /**
-     * @depends testTryDequeue_Success
-     */
+    #[Depends('testTryDequeue_Success')]
     public function testTryPop_Failure(Queue $queue): void
     {
         $this->assertFalse($queue->tryDequeue($result));

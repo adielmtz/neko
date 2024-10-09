@@ -7,6 +7,7 @@ use Neko\Collections\Dictionary;
 use Neko\Collections\KeyNotFoundException;
 use Neko\Collections\KeyValuePair;
 use Neko\InvalidOperationException;
+use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use function fclose;
@@ -97,9 +98,7 @@ final class DictionaryTest extends TestCase
         return $serialized;
     }
 
-    /**
-     * @depends testSerialize
-     */
+    #[Depends('testSerialize')]
     public function testUnserialize(string $serialized): Dictionary
     {
         $restored = unserialize($serialized);
@@ -108,9 +107,7 @@ final class DictionaryTest extends TestCase
         return $restored;
     }
 
-    /**
-     * @depends testUnserialize
-     */
+    #[Depends('testUnserialize')]
     public function testUnserializedDictionaryKeepsKeyValuePairs(Dictionary $restored): void
     {
         $this->assertSame('bar', $restored->get('foo'));
@@ -127,9 +124,7 @@ final class DictionaryTest extends TestCase
         return $serialized;
     }
 
-    /**
-     * @depends testSerializeEmptyDictionary
-     */
+    #[Depends('testSerializeEmptyDictionary')]
     public function testUnserializeEmptyDictionary(string $serialized): void
     {
         $restored = unserialize($serialized);
