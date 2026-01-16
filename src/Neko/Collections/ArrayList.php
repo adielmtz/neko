@@ -10,6 +10,7 @@ use Traversable;
 use function assert;
 use function count;
 use function floor;
+use function is_int;
 use function iterator_to_array;
 use function sort;
 use function sprintf;
@@ -797,7 +798,7 @@ class ArrayList implements ArrayAccess, ListCollection
     #[Override]
     public function offsetExists(mixed $offset): bool
     {
-        return $offset >= 0 && $offset < $this->size;
+        return is_int($offset) && $offset >= 0 && $offset < $this->size;
     }
 
     #[Override]
@@ -809,7 +810,11 @@ class ArrayList implements ArrayAccess, ListCollection
     #[Override]
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        $this->set($offset, $value);
+        if ($offset === null) {
+            $this->add($value);
+        } else {
+            $this->set($offset, $value);
+        }
     }
 
     #[Override]

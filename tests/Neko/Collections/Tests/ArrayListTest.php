@@ -29,6 +29,20 @@ final class ArrayListTest extends TestCase
         $this->list->add('E'); // 4
     }
 
+    public function testArrayAccessOffsetSet(): void
+    {
+        $size = $this->list->count();
+        $this->list[] = 'X';
+        $this->assertSame('X', $this->list[$size]);
+    }
+
+    public function testArrayAccessOffsetExists(): void
+    {
+        $this->assertTrue(isset($this->list[0]));
+        $this->assertFalse(isset($this->list[100]));
+        $this->assertFalse(isset($this->list['key']));
+    }
+
     public function testConstructorWithArrayArgument(): ArrayList
     {
         $list = new ArrayList(['X', 'Y', 'Z']);
