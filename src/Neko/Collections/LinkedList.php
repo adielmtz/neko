@@ -32,6 +32,16 @@ final class LinkedList implements ListCollection
     }
 
     /**
+     * Handles destruction of the list.
+     *
+     * @return void
+     */
+    public function __destruct()
+    {
+        $this->unlinkNodes();
+    }
+
+    /**
      * Handles clone operator.
      *
      * @return void
@@ -59,7 +69,6 @@ final class LinkedList implements ListCollection
      */
     public function __serialize(): array
     {
-        // Serializing the nodes directly recurses once per node, which overflows the stack on long lists
         return $this->toArray();
     }
 
@@ -143,15 +152,7 @@ final class LinkedList implements ListCollection
     #[Override]
     public function clear(): void
     {
-        // (Micro) optimization: reduce cycle-collector runs
-        $node = $this->head;
-        while ($node !== null) {
-            $next = $node->next;
-            $node->detach();
-            $node = $next;
-        }
-
-        $this->head = null;
+        $this->unlinkNodes();
         $this->size = 0;
         $this->version++;
     }
@@ -661,6 +662,26 @@ final class LinkedList implements ListCollection
         $node->detach();
         $this->size--;
         $this->version++;
+    }
+
+    /**
+     * Breaks the links between all nodes and removes the head, without updating the size or version.
+     *
+     * The nodes form a cycle, so they would otherwise stay in memory until PHP's cycle collector runs.
+     * Unlinking them one by one lets reference counting free each node right away, without deep recursion.
+     *
+     * @return void
+     */
+    private function unlinkNodes(): void
+    {
+        $node = $this->head;
+        while ($node !== null) {
+            $next = $node->next;
+            $node->detach();
+            $node = $next;
+        }
+
+        $this->head = null;
     }
 
     #region Array Access implementation

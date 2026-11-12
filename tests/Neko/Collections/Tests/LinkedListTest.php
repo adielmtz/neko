@@ -10,7 +10,11 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
 use TypeError;
+use function gc_disable;
+use function gc_enable;
+use function gc_enabled;
 use function iterator_to_array;
+use function memory_get_usage;
 use function range;
 use function serialize;
 use function unserialize;
@@ -317,6 +321,43 @@ final class LinkedListTest extends TestCase
         $list = new LinkedList();
         $list->clear();
         $this->assertTrue($list->isEmpty());
+    }
+
+    public function testDroppedListFreesItsNodesWithoutTheCycleCollector(): void
+    {
+        // The nodes reference each other in a cycle; without __destruct() they would stay
+        // in memory until the cycle collector runs, which is disabled here.
+        $gcWasEnabled = gc_enabled();
+        gc_disable();
+
+        try {
+            $baseline = memory_get_usage();
+            $list = new LinkedList();
+            for ($i = 0; $i < 50000; ++$i) {
+                $list->add($i);
+            }
+
+            $this->assertGreaterThan($baseline + 1024 * 1024, memory_get_usage());
+
+            unset($list);
+            $this->assertLessThan($baseline + 64 * 1024, memory_get_usage());
+        } finally {
+            if ($gcWasEnabled) {
+                gc_enable();
+            }
+        }
+    }
+
+    public function testListStaysUsableWhileAnIteratorHoldsIt(): void
+    {
+        // A suspended iterator keeps the list alive, so its nodes must not be unlinked
+        $iterator = (new LinkedList(['A', 'B', 'C']))->getIterator();
+        $items = [];
+        foreach ($iterator as $item) {
+            $items[] = $item;
+        }
+
+        $this->assertSame(['A', 'B', 'C'], $items);
     }
 
     public function testListIsUsableAfterClear(): void
@@ -1006,6 +1047,20 @@ final class LinkedListTest extends TestCase
         $this->assertFalse(isset($this->list[5]));
         $this->assertFalse(isset($this->list[-1]));
         $this->assertFalse(isset((new LinkedList())[0]));
+    }
+
+    public function testOffsetExistsIsFalseForNullItems(): void
+    {
+        // Matches isset() on arrays: the index exists, but holds null
+        $list = new LinkedList(['A', null, false, 0, '']);
+        $this->assertFalse(isset($list[1]));
+        $this->assertNull($list[1]);
+        $this->assertSame(5, $list->count());
+
+        // Falsy values that are not null are set
+        $this->assertTrue(isset($list[2]));
+        $this->assertTrue(isset($list[3]));
+        $this->assertTrue(isset($list[4]));
     }
 
     public function testOffsetExistsWithNonIntOffsetReturnsFalse(): void
