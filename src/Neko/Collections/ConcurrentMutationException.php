@@ -1,11 +1,11 @@
 <?php declare(strict_types=1);
 namespace Neko\Collections;
 
-use Exception;
+use Neko\InvalidOperationException;
 
 /**
  * This exception is thrown when a collection is concurrently modified during iteration.
  */
-final class ConcurrentMutationException extends Exception
+final class ConcurrentMutationException extends InvalidOperationException
 {
 }
