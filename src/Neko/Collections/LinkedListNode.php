@@ -3,6 +3,8 @@ namespace Neko\Collections;
 
 /**
  * Represents a node in a doubly linked list.
+ *
+ * @internal Used only by LinkedList; nodes are never exposed outside of it.
  */
 final class LinkedListNode
 {
