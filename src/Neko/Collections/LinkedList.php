@@ -664,12 +664,33 @@ final class LinkedList implements ListCollection
     }
 
     #region Array Access implementation
+    /**
+     * Determines whether the specified index exists and holds a non-null item,
+     * matching the behavior of isset() on arrays.
+     *
+     * @param mixed $offset The zero-based index to check.
+     *
+     * @return bool
+     */
     #[Override]
     public function offsetExists(mixed $offset): bool
     {
-        return is_int($offset) && $offset >= 0 && $offset < $this->size;
+        return is_int($offset) && $offset >= 0 && $offset < $this->size
+            && $this->findNodeByIndex($offset)->value !== null;
     }
 
+    /**
+     * Returns the item at the specified index.
+     *
+     * The item is returned by value, so modifying a stored array in place (e.g. $list[0][] = $x) has no effect.
+     * Read the item, modify it, and assign it back instead.
+     *
+     * @param mixed $offset The zero-based index of the item to retrieve.
+     *
+     * @return mixed
+     * @throws TypeError If the offset is not an integer.
+     * @throws OutOfBoundsException If the index is out of bounds.
+     */
     #[Override]
     public function offsetGet(mixed $offset): mixed
     {
