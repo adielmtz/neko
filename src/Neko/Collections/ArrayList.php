@@ -6,11 +6,15 @@ use OutOfBoundsException;
 use Override;
 use Traversable;
 use TypeError;
+use function array_is_list;
+use function array_pop;
+use function array_reverse;
+use function array_shift;
 use function array_slice;
+use function array_splice;
 use function assert;
 use function count;
 use function intdiv;
-use function is_array;
 use function is_int;
 use function iterator_to_array;
 use function max;
@@ -268,11 +272,7 @@ final class ArrayList implements ListCollection
             throw new OutOfBoundsException("Index '$index' is out of bounds");
         }
 
-        for ($i = $this->size; $i > $index; --$i) {
-            $this->items[$i] = $this->items[$i - 1];
-        }
-
-        $this->items[$index] = $item;
+        array_splice($this->items, $index, 0, [$item]);
         $this->size++;
         $this->version++;
     }
@@ -294,42 +294,15 @@ final class ArrayList implements ListCollection
             throw new OutOfBoundsException("Index '$index' is out of bounds");
         }
 
-        if ($items instanceof Traversable) {
-            $items = iterator_to_array($items, preserve_keys: false);
-        }
-
-        assert(is_array($items));
-        $size = count($items);
-        if ($size === 0) {
+        // Copy the items first, so that inserting a list into itself sees its original items
+        $items = iterator_to_array($items, preserve_keys: false);
+        $count = count($items);
+        if ($count === 0) {
             return;
         }
 
-        $newSize = $this->size + $size;
-        // Preallocate new slots to keep key order
-        for ($i = $this->size; $i < $newSize; ++$i) {
-            $this->items[$i] = null;
-        }
-
-        // == Example ==
-        // insert [X,Y,Z] at index 3
-        // we have to move the elements from index 3, 3 positions to the right
-        // iterating in reverse order.
-        //
-        // $this->items:
-        // initial state -> [A,B,C,D,E,F,G,H, , , , , ]
-        // first loop    -> [A,B,C, , , ,D,E,F,G,H, , ]
-        // second loop   -> [A,B,C,X,Y,Z,D,E,F,G,H, , ]
-        if ($index < $this->size) {
-            for ($i = $newSize - 1; $i >= $index + $size; --$i) {
-                $this->items[$i] = $this->items[$i - $size];
-            }
-        }
-
-        foreach ($items as $value) {
-            $this->items[$index++] = $value;
-        }
-
-        $this->size = $newSize;
+        array_splice($this->items, $index, 0, $items);
+        $this->size += $count;
         $this->version++;
     }
 
@@ -367,13 +340,8 @@ final class ArrayList implements ListCollection
             throw new OutOfBoundsException("Index '$index' is out of bounds");
         }
 
+        array_splice($this->items, $index, 1);
         $this->size--;
-        while ($index < $this->size) {
-            $this->items[$index] = $this->items[$index + 1];
-            $index++;
-        }
-
-        $this->items[$this->size] = null;
         $this->version++;
     }
 
@@ -401,25 +369,15 @@ final class ArrayList implements ListCollection
         }
 
         $count = min($count, $this->size - $index);
-        $size = $this->size - $count;
-
-        // Shift the remaining items to the left
-        for ($i = $index; $i < $size; ++$i) {
-            $this->items[$i] = $this->items[$i + $count];
-        }
-
-        // Clear removed slot & references
-        for ($i = $size; $i < $this->size; ++$i) {
-            $this->items[$i] = null;
-        }
-
-        $this->size = $size;
+        array_splice($this->items, $index, $count);
+        $this->size -= $count;
         $this->version++;
         return $count;
     }
 
     /**
      * Removes all items that match the specified predicate.
+     * If the predicate throws an exception, the list is left unchanged.
      *
      * @param callable $predicate The predicate used to determine which items to remove.
      *
@@ -427,33 +385,21 @@ final class ArrayList implements ListCollection
      */
     public function removeIf(callable $predicate): int
     {
-        $writeIndex = 0;
-        $removed = 0;
-
-        for ($readIndex = 0; $readIndex < $this->size; ++$readIndex) {
-            $item = $this->items[$readIndex];
-            if ($predicate($item)) {
-                $removed++;
-                continue;
+        // Collect the kept items first, so that the list is only modified once every item has been tested
+        $kept = [];
+        foreach ($this->items as $item) {
+            if (!$predicate($item)) {
+                $kept[] = $item;
             }
-
-            if ($writeIndex !== $readIndex) {
-                $this->items[$writeIndex] = $item;
-            }
-
-            $writeIndex++;
         }
 
+        $removed = $this->size - count($kept);
         if ($removed === 0) {
             return 0;
         }
 
-        // Clear removed slot & references
-        for ($i = $writeIndex; $i < $this->size; ++$i) {
-            $this->items[$i] = null;
-        }
-
-        $this->size = $writeIndex;
+        $this->items = $kept;
+        $this->size = count($kept);
         $this->version++;
         return $removed;
     }
@@ -471,8 +417,9 @@ final class ArrayList implements ListCollection
             throw new InvalidOperationException('List is empty');
         }
 
-        $result = $this->items[0];
-        $this->removeAt(0);
+        $result = array_shift($this->items);
+        $this->size--;
+        $this->version++;
         return $result;
     }
 
@@ -489,8 +436,9 @@ final class ArrayList implements ListCollection
             throw new InvalidOperationException('List is empty');
         }
 
-        $result = $this->items[$this->size - 1];
-        $this->removeAt($this->size - 1);
+        $result = array_pop($this->items);
+        $this->size--;
+        $this->version++;
         return $result;
     }
 
@@ -537,7 +485,9 @@ final class ArrayList implements ListCollection
      * This method assumes that the list is sorted.
      *
      * @param mixed $item The item to search for.
-     * @param callable|null $comparer The comparer used to compare items. If null, a default comparer is used.
+     * @param callable|null $comparer The comparer used to compare items. It receives the searched item first and
+     *     must return a number that is negative, zero, or positive (an int or a float). If null, a default comparer
+     *     is used.
      *
      * @return int
      */
@@ -558,14 +508,13 @@ final class ArrayList implements ListCollection
             $mid = intdiv($lo + $hi, 2);
             $cmp = $comparer($item, $this->items[$mid]);
 
-            if ($cmp === 0) {
-                return $mid;
+            // Compare by sign, so that comparers returning floats (e.g. $a - $b) also find a match on 0.0
+            if ($cmp < 0) {
+                $hi = $mid - 1;
+            } else if ($cmp > 0) {
+                $lo = $mid + 1;
             } else {
-                if ($cmp < 0) {
-                    $hi = $mid - 1;
-                } else {
-                    $lo = $mid + 1;
-                }
+                return $mid;
             }
         }
 
@@ -621,14 +570,6 @@ final class ArrayList implements ListCollection
             return;
         }
 
-        if (count($this->items) > $this->size) {
-            // Array contains unused slots, so we unset() them before sorting.
-            $size = count($this->items);
-            for ($i = $this->size; $i < $size; ++$i) {
-                unset($this->items[$i]);
-            }
-        }
-
         if ($comparer === null) {
             sort($this->items);
         } else {
@@ -646,6 +587,7 @@ final class ArrayList implements ListCollection
      * @param callable|null $comparer The comparer used to compare items. If null, a default comparer is used.
      *
      * @return void
+     * @throws OutOfBoundsException If the index is out of bounds.
      */
     public function sortRange(int $index, ?int $count = null, ?callable $comparer = null): void
     {
@@ -670,11 +612,7 @@ final class ArrayList implements ListCollection
             usort($items, $comparer);
         }
 
-        // Copy items back into the array
-        for ($i = 0; $i < $count; ++$i) {
-            $this->items[$index + $i] = $items[$i];
-        }
-
+        array_splice($this->items, $index, $count, $items);
         $this->version++;
     }
 
@@ -686,35 +624,24 @@ final class ArrayList implements ListCollection
     #[Override]
     public function reverse(): void
     {
-        $start = 0;
-        $end = $this->size - 1;
-        while ($start < $end) {
-            $a = $this->items[$start];
-            $b = $this->items[$end];
-
-            $this->items[$start] = $b;
-            $this->items[$end] = $a;
-
-            $start++;
-            $end--;
-        }
-
+        $this->items = array_reverse($this->items);
         $this->version++;
     }
 
     /**
      * Returns a new list containing a subset of the items, starting at the specified index.
      *
-     * @param int $index The zero-based index at which to start the slice.
+     * @param int $index The zero-based index at which to start the slice. If it equals the number of items in the
+     *     list, the slice is empty.
      * @param int|null $count The maximum number of items to include. If null, all remaining items are included.
-     * If negative, the slice stops that many items from the end of the list.
+     *     If negative, the slice stops that many items from the end of the list.
      *
      * @return ListCollection
      * @throws OutOfBoundsException If the index is out of bounds.
      */
     public function slice(int $index, ?int $count = null): ListCollection
     {
-        if ($index < 0 || $index >= $this->size) {
+        if ($index < 0 || $index > $this->size) {
             throw new OutOfBoundsException("Index '$index' is out of bounds");
         }
 
@@ -725,16 +652,14 @@ final class ArrayList implements ListCollection
             $count = max(0, $remain + $count);
         }
 
-        $list = new ArrayList();
-        $list->items = array_slice($this->items, $index, $count);
-        $list->size = count($list->items);
-        return $list;
+        return self::fromArray(array_slice($this->items, $index, $count));
     }
 
     /**
      * Returns a new list containing the items within the specified index range.
+     * The range is empty if both indexes are equal.
      *
-     * @param int $fromIndex The zero-based starting index of the range.
+     * @param int $fromIndex The zero-based starting index of the range (inclusive).
      * @param int $toIndex The zero-based ending index of the range (exclusive).
      *
      * @return ListCollection
@@ -742,7 +667,7 @@ final class ArrayList implements ListCollection
      */
     public function range(int $fromIndex, int $toIndex): ListCollection
     {
-        if ($fromIndex < 0 || $fromIndex >= $this->size) {
+        if ($fromIndex < 0 || $fromIndex > $this->size) {
             throw new OutOfBoundsException("Index (\$fromIndex) '$fromIndex' is out of bounds");
         }
 
@@ -762,14 +687,14 @@ final class ArrayList implements ListCollection
      */
     public function filter(callable $predicate): ListCollection
     {
-        $list = new ArrayList();
-        for ($i = 0; $i < $this->size; ++$i) {
-            if ($predicate($this->items[$i])) {
-                $list->add($this->items[$i]);
+        $items = [];
+        foreach ($this->items as $item) {
+            if ($predicate($item)) {
+                $items[] = $item;
             }
         }
 
-        return $list;
+        return self::fromArray($items);
     }
 
     /**
@@ -781,14 +706,12 @@ final class ArrayList implements ListCollection
      */
     public function map(callable $transform): ListCollection
     {
-        $list = new ArrayList();
-        for ($i = 0; $i < $this->size; ++$i) {
-            $item = $this->items[$i];
-            $mapped = $transform($item);
-            $list->add($mapped);
+        $items = [];
+        foreach ($this->items as $item) {
+            $items[] = $transform($item);
         }
 
-        return $list;
+        return self::fromArray($items);
     }
 
     /**
@@ -850,12 +773,7 @@ final class ArrayList implements ListCollection
     #[Override]
     public function toArray(): array
     {
-        $items = [];
-        for ($i = 0; $i < $this->size; ++$i) {
-            $items[] = $this->items[$i];
-        }
-
-        return $items;
+        return $this->items;
     }
 
     /**
@@ -866,15 +784,23 @@ final class ArrayList implements ListCollection
     #[Override]
     public function toReversed(): ListCollection
     {
+        return self::fromArray(array_reverse($this->items));
+    }
+
+    /**
+     * Creates a list that takes the specified array as its storage.
+     *
+     * @param array $items A list (sequential keys starting at 0) containing the items.
+     *
+     * @return ArrayList
+     */
+    private static function fromArray(array $items): ArrayList
+    {
+        assert(array_is_list($items));
+
         $list = new ArrayList();
-        $items = [];
-
-        for ($i = $this->size - 1; $i >= 0; --$i) {
-            $items[] = $this->items[$i];
-        }
-
         $list->items = $items;
-        $list->size = $this->size;
+        $list->size = count($items);
         return $list;
     }
 

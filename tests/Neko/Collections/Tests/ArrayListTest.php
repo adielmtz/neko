@@ -10,13 +10,17 @@ use OutOfBoundsException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
+use RuntimeException;
 use TypeError;
 use function count;
 use function implode;
 use function iterator_to_array;
 use function ord;
 use function range;
+use function restore_error_handler;
 use function serialize;
+use function set_error_handler;
 use function str_shuffle;
 use function str_split;
 use function unserialize;
@@ -227,6 +231,16 @@ final class ArrayListTest extends TestCase
             }
         }
     }
+
+    public function testConcurrentMutationCanBeCaughtAsInvalidOperationException(): void
+    {
+        // ConcurrentMutationException extends InvalidOperationException, which iteration used to throw
+        $this->expectException(InvalidOperationException::class);
+
+        foreach ($this->list as $char) {
+            $this->list->add($char);
+        }
+    }
     #endregion
 
     #region ArrayAccess
@@ -299,6 +313,78 @@ final class ArrayListTest extends TestCase
         $this->list->removeLast();
         $this->assertFalse(isset($this->list[4]));
         $this->assertTrue(isset($this->list[3]));
+    }
+
+    public function testArrayAccessOffsetExistsIsFalseForNullItems(): void
+    {
+        // Matches isset() on arrays: the index exists, but holds null
+        $list = new ArrayList(['A', null, false, 0, '']);
+        $this->assertFalse(isset($list[1]));
+        $this->assertNull($list[1]);
+        $this->assertSame(5, $list->count());
+
+        // Falsy values that are not null are set
+        $this->assertTrue(isset($list[2]));
+        $this->assertTrue(isset($list[3]));
+        $this->assertTrue(isset($list[4]));
+    }
+
+    public function testArrayAccessCannotModifyStoredArraysInPlace(): void
+    {
+        $list = new ArrayList([['x']]);
+        $notices = [];
+        set_error_handler(function (int $errno, string $message) use (&$notices): bool {
+            $notices[] = $message;
+            return true;
+        });
+
+        try {
+            $list[0][] = 'y';
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertCount(1, $notices);
+        $this->assertStringContainsString('Indirect modification', $notices[0]);
+        $this->assertSame(['x'], $list[0]);
+
+        // The documented way: read, modify, and assign back
+        $item = $list[0];
+        $item[] = 'y';
+        $list[0] = $item;
+        $this->assertSame(['x', 'y'], $list[0]);
+    }
+
+    /**
+     * Operations that remove items, each leaving the list as [A, B, C].
+     *
+     * @return array<string, array{callable(ArrayList): mixed}>
+     */
+    public static function removalProvider(): array
+    {
+        return [
+            'removeAt'    => [fn(ArrayList $l) => [$l->removeAt(4), $l->removeAt(3)]],
+            'removeRange' => [fn(ArrayList $l) => $l->removeRange(3)],
+            'removeIf'    => [fn(ArrayList $l) => $l->removeIf(fn($x) => $x === 'D' || $x === 'E')],
+            'removeLast'  => [fn(ArrayList $l) => [$l->removeLast(), $l->removeLast()]],
+            'remove'      => [fn(ArrayList $l) => [$l->remove('D'), $l->remove('E')]],
+            'unset'       => [function (ArrayList $l) { unset($l[4], $l[3]); }],
+        ];
+    }
+
+    #[DataProvider('removalProvider')]
+    public function testRemovalsDoNotLeaveUnusedSlots(callable $remove): void
+    {
+        $remove($this->list);
+
+        // The internal array must hold exactly the remaining items, with sequential keys
+        $items = (new ReflectionProperty(ArrayList::class, 'items'))->getValue($this->list);
+        $this->assertSame(['A', 'B', 'C'], $items);
+        $this->assertSame(3, $this->list->count());
+
+        // So the serialized form only carries the remaining items too
+        $restored = unserialize(serialize($this->list));
+        $this->assertSame(['A', 'B', 'C'], (new ReflectionProperty(ArrayList::class, 'items'))->getValue($restored));
     }
 
     public function testArrayAccessOffsetUnset(): void
@@ -870,6 +956,39 @@ final class ArrayListTest extends TestCase
     {
         $this->assertSame(0, (new ArrayList())->removeIf(fn() => true));
     }
+
+    public function testRemoveIfLeavesTheListUnchangedIfThePredicateThrows(): void
+    {
+        $list = new ArrayList(['A', 'B', 'C', 'D']);
+        $predicate = function (string $item): bool {
+            if ($item === 'D') {
+                throw new RuntimeException('Predicate failed');
+            }
+
+            return $item === 'A';
+        };
+
+        try {
+            $list->removeIf($predicate);
+            $this->fail('The exception thrown by the predicate was not propagated');
+        } catch (RuntimeException $e) {
+            $this->assertSame('Predicate failed', $e->getMessage());
+        }
+
+        $this->assertSame(4, $list->count());
+        $this->assertSame(['A', 'B', 'C', 'D'], $list->toArray());
+    }
+
+    public function testRemoveIfDoesNotInvalidateIteratorsIfNothingIsRemoved(): void
+    {
+        $visited = [];
+        foreach ($this->list as $item) {
+            $this->list->removeIf(fn() => false);
+            $visited[] = $item;
+        }
+
+        $this->assertSame(['A', 'B', 'C', 'D', 'E'], $visited);
+    }
     #endregion
 
     #region Search
@@ -953,6 +1072,18 @@ final class ArrayListTest extends TestCase
         $this->assertSame(2, $list->binarySearch(30, $comparer));
         $this->assertSame(4, $list->binarySearch(10, $comparer));
         $this->assertSame(-1, $list->binarySearch(35, $comparer));
+    }
+
+    public function testBinarySearchWithComparerReturningFloats(): void
+    {
+        $list = new ArrayList([1.5, 2.25, 3.75, 4.0]);
+        $comparer = fn(float $a, float $b): float => $a - $b;
+
+        $this->assertSame(0, $list->binarySearch(1.5, $comparer));
+        $this->assertSame(1, $list->binarySearch(2.25, $comparer));
+        $this->assertSame(2, $list->binarySearch(3.75, $comparer));
+        $this->assertSame(3, $list->binarySearch(4.0, $comparer));
+        $this->assertSame(-1, $list->binarySearch(3.0, $comparer));
     }
 
     public function testBinarySearchIgnoresRemovedItems(): void
@@ -1149,7 +1280,21 @@ final class ArrayListTest extends TestCase
     public function testSliceThrowsExceptionIfIndexIsOutOfBounds(): void
     {
         $this->expectException(OutOfBoundsException::class);
-        $this->list->slice(5);
+        $this->list->slice(6);
+    }
+
+    public function testSliceAtTheEndOfTheListReturnsAnEmptyList(): void
+    {
+        $this->assertSame([], $this->list->slice(5)->toArray());
+        $this->assertSame([], $this->list->slice(5, 2)->toArray());
+        $this->assertSame(0, $this->list->slice(5)->count());
+    }
+
+    public function testSliceOnEmptyListReturnsAnEmptyList(): void
+    {
+        $slice = (new ArrayList())->slice(0);
+        $this->assertTrue($slice->isEmpty());
+        $this->assertSame([], $slice->toArray());
     }
 
     public function testSliceThrowsExceptionIfIndexIsNegative(): void
@@ -1237,7 +1382,19 @@ final class ArrayListTest extends TestCase
     public function testRangeThrowsExceptionIfFromIndexIsOutOfBounds(): void
     {
         $this->expectException(OutOfBoundsException::class);
-        $this->list->range(5, 5);
+        $this->list->range(6, 6);
+    }
+
+    public function testRangeAtTheEndOfTheListReturnsAnEmptyList(): void
+    {
+        $this->assertSame([], $this->list->range(5, 5)->toArray());
+    }
+
+    public function testRangeOnEmptyListReturnsAnEmptyList(): void
+    {
+        $range = (new ArrayList())->range(0, 0);
+        $this->assertTrue($range->isEmpty());
+        $this->assertSame([], $range->toArray());
     }
 
     public function testRangeThrowsExceptionIfFromIndexIsNegative(): void
@@ -1559,6 +1716,20 @@ final class ArrayListTest extends TestCase
     public function testToArrayOnEmptyList(): void
     {
         $this->assertSame([], (new ArrayList())->toArray());
+    }
+
+    public function testToArrayReturnsAnIndependentCopy(): void
+    {
+        $array = $this->list->toArray();
+        $array[0] = 'X';
+        $array[] = 'Y';
+
+        $this->assertSame(['A', 'B', 'C', 'D', 'E'], $this->list->toArray());
+
+        // Modifying the list afterwards does not affect a previously returned array either
+        $array = $this->list->toArray();
+        $this->list->set(0, 'Z');
+        $this->assertSame('A', $array[0]);
     }
 
     public function testToArrayAfterRemovalsDoesNotContainStaleItems(): void
