@@ -100,4 +100,11 @@ interface ListCollection extends ArrayAccess, SequencedCollection
      * @return int
      */
     public function lastIndexOf(mixed $item): int;
+
+    /**
+     * Returns a new list containing the items in reverse order.
+     *
+     * @return ListCollection A new list with the items in reverse order.
+     */
+    public function toReversed(): ListCollection;
 }
