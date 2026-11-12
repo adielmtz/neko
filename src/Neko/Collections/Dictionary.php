@@ -246,6 +246,28 @@ final class Dictionary implements Map
     }
 
     /**
+     * Determines whether the dictionary contains the specified key and, if so, assigns its value to $value.
+     *
+     * @param mixed $key The key of the value to retrieve.
+     * @param mixed $value OUT: The value associated with the key, or null if the key does not exist.
+     *
+     * @return bool True if the dictionary contains the key; otherwise, false.
+     * @throws InvalidArgumentException If the type of the key is not valid.
+     */
+    #[Override]
+    public function tryGet(mixed $key, mixed &$value): bool
+    {
+        $entry = $this->items[self::hashKey($key)] ?? null;
+        if ($entry === null) {
+            $value = null;
+            return false;
+        }
+
+        $value = $entry->value;
+        return true;
+    }
+
+    /**
      * Associates the specified value with the specified key.
      * If the key already exists in the dictionary, its value is replaced.
      *

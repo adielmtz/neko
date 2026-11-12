@@ -54,6 +54,17 @@ interface Map extends ArrayAccess, Collection
     public function get(mixed $key): mixed;
 
     /**
+     * Determines whether the map contains the specified key and, if so, assigns its value to $value.
+     *
+     * @param mixed $key The key of the value to retrieve.
+     * @param mixed $value OUT: The value associated with the key, or null if the key does not exist.
+     *
+     * @return bool True if the map contains the key; otherwise, false.
+     * @throws InvalidArgumentException If the type of the key is not valid.
+     */
+    public function tryGet(mixed $key, mixed &$value): bool;
+
+    /**
      * Associates the specified value with the specified key.
      * If the key already exists in the map, its value is replaced.
      *
