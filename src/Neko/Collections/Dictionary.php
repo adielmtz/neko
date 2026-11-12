@@ -8,8 +8,11 @@ use Traversable;
 use TypeError;
 use function gettype;
 use function is_object;
+use function is_string;
 use function spl_object_id;
 use function sprintf;
+use function strlen;
+use function substr;
 use function var_export;
 
 /**
@@ -18,6 +21,11 @@ use function var_export;
  */
 final class Dictionary implements Map
 {
+    /**
+     * The maximum number of bytes of a string key that are included in exception messages.
+     */
+    private const int MAX_KEY_LENGTH_IN_MESSAGES = 64;
+
     /**
      * @var array<int|string, KeyValuePair> The entries, indexed by the hash of their keys.
      */
@@ -426,6 +434,11 @@ final class Dictionary implements Map
             return 'of type ' . $key::class;
         }
 
+        // Keep messages short when the key is a long string
+        if (is_string($key) && strlen($key) > self::MAX_KEY_LENGTH_IN_MESSAGES) {
+            return var_export(substr($key, 0, self::MAX_KEY_LENGTH_IN_MESSAGES), true) . '...';
+        }
+
         return var_export($key, true);
     }
 
@@ -449,7 +462,8 @@ final class Dictionary implements Map
             'string'  => 's:' . $key,
             // The dictionary holds a reference to the key, so its id cannot be reused while it is stored
             'object'  => 'o:' . spl_object_id($key),
-            // -0.0 === 0.0, so both must share a hash; %h is the locale-independent version of %g
+            // -0.0 === 0.0, so both must share a hash; %h is the locale-independent version of %g.
+            // NAN !== NAN, but every NAN still maps to the same key, so a NAN key can be found again.
             'double'  => 'd:' . sprintf('%.17h', $key === 0.0 ? 0.0 : $key),
             'boolean' => $key ? 'b:1' : 'b:0',
             'NULL'    => 'n:',
@@ -473,6 +487,18 @@ final class Dictionary implements Map
         return isset($this->items[self::hashKey($offset)]->value);
     }
 
+    /**
+     * Returns the value associated with the specified key.
+     *
+     * The value is returned by value, so modifying a stored array in place (e.g. $dictionary['tags'][] = $x)
+     * has no effect. Read the value, modify it, and assign it back instead.
+     *
+     * @param mixed $offset The key of the value to retrieve.
+     *
+     * @return mixed
+     * @throws InvalidArgumentException If the type of the key is not valid.
+     * @throws KeyNotFoundException If the key does not exist in the dictionary.
+     */
     #[Override]
     public function offsetGet(mixed $offset): mixed
     {
