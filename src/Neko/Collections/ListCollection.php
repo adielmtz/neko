@@ -1,108 +1,103 @@
 <?php declare(strict_types=1);
 namespace Neko\Collections;
 
+use ArrayAccess;
 use OutOfBoundsException;
 
 /**
- * Defines an ordered collection of elements that can be accessed by index.
+ * Represents a collection of items that can be accessed by index.
  */
-interface ListCollection extends Collection
+interface ListCollection extends ArrayAccess, SequencedCollection
 {
     /**
-     * Adds the element to the end of the list.
+     * Determines whether the list contains all specified items.
      *
-     * @param mixed $item The element to add.
+     * @param iterable $items The iterable containing the items to search for.
      *
-     * @return void
+     * @return bool True if the list contains all items; otherwise, false.
      */
-    public function add(mixed $item): void;
+    public function containsAll(iterable $items): bool;
 
     /**
-     * Adds all the elements of the collection to the end of the list.
+     * Appends all items from the specified iterable to the end of the list,
+     * preserving the order in which they are yielded.
      *
-     * @param iterable $items The collection to add.
+     * @param iterable $items The iterable containing the items to append.
      *
      * @return void
      */
     public function addAll(iterable $items): void;
 
     /**
-     * Gets the element at the specified index.
+     * Returns the item at the specified index.
      *
-     * @param int $index The index of the element to return.
+     * @param int $index The zero-based index of the item to retrieve.
      *
      * @return mixed
-     * @throws OutOfBoundsException if the index is not valid.
+     * @throws OutOfBoundsException If the index is out of bounds.
      */
     public function get(int $index): mixed;
 
     /**
-     * Sets the element at the specified index.
+     * Replaces the item at the specified index with the given item.
      *
-     * @param int $index The index of the element to set.
-     * @param mixed $item The element to set.
+     * @param int $index The zero-based index of the item to replace.
+     * @param mixed $item The item to store at the specified index.
      *
      * @return void
-     * @throws OutOfBoundsException if the index is not valid.
+     * @throws OutOfBoundsException If the index is out of bounds.
      */
     public function set(int $index, mixed $item): void;
 
     /**
-     * Inserts an element at the specified index.
+     * Inserts an item at the specified index.
+     * If the index equals the number of items in the list, the item is appended to the end.
      *
-     * @param int $index The index at which the element should be inserted.
-     * @param mixed $item The element to insert.
+     * @param int $index The zero-based index at which to insert the item.
+     * @param mixed $item The item to insert.
      *
      * @return void
-     * @throws OutOfBoundsException if the index is not valid.
+     * @throws OutOfBoundsException If the index is out of bounds.
      */
     public function insert(int $index, mixed $item): void;
 
     /**
-     * Inserts all the elements of the collection at the specified index.
+     * Inserts all items from the specified iterable at the specified index,
+     * preserving the order in which they are yielded.
      *
-     * @param int $index The index at which the collection should be inserted.
-     * @param iterable $items The collection to insert.
+     * @param int $index The zero-based index at which to insert the items.
+     * @param iterable $items The iterable containing the items to insert.
      *
      * @return void
-     * @throws OutOfBoundsException if the index is not valid.
+     * @throws OutOfBoundsException If the index is out of bounds.
      */
     public function insertAll(int $index, iterable $items): void;
 
     /**
-     * Removes the first occurrence of the element from the list.
+     * Removes the item at the specified index.
      *
-     * @param mixed $item The element to remove.
-     *
-     * @return bool True if the element was successfully removed; otherwise, false.
-     */
-    public function remove(mixed $item): bool;
-
-    /**
-     * Removes the element at the specified index of the list.
-     *
-     * @param int $index The index of the element to remove.
+     * @param int $index The zero-based index of the item to remove.
      *
      * @return void
-     * @throws OutOfBoundsException if the index is not valid.
+     * @throws OutOfBoundsException If the index is out of bounds.
      */
     public function removeAt(int $index): void;
 
     /**
-     * Returns the index of the first occurrence of the element.
+     * Returns the index of the first occurrence of the specified item, or -1 if the item is not found.
      *
-     * @param mixed $item The element to search.
+     * @param mixed $item The item to search for.
      *
-     * @return int The index of the element if found in the list; otherwise -1.
+     * @return int
      */
     public function indexOf(mixed $item): int;
 
     /**
-     * Returns the index of the last occurrence of the element.
+     * Returns the index of the last occurrence of the specified item, or -1 if the item is not found.
      *
-     * @param mixed $item The element to search.
+     * @param mixed $item The item to search for.
      *
-     * @return int The index of the element if found in the list; otherwise -1.
+     * @return int
      */
     public function lastIndexOf(mixed $item): int;
 }

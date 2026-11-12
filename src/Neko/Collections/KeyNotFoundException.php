@@ -4,8 +4,7 @@ namespace Neko\Collections;
 use Exception;
 
 /**
- * This exception is thrown when a key specified for accessing an element in a collection does not match any key in the
- * collection.
+ * This exception is thrown when a specified key does not match any key in the map.
  */
 class KeyNotFoundException extends Exception
 {

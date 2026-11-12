@@ -1,176 +1,63 @@
 <?php declare(strict_types=1);
 namespace Neko\Collections;
 
-use Iterator;
+use Countable;
+use IteratorAggregate;
 use Neko\InvalidOperationException;
 use Override;
+use Traversable;
 use function array_values;
 use function count;
+use function in_array;
 use function iterator_to_array;
 
 /**
- * Represents a first-in, first-out collection of elements.
+ * Represents a first-in-first-out (FIFO) queue.
  */
-class Queue implements Collection
+final class Queue implements Countable, IteratorAggregate
 {
     private array $items = [];
-    private int $head = 0;
     private int $size = 0;
+    private int $head = 0;
     private int $version = 0;
 
     /**
      * Queue constructor.
      *
-     * @param iterable|null $items A collection of initial elements that will be copied to the queue.
+     * @param iterable|null $items If not null, the items to initialize the queue with.
      */
     public function __construct(?iterable $items = null)
     {
         if ($items !== null) {
-            $this->items = iterator_to_array($items, false);
+            $this->items = iterator_to_array($items, preserve_keys: false);
             $this->size = count($this->items);
         }
     }
 
     /**
-     * Serializes the queue.
-     *
-     * @return array
-     */
-    public function __serialize(): array
-    {
-        return $this->toArray();
-    }
-
-    /**
-     * Unserializes the queue.
-     *
-     * @param array $data The data provided by unserialize().
-     *
-     * @return void
-     */
-    public function __unserialize(array $data): void
-    {
-        $this->items = $data;
-        $this->head = 0;
-        $this->size = count($data);
-    }
-
-    /**
-     * Returns true if the queue contains no elements.
+     * Determines whether the queue is empty.
      *
      * @return bool
      */
-    #[Override]
     public function isEmpty(): bool
     {
         return $this->size === 0;
     }
 
     /**
-     * Removes all elements from the queue.
+     * Determines whether the queue contains a specific item.
      *
-     * @return void
-     */
-    #[Override]
-    public function clear(): void
-    {
-        $this->items = [];
-        $this->head = 0;
-        $this->size = 0;
-        $this->version++;
-    }
-
-    /**
-     * Returns true if the queue contains the specified element.
-     *
-     * @param mixed $item The element to search.
+     * @param mixed $item The item to search for.
      *
      * @return bool
      */
-    #[Override]
     public function contains(mixed $item): bool
     {
-        $tail = $this->head + $this->size;
-        for ($i = $this->head; $i < $tail; $i++) {
-            if ($item === $this->items[$i]) {
-                return true;
-            }
-        }
-
-        return false;
+        return in_array($item, $this->items, strict: true);
     }
 
     /**
-     * Returns true if the queue contains all the elements in the specified collection.
-     *
-     * @param iterable $items The collection to search.
-     *
-     * @return bool
-     */
-    #[Override]
-    public function containsAll(iterable $items): bool
-    {
-        foreach ($items as $item) {
-            if (!$this->contains($item)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Copies the elements of the queue to an array, starting at the specified index.
-     * The elements are copied in first-in, first-out order.
-     *
-     * @param array $array REF: The array where the elements of the queue will be copied.
-     * @param int $index The zero-based index in $array at which copying begins.
-     *
-     * @return void
-     */
-    #[Override]
-    public function copyTo(array &$array, int $index = 0): void
-    {
-        $tail = $this->head + $this->size;
-        for ($i = $this->head; $i < $tail; $i++) {
-            $array[$index++] = $this->items[$i];
-        }
-    }
-
-    /**
-     * Returns an array containing all the elements of the queue.
-     * The elements are copied in first-in, first-out order.
-     *
-     * @return array
-     */
-    #[Override]
-    public function toArray(): array
-    {
-        return array_values($this->items);
-    }
-
-    /**
-     * Gets an iterator that can traverse through the elements of the queue.
-     *
-     * @return Iterator
-     * @throws InvalidOperationException if the queue was modified within the iterator.
-     */
-    #[Override]
-    public function getIterator(): Iterator
-    {
-        $version = $this->version;
-        $tail = $this->head + $this->size;
-        for ($i = $this->head; $i < $tail; $i++) {
-            yield $this->items[$i];
-
-            if ($version !== $this->version) {
-                throw new InvalidOperationException('Queue was modified');
-            }
-        }
-    }
-
-    /**
-     * Returns the number of elements in the queue.
+     * Returns the number of items in the queue.
      *
      * @return int
      */
@@ -181,9 +68,42 @@ class Queue implements Collection
     }
 
     /**
-     * Adds the element to the end of the queue.
+     * Removes all items from the queue.
      *
-     * @param mixed $item The element to add.
+     * @return void
+     */
+    public function clear(): void
+    {
+        $this->items = [];
+        $this->size = 0;
+        $this->head = 0;
+        $this->version++;
+    }
+
+    /**
+     * Returns an iterator over the items in the queue, in first-in-first-out order.
+     *
+     * @return Traversable
+     * @throws ConcurrentMutationException If the queue is modified during iteration.
+     */
+    #[Override]
+    public function getIterator(): Traversable
+    {
+        $version = $this->version;
+        $tail = $this->head + $this->size;
+        for ($i = $this->head; $i < $tail; ++$i) {
+            yield $this->items[$i];
+
+            if ($version !== $this->version) {
+                throw new ConcurrentMutationException('Queue was modified');
+            }
+        }
+    }
+
+    /**
+     * Adds an item to the end of the queue.
+     *
+     * @param mixed $item The item to add.
      *
      * @return void
      */
@@ -195,10 +115,10 @@ class Queue implements Collection
     }
 
     /**
-     * Removes and returns the element at the beginning of the queue.
+     * Removes and returns the item at the beginning of the queue.
      *
      * @return mixed
-     * @throws InvalidOperationException if the queue is empty.
+     * @throws InvalidOperationException If the queue is empty.
      */
     public function dequeue(): mixed
     {
@@ -206,41 +126,16 @@ class Queue implements Collection
             throw new InvalidOperationException('Queue is empty');
         }
 
-        $value = $this->items[$this->head];
-        unset($this->items[$this->head]);
-        $this->size--;
-        $this->head++;
-        $this->version++;
-        return $value;
+        $item = $this->items[$this->head];
+        $this->removeHead();
+        return $item;
     }
 
     /**
-     * Tries to remove the element at the beginning of the queue and copies it to the $result argument.
-     *
-     * @param mixed $result OUT: The element at the beginning of the queue.
-     *
-     * @return bool True if the element was successfully copied and removed; otherwise false.
-     */
-    public function tryDequeue(mixed &$result): bool
-    {
-        if ($this->isEmpty()) {
-            $result = null;
-            return false;
-        }
-
-        $result = $this->items[$this->head];
-        unset($this->items[$this->head]);
-        $this->size--;
-        $this->head++;
-        $this->version++;
-        return true;
-    }
-
-    /**
-     * Returns the element at the beginning of the queue without removing it.
+     * Returns the item at the beginning of the queue without removing it.
      *
      * @return mixed
-     * @throws InvalidOperationException if the queue is empty.
+     * @throws InvalidOperationException If the queue is empty.
      */
     public function peek(): mixed
     {
@@ -252,11 +147,30 @@ class Queue implements Collection
     }
 
     /**
-     * Tries to get the element at the beginning of the queue without removing it and copies it to the $result argument.
+     * Determines whether the queue is non-empty and, if so, removes the first item and assigns it to $result.
      *
-     * @param mixed $result OUT: The element at the beginning of the queue.
+     * @param mixed $result OUT: The first item, or null if the queue is empty.
      *
-     * @return bool True if the element was successfully copied; otherwise false.
+     * @return bool True if an item was removed; otherwise, false.
+     */
+    public function tryDequeue(mixed &$result): bool
+    {
+        if ($this->isEmpty()) {
+            $result = null;
+            return false;
+        }
+
+        $result = $this->items[$this->head];
+        $this->removeHead();
+        return true;
+    }
+
+    /**
+     * Determines whether the queue is non-empty and, if so, assigns the first item to $result.
+     *
+     * @param mixed $result OUT: The first item, or null if the queue is empty.
+     *
+     * @return bool True if the queue is non-empty; otherwise, false.
      */
     public function tryPeek(mixed &$result): bool
     {
@@ -267,5 +181,37 @@ class Queue implements Collection
 
         $result = $this->items[$this->head];
         return true;
+    }
+
+    /**
+     * Returns an array containing all the items of the queue.
+     * The items are copied in first-in-first-out order.
+     *
+     * @return array
+     */
+    public function toArray(): array
+    {
+        return array_values($this->items);
+    }
+
+    /**
+     * Removes the item at the beginning of the queue. The queue must not be empty.
+     *
+     * @return void
+     */
+    private function removeHead(): void
+    {
+        unset($this->items[$this->head]);
+        $this->size--;
+        $this->version++;
+
+        if ($this->size === 0) {
+            // Start over from index 0. PHP does not serialize the next free index of an array,
+            // so an empty queue that kept the old head would enqueue at the wrong index once restored.
+            $this->items = [];
+            $this->head = 0;
+        } else {
+            $this->head++;
+        }
     }
 }

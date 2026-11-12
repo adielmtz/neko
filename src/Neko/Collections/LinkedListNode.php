@@ -6,10 +6,15 @@ namespace Neko\Collections;
  */
 final class LinkedListNode
 {
-    public mixed $value;
     public ?LinkedListNode $next = null;
     public ?LinkedListNode $prev = null;
+    public mixed $value;
 
+    /**
+     * LinkedListNode constructor.
+     *
+     * @param mixed|null $value The value of the node.
+     */
     public function __construct(mixed $value = null)
     {
         $this->value = $value;
@@ -22,7 +27,7 @@ final class LinkedListNode
      */
     public function detach(): void
     {
-        $this->next = null;
         $this->prev = null;
+        $this->next = null;
     }
 }

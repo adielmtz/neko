@@ -2,18 +2,22 @@
 namespace Neko\Collections;
 
 /**
- * Represents a key/value pair entry in a collection.
+ * Represents a key/value pair entry in a map.
  */
 final class KeyValuePair
 {
-    public mixed $key;
+    public readonly mixed $key;
     public mixed $value;
 
-    public function __construct(mixed $key = null, mixed $value = null)
+    /**
+     * KeyValuePair constructor.
+     *
+     * @param mixed $key The key of the map.
+     * @param mixed|null $value The value associated with the key.
+     */
+    public function __construct(mixed $key, mixed $value = null)
     {
-        if ($key !== null) {
-            $this->key = $key;
-            $this->value = $value;
-        }
+        $this->key = $key;
+        $this->value = $value;
     }
 }

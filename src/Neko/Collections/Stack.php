@@ -1,18 +1,21 @@
 <?php declare(strict_types=1);
 namespace Neko\Collections;
 
-use Iterator;
+use Countable;
+use IteratorAggregate;
 use Neko\InvalidOperationException;
 use Override;
+use Traversable;
 use function array_pop;
 use function array_reverse;
 use function count;
+use function in_array;
 use function iterator_to_array;
 
 /**
- * Represents a last-in, first-out collection of elements.
+ * Represents a last-in-first-out (LIFO) collection.
  */
-class Stack implements Collection
+final class Stack implements Countable, IteratorAggregate
 {
     private array $items = [];
     private int $size = 0;
@@ -21,151 +24,40 @@ class Stack implements Collection
     /**
      * Stack constructor.
      *
-     * @param iterable|null $items A collection of initial elements that will be copied to the stack.
+     * @param iterable|null $items If not null, the items to initialize the stack with.
      */
     public function __construct(?iterable $items = null)
     {
         if ($items !== null) {
-            $this->items = iterator_to_array($items, false);
+            $this->items = iterator_to_array($items, preserve_keys: false);
             $this->size = count($this->items);
         }
     }
 
     /**
-     * Serializes the stack.
-     *
-     * @return array
-     */
-    public function __serialize(): array
-    {
-        return $this->items;
-    }
-
-    /**
-     * Unserializes the stack.
-     *
-     * @param array $data The data provided by unserialize().
-     *
-     * @return void
-     */
-    public function __unserialize(array $data): void
-    {
-        $this->items = $data;
-        $this->size = count($data);
-    }
-
-    /**
-     * Returns true if the stack contains no elements.
+     * Determines whether the stack is empty.
      *
      * @return bool
      */
-    #[Override]
     public function isEmpty(): bool
     {
         return $this->size === 0;
     }
 
     /**
-     * Removes all elements from the stack.
+     * Determines whether the stack contains a specific item.
      *
-     * @return void
-     */
-    #[Override]
-    public function clear(): void
-    {
-        $this->items = [];
-        $this->size = 0;
-        $this->version++;
-    }
-
-    /**
-     * Returns true if the stack contains the specified element.
-     *
-     * @param mixed $item The element to search.
+     * @param mixed $item The item to search for.
      *
      * @return bool
      */
-    #[Override]
     public function contains(mixed $item): bool
     {
-        for ($i = $this->size - 1; $i >= 0; $i--) {
-            if ($item === $this->items[$i]) {
-                return true;
-            }
-        }
-
-        return false;
+        return in_array($item, $this->items, strict: true);
     }
 
     /**
-     * Returns true if the stack contains all the elements in the specified collection.
-     *
-     * @param iterable $items The collection to search.
-     *
-     * @return bool
-     */
-    #[Override]
-    public function containsAll(iterable $items): bool
-    {
-        foreach ($items as $item) {
-            if (!$this->contains($item)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Copies the elements of the stack to an array, starting at the specified index.
-     * The elements are copied in last-in-first-out order.
-     *
-     * @param array $array REF: The array where the elements of the stack will be copied.
-     * @param int $index The zero-based index in $array at which copying begins.
-     *
-     * @return void
-     */
-    #[Override]
-    public function copyTo(array &$array, int $index = 0): void
-    {
-        for ($i = $this->size - 1; $i >= 0; $i--) {
-            $array[$index++] = $this->items[$i];
-        }
-    }
-
-    /**
-     * Returns an array containing all the elements of the stack.
-     * The elements are copied in last-in, first-out order.
-     *
-     * @return array
-     */
-    #[Override]
-    public function toArray(): array
-    {
-        return array_reverse($this->items);
-    }
-
-    /**
-     * Gets an iterator that can traverse through the elements of the stack.
-     *
-     * @return Iterator
-     * @throws InvalidOperationException if the stack was modified within the iterator.
-     */
-    #[Override]
-    public function getIterator(): Iterator
-    {
-        $version = $this->version;
-        for ($i = $this->size - 1; $i >= 0; $i--) {
-            yield $this->items[$i];
-
-            if ($version !== $this->version) {
-                throw new InvalidOperationException('Stack was modified');
-            }
-        }
-    }
-
-    /**
-     * Returns the number of elements in the stack.
+     * Returns the number of items in the stack.
      *
      * @return int
      */
@@ -176,9 +68,40 @@ class Stack implements Collection
     }
 
     /**
-     * Adds the element to the top of the stack.
+     * Removes all items from the stack.
      *
-     * @param mixed $item The element to push.
+     * @return void
+     */
+    public function clear(): void
+    {
+        $this->items = [];
+        $this->size = 0;
+        $this->version++;
+    }
+
+    /**
+     * Returns an iterator over the items in the stack, in last-in-first-out order.
+     *
+     * @return Traversable
+     * @throws ConcurrentMutationException If the stack is modified during iteration.
+     */
+    #[Override]
+    public function getIterator(): Traversable
+    {
+        $version = $this->version;
+        for ($i = $this->size - 1; $i >= 0; --$i) {
+            yield $this->items[$i];
+
+            if ($version !== $this->version) {
+                throw new ConcurrentMutationException('Stack was modified');
+            }
+        }
+    }
+
+    /**
+     * Pushes an item onto the top of the stack.
+     *
+     * @param mixed $item The item to push.
      *
      * @return void
      */
@@ -190,10 +113,10 @@ class Stack implements Collection
     }
 
     /**
-     * Removes and returns the element at the top of the stack.
+     * Removes and returns the item at the top of the stack.
      *
      * @return mixed
-     * @throws InvalidOperationException if the stack is empty.
+     * @throws InvalidOperationException If the stack is empty.
      */
     public function pop(): mixed
     {
@@ -201,17 +124,33 @@ class Stack implements Collection
             throw new InvalidOperationException('Stack is empty');
         }
 
+        $item = array_pop($this->items);
         $this->size--;
         $this->version++;
-        return array_pop($this->items);
+        return $item;
     }
 
     /**
-     * Tries to remove the element at the top of the stack and copies it to the $result argument.
+     * Returns the item at the top of the stack without removing it.
      *
-     * @param mixed $result OUT: The element at the top of the stack.
+     * @return mixed
+     * @throws InvalidOperationException If the stack is empty.
+     */
+    public function peek(): mixed
+    {
+        if ($this->isEmpty()) {
+            throw new InvalidOperationException('Stack is empty');
+        }
+
+        return $this->items[$this->size - 1];
+    }
+
+    /**
+     * Determines whether the stack is non-empty and, if so, removes the top item and assigns it to $result.
      *
-     * @return bool True if the element was successfully copied and removed; otherwise false.
+     * @param mixed $result OUT: The top item, or null if the stack is empty.
+     *
+     * @return bool True if an item was removed; otherwise, false.
      */
     public function tryPop(mixed &$result): bool
     {
@@ -227,26 +166,11 @@ class Stack implements Collection
     }
 
     /**
-     * Returns the element at the top of the stack without removing it.
+     * Determines whether the stack is non-empty and, if so, assigns the top item to $result.
      *
-     * @return mixed
-     * @throws InvalidOperationException if the stack is empty.
-     */
-    public function peek(): mixed
-    {
-        if ($this->isEmpty()) {
-            throw new InvalidOperationException('Stack is empty');
-        }
-
-        return $this->items[$this->size - 1];
-    }
-
-    /**
-     * Tries to get the element at the top of the stack and copies it to the $result argument.
+     * @param mixed $result OUT: The top item, or null if the stack is empty.
      *
-     * @param mixed $result OUT: The element at the top of the stack.
-     *
-     * @return bool True if the element was successfully copied; otherwise false.
+     * @return bool True if the stack is non-empty; otherwise, false.
      */
     public function tryPeek(mixed &$result): bool
     {
@@ -257,5 +181,16 @@ class Stack implements Collection
 
         $result = $this->items[$this->size - 1];
         return true;
+    }
+
+    /**
+     * Returns an array containing all the items of the stack.
+     * The items are copied in last-in-first-out order.
+     *
+     * @return array
+     */
+    public function toArray(): array
+    {
+        return array_reverse($this->items);
     }
 }

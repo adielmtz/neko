@@ -1,66 +1,79 @@
 <?php declare(strict_types=1);
 namespace Neko\Collections;
 
-use ArrayAccess;
 use InvalidArgumentException;
-use Iterator;
-use Neko\InvalidOperationException;
 use Neko\NotSupportedException;
 use Override;
-use function array_key_exists;
-use function count;
-use function function_exists;
+use Traversable;
+use TypeError;
 use function gettype;
 use function is_object;
-use function spl_object_hash;
+use function spl_object_id;
 use function sprintf;
+use function var_export;
 
 /**
- * Represents a collection of key/value pairs.
+ * Represents a collection of key/value pairs that can be accessed by key.
+ * Entries are kept in the order in which their keys were first added.
  */
-class Dictionary implements ArrayAccess, Map
+final class Dictionary implements Map
 {
     /**
-     * @var KeyValuePair[]
+     * @var array<int|string, KeyValuePair> The entries, indexed by the hash of their keys.
      */
-    private array $entries = [];
+    private array $items = [];
     private int $size = 0;
     private int $version = 0;
 
     /**
      * Dictionary constructor.
      *
-     * @param iterable|null $items A collection of initial elements that will be copied to the dictionary.
+     * @param iterable|null $items If not null, the key/value pairs to initialize the dictionary with.
      *
-     * @throws NotSupportedException if spl_object_hash is not available.
+     * @throws InvalidArgumentException If the type of any key is not valid.
      */
     public function __construct(?iterable $items = null)
     {
-        if (!function_exists('spl_object_hash')) {
-            throw new NotSupportedException(
-                'Dictionary class requires spl_object_hash() function which is not available for this PHP installation',
-            );
-        }
-
         if ($items !== null) {
             foreach ($items as $key => $value) {
-                $this->add($key, $value);
+                $this->set($key, $value);
             }
         }
     }
 
     /**
-     * Serializes the dictionary.
+     * Handles clone operator.
+     *
+     * @return void
+     */
+    public function __clone(): void
+    {
+        // Entries are mutable, so they must not be shared with the original dictionary
+        foreach ($this->items as $hash => $entry) {
+            $this->items[$hash] = new KeyValuePair($entry->key, $entry->value);
+        }
+
+        $this->version = 0;
+    }
+
+    /**
+     * Returns the data to serialize.
      *
      * @return array
      */
     public function __serialize(): array
     {
-        return $this->toArray();
+        // Object hashes are not stable across requests, so only keys and values are stored
+        $data = [];
+        foreach ($this->items as $entry) {
+            $data[] = [$entry->key, $entry->value];
+        }
+
+        return $data;
     }
 
     /**
-     * Unserializes the dictionary.
+     * Restores the dictionary from the serialized data.
      *
      * @param array $data The data provided by unserialize().
      *
@@ -68,18 +81,19 @@ class Dictionary implements ArrayAccess, Map
      */
     public function __unserialize(array $data): void
     {
-        foreach ($data as $entry) {
-            $arrayKey = self::createValidArrayKey($entry->key);
-            $this->entries[$arrayKey] = $entry;
-        }
+        $this->items = [];
+        $this->size = 0;
+        $this->version = 0;
 
-        $this->size = count($this->entries);
+        foreach ($data as [$key, $value]) {
+            $this->set($key, $value);
+        }
     }
 
     /**
-     * Returns true if the dictionary contains no entries.
+     * Determines whether the dictionary is empty.
      *
-     * @return bool
+     * @return bool True if the dictionary is empty; otherwise, false.
      */
     #[Override]
     public function isEmpty(): bool
@@ -88,91 +102,45 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Removes all entries from the dictionary.
+     * Determines whether the dictionary contains a specific key/value pair.
+     * The pair is found if its key exists in the dictionary and is associated with an identical value.
      *
-     * @return void
-     */
-    #[Override]
-    public function clear(): void
-    {
-        $this->entries = [];
-        $this->size = 0;
-        $this->version++;
-    }
-
-    /**
-     * Returns true if the dictionary contains the specified key/value pair.
+     * @param mixed $item The key/value pair to search for.
      *
-     * @param mixed $item The key/value pair to search.
-     *
-     * @return bool
+     * @return bool True if the dictionary contains the key/value pair; otherwise, false.
+     * @throws InvalidArgumentException If the type of the key is not valid.
      */
     #[Override]
     public function contains(mixed $item): bool
     {
-        if ($item instanceof KeyValuePair) {
-            $arrayKey = self::createValidArrayKey($item->key);
-            if (array_key_exists($arrayKey, $this->entries)) {
-                $entry = $this->entries[$arrayKey];
-                return $entry === $item || $entry->value === $item->value;
-            }
-        }
-
-        return false;
+        return $this->findEntryHash($item) !== null;
     }
 
     /**
-     * Returns true if the dictionary contains all the elements in the specified collection.
+     * Determines whether the dictionary contains the specified key.
      *
-     * @param iterable $items The collection to search.
+     * @param mixed $key The key to search for.
      *
-     * @return bool
-     */
-    #[Override]
-    public function containsAll(iterable $items): bool
-    {
-        if ($items instanceof Map) {
-            foreach ($items as $key => $value) {
-                $arrayKey = self::createValidArrayKey($key);
-                return array_key_exists($arrayKey, $this->entries) && $this->entries[$arrayKey]->value === $value;
-            }
-        } else {
-            foreach ($items as $value) {
-                if (!$this->contains($value)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Returns true if the dictionary contains the specified key.
-     *
-     * @param mixed $key The key to lookup.
-     *
-     * @return bool
-     * @throws InvalidArgumentException if the key is null, an array or a resource.
+     * @return bool True if the dictionary contains the key; otherwise, false.
+     * @throws InvalidArgumentException If the type of the key is not valid.
      */
     #[Override]
     public function containsKey(mixed $key): bool
     {
-        $arrayKey = self::createValidArrayKey($key);
-        return array_key_exists($arrayKey, $this->entries);
+        return isset($this->items[self::hashKey($key)]);
     }
 
     /**
-     * Returns true if the dictionary contains the specified value.
+     * Determines whether the dictionary contains one or more keys associated with the specified value.
      *
-     * @param mixed $value The value to search.
+     * @param mixed $value The value to search for.
      *
-     * @return bool
+     * @return bool True if the dictionary contains the value; otherwise, false.
      */
     #[Override]
     public function containsValue(mixed $value): bool
     {
-        foreach ($this->entries as $entry) {
+        foreach ($this->items as $entry) {
             if ($value === $entry->value) {
                 return true;
             }
@@ -182,55 +150,7 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Copies the entries of the dictionary to an array, starting at the specified index.
-     *
-     * @param array $array REF: The array where the elements of the dictionary will be copied.
-     * @param int $index The zero-based index in $array at which copying begins.
-     *
-     * @return void
-     */
-    #[Override]
-    public function copyTo(array &$array, int $index = 0): void
-    {
-        foreach ($this->entries as $entry) {
-            $array[$index++] = $entry;
-        }
-    }
-
-    /**
-     * Returns an array containing all the elements of the collection.
-     *
-     * @return KeyValuePair[]
-     */
-    #[Override]
-    public function toArray(): array
-    {
-        $entries = [];
-        $this->copyTo($entries);
-        return $entries;
-    }
-
-    /**
-     * Gets an iterator that can traverse through the entries of the dictionary.
-     *
-     * @return Iterator
-     * @throws InvalidOperationException if the dictionary was modified within the iterator.
-     */
-    #[Override]
-    public function getIterator(): Iterator
-    {
-        $version = $this->version;
-        foreach ($this->entries as $entry) {
-            yield $entry->key => $entry->value;
-
-            if ($version !== $this->version) {
-                throw new InvalidOperationException('Dictionary was modified');
-            }
-        }
-    }
-
-    /**
-     * Returns the number of entries in the dictionary.
+     * Returns the number of key/value pairs in the dictionary.
      *
      * @return int
      */
@@ -241,7 +161,40 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Returns an array containing all the keys of the dictionary.
+     * Removes all key/value pairs from the dictionary.
+     *
+     * @return void
+     */
+    #[Override]
+    public function clear(): void
+    {
+        $this->items = [];
+        $this->size = 0;
+        $this->version++;
+    }
+
+    /**
+     * Returns an iterator over the key/value pairs in the dictionary.
+     * Each entry is yielded with its key as the iteration key.
+     *
+     * @return Traversable
+     * @throws ConcurrentMutationException If the dictionary is modified during iteration.
+     */
+    #[Override]
+    public function getIterator(): Traversable
+    {
+        $version = $this->version;
+        foreach ($this->items as $entry) {
+            yield $entry->key => $entry->value;
+
+            if ($version !== $this->version) {
+                throw new ConcurrentMutationException('Dictionary was modified');
+            }
+        }
+    }
+
+    /**
+     * Returns an array containing all keys in the dictionary.
      *
      * @return array
      */
@@ -249,7 +202,7 @@ class Dictionary implements ArrayAccess, Map
     public function getKeys(): array
     {
         $keys = [];
-        foreach ($this->entries as $entry) {
+        foreach ($this->items as $entry) {
             $keys[] = $entry->key;
         }
 
@@ -257,7 +210,7 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Returns an array containing all the values of the dictionary.
+     * Returns an array containing all values in the dictionary.
      *
      * @return array
      */
@@ -265,7 +218,7 @@ class Dictionary implements ArrayAccess, Map
     public function getValues(): array
     {
         $values = [];
-        foreach ($this->entries as $entry) {
+        foreach ($this->items as $entry) {
             $values[] = $entry->value;
         }
 
@@ -273,136 +226,229 @@ class Dictionary implements ArrayAccess, Map
     }
 
     /**
-     * Adds a value associated to the specified key.
+     * Returns the value associated with the specified key.
      *
-     * @param mixed $key The key associated with the value.
-     * @param mixed $value The value to add.
+     * @param mixed $key The key of the value to retrieve.
      *
-     * @return void
-     * @throws InvalidArgumentException if the key is null, an array or a resource or if the specified key already
-     *     exists in the dictionary.
+     * @return mixed
+     * @throws InvalidArgumentException If the type of the key is not valid.
+     * @throws KeyNotFoundException If the key does not exist in the dictionary.
      */
     #[Override]
-    public function add(mixed $key, mixed $value): void
+    public function get(mixed $key): mixed
     {
-        $arrayKey = self::createValidArrayKey($key);
-        if (array_key_exists($arrayKey, $this->entries)) {
-            if (is_object($key)) {
-                $key = $key::class;
-            }
-
-            throw new InvalidArgumentException(
-                sprintf('Key \'%s\' exists in the dictionary', $key),
-            );
+        $hash = self::hashKey($key);
+        if (!isset($this->items[$hash])) {
+            throw new KeyNotFoundException('Key ' . self::describeKey($key) . ' does not exist in the dictionary');
         }
 
-        $entry = new KeyValuePair();
-        $entry->key = $key;
-        $entry->value = $value;
-        $this->entries[$arrayKey] = $entry;
+        return $this->items[$hash]->value;
+    }
+
+    /**
+     * Associates the specified value with the specified key.
+     * If the key already exists in the dictionary, its value is replaced.
+     *
+     * @param mixed $key The key of the value to set.
+     * @param mixed $value The value to associate with the key.
+     *
+     * @return void
+     * @throws InvalidArgumentException If the type of the key is not valid.
+     */
+    #[Override]
+    public function set(mixed $key, mixed $value): void
+    {
+        $hash = self::hashKey($key);
+        if (isset($this->items[$hash])) {
+            $this->items[$hash]->value = $value;
+        } else {
+            $this->items[$hash] = new KeyValuePair($key, $value);
+            $this->size++;
+        }
+
+        $this->version++;
+    }
+
+    /**
+     * Adds a key/value pair to the dictionary.
+     *
+     * @param mixed $item The key/value pair to add.
+     *
+     * @return void
+     * @throws TypeError If the item is not a KeyValuePair.
+     * @throws InvalidArgumentException If the type of the key is not valid or the key already exists in the dictionary.
+     */
+    #[Override]
+    public function add(mixed $item): void
+    {
+        if (!$item instanceof KeyValuePair) {
+            throw new TypeError('Argument #1 ($item) must be of type ' . KeyValuePair::class);
+        }
+
+        $hash = self::hashKey($item->key);
+        if (isset($this->items[$hash])) {
+            throw new InvalidArgumentException('Key ' . self::describeKey($item->key) . ' already exists in the dictionary');
+        }
+
+        // Store a copy, so that changes made to the given pair do not affect the dictionary
+        $this->items[$hash] = new KeyValuePair($item->key, $item->value);
         $this->size++;
         $this->version++;
     }
 
     /**
-     * Gets the value associated to the specified key.
+     * Removes the specified key/value pair from the dictionary, if present.
+     * The pair is removed only if its key exists in the dictionary and is associated with an identical value.
      *
-     * @param mixed $key The key to lookup.
+     * @param mixed $item The key/value pair to remove.
      *
-     * @return mixed
-     * @throws KeyNotFoundException if the dictionary does not contain the specified key.
-     * @throws InvalidArgumentException if the key is null, an array or a resource.
+     * @return bool True if the key/value pair was removed; otherwise, false.
+     * @throws InvalidArgumentException If the type of the key is not valid.
      */
     #[Override]
-    public function get(mixed $key): mixed
+    public function remove(mixed $item): bool
     {
-        $arrayKey = self::createValidArrayKey($key);
-        if (!array_key_exists($arrayKey, $this->entries)) {
-            if (is_object($key)) {
-                $key = $key::class;
-            }
-
-            throw new KeyNotFoundException(
-                sprintf('Key \'%s\' was not found in the dictionary', $key),
-            );
+        $hash = $this->findEntryHash($item);
+        if ($hash === null) {
+            return false;
         }
 
-        return $this->entries[$arrayKey]->value;
+        $this->removeEntry($hash);
+        return true;
     }
 
     /**
-     * Sets or replaces the value associated to the specified key.
+     * Removes the specified key and its associated value from the dictionary, if present.
      *
-     * @param mixed $key The key associated with the value.
-     * @param mixed $value The value to set.
+     * @param mixed $key The key to remove.
      *
-     * @return void
-     * @throws InvalidArgumentException if the key is null, an array or a resource.
+     * @return bool True if the key was removed; otherwise, false.
+     * @throws InvalidArgumentException If the type of the key is not valid.
      */
     #[Override]
-    public function set(mixed $key, mixed $value): void
+    public function removeKey(mixed $key): bool
     {
-        $arrayKey = self::createValidArrayKey($key);
-        if (array_key_exists($arrayKey, $this->entries)) {
-            $entry = $this->entries[$arrayKey];
-        } else {
-            $entry = new KeyValuePair();
-            $entry->key = $key;
-            $this->entries[$arrayKey] = $entry;
-            $this->size++;
+        $hash = self::hashKey($key);
+        if (!isset($this->items[$hash])) {
+            return false;
         }
 
-        $entry->value = $value;
+        $this->removeEntry($hash);
+        return true;
+    }
+
+    /**
+     * Returns an array containing all key/value pairs in the dictionary.
+     *
+     * @return KeyValuePair[]
+     */
+    #[Override]
+    public function toArray(): array
+    {
+        $items = [];
+        foreach ($this->items as $entry) {
+            $items[] = new KeyValuePair($entry->key, $entry->value);
+        }
+
+        return $items;
+    }
+
+    /**
+     * Returns the hash of the stored entry that matches the specified key/value pair,
+     * or null if no matching entry is found.
+     *
+     * @param mixed $item The key/value pair to search for.
+     *
+     * @return int|string|null
+     * @throws InvalidArgumentException If the type of the key is not valid.
+     */
+    private function findEntryHash(mixed $item): int|string|null
+    {
+        if (!$item instanceof KeyValuePair) {
+            return null;
+        }
+
+        $hash = self::hashKey($item->key);
+        $entry = $this->items[$hash] ?? null;
+        if ($entry === null || $entry->value !== $item->value) {
+            return null;
+        }
+
+        return $hash;
+    }
+
+    /**
+     * Removes the entry with the specified hash. The entry must exist.
+     *
+     * @param int|string $hash The hash of the key to remove.
+     *
+     * @return void
+     */
+    private function removeEntry(int|string $hash): void
+    {
+        unset($this->items[$hash]);
+        $this->size--;
         $this->version++;
     }
 
     /**
-     * Removes the value associated with the specified key.
+     * Returns a human-readable representation of a key, used in exception messages.
      *
-     * @param mixed $key The key associated with the value to remove.
+     * @param mixed $key The key to describe.
      *
-     * @return bool True if the value was successfully removed; otherwise false.
-     * @throws InvalidArgumentException if the key is null, an array or a resource.
+     * @return string
      */
-    #[Override]
-    public function remove(mixed $key): bool
+    private static function describeKey(mixed $key): string
     {
-        $arrayKey = self::createValidArrayKey($key);
-        if (array_key_exists($arrayKey, $this->entries)) {
-            unset($this->entries[$arrayKey]);
-            $this->size--;
-            $this->version++;
-            return true;
+        if (is_object($key)) {
+            return 'of type ' . $key::class;
         }
 
-        return false;
+        return var_export($key, true);
     }
 
     /**
-     * Returns a new dictionary containing all the entries after exchanging the keys for their values.
+     * Returns the hash of a key, used to index the entries of the dictionary.
      *
-     * @return Dictionary
-     * @throws InvalidArgumentException if the key is null, an array or a resource.
+     * The hash is a lossless encoding of the key, so two keys share a hash only if they are identical.
+     * Integers are used as is; every other type is encoded as a string with a non-numeric prefix,
+     * so it can never be cast to an integer array key or collide with a key of another type.
+     *
+     * @param mixed $key The key to hash.
+     *
+     * @return int|string
+     * @throws InvalidArgumentException If the type of the key is not valid, like an array or a resource.
      */
-    public function flip(): Dictionary
+    private static function hashKey(mixed $key): int|string
     {
-        $flipped = new Dictionary();
-        foreach ($this->entries as $entry) {
-            $k = $entry->key;
-            $v = $entry->value;
-
-            // Swap
-            $flipped->add($v, $k);
-        }
-
-        return $flipped;
+        $type = gettype($key);
+        return match ($type) {
+            'integer' => $key,
+            'string'  => 's:' . $key,
+            // The dictionary holds a reference to the key, so its id cannot be reused while it is stored
+            'object'  => 'o:' . spl_object_id($key),
+            // -0.0 === 0.0, so both must share a hash; %h is the locale-independent version of %g
+            'double'  => 'd:' . sprintf('%.17h', $key === 0.0 ? 0.0 : $key),
+            'boolean' => $key ? 'b:1' : 'b:0',
+            'NULL'    => 'n:',
+            default   => throw new InvalidArgumentException("Value of type '$type' is not a valid key"),
+        };
     }
 
-    #region ArrayAccess methods
+    #region Array Access implementation
+    /**
+     * Determines whether the specified key exists and is associated with a non-null value,
+     * matching the behavior of isset() on arrays. Use containsKey() to check for the key alone.
+     *
+     * @param mixed $offset The key to search for.
+     *
+     * @return bool
+     * @throws InvalidArgumentException If the type of the key is not valid.
+     */
     #[Override]
     public function offsetExists(mixed $offset): bool
     {
-        return $this->containsKey($offset);
+        return isset($this->items[self::hashKey($offset)]->value);
     }
 
     #[Override]
@@ -411,37 +457,31 @@ class Dictionary implements ArrayAccess, Map
         return $this->get($offset);
     }
 
+    /**
+     * Associates the specified value with the specified key.
+     *
+     * @param mixed $offset The key of the value to set.
+     * @param mixed $value The value to associate with the key.
+     *
+     * @return void
+     * @throws InvalidArgumentException If the type of the key is not valid.
+     * @throws NotSupportedException If the key is null, as in $dictionary[] = $value.
+     */
     #[Override]
     public function offsetSet(mixed $offset, mixed $value): void
     {
+        // $dictionary[] = $value and $dictionary[null] = $value are indistinguishable here
+        if ($offset === null) {
+            throw new NotSupportedException('Appending to a dictionary is not supported; use set() to associate a value with a null key');
+        }
+
         $this->set($offset, $value);
     }
 
     #[Override]
     public function offsetUnset(mixed $offset): void
     {
-        $this->remove($offset);
+        $this->removeKey($offset);
     }
     #endregion
-
-    /**
-     * Returns a string or integers that can be used as a key for an array.
-     *
-     * @param mixed $keyValue The original key to process.
-     *
-     * @return string|int The array key.
-     * @throws InvalidArgumentException if the key is of type array or a resource.
-     */
-    private static function createValidArrayKey(mixed $keyValue): string|int
-    {
-        $type = gettype($keyValue);
-        return match ($type) {
-            'integer' => $keyValue,
-            'boolean' => 'b:' . $keyValue ? 'true' : 'false',
-            'string' => 's:' . $keyValue,
-            'double' => 'f:' . $keyValue,
-            'object' => 'o:' . spl_object_hash($keyValue),
-            default => throw new InvalidArgumentException("Value of type $type is not a valid key"),
-        };
-    }
 }
