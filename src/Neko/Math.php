@@ -1,12 +1,14 @@
 <?php declare(strict_types=1);
 namespace Neko;
 
+use ArithmeticError;
 use DivisionByZeroError;
 use InvalidArgumentException;
+use function deg2rad;
 use function intdiv;
 use function max;
 use function min;
-use const M_PI;
+use function rad2deg;
 
 /**
  * Provides methods for common mathematical operations.
@@ -14,14 +16,15 @@ use const M_PI;
 final class Math
 {
     /**
-     * Returns the value clamped to the inclusive range of min and max.
+     * Returns the value clamped to the inclusive range between a minimum and a maximum.
+     * When the arguments mix integers and floats, the result has the type of whichever argument is returned.
      *
-     * @param int|float $value The value to be clamped.
+     * @param int|float $value The value to clamp.
      * @param int|float $min The lower bound of the range.
      * @param int|float $max The upper bound of the range.
      *
-     * @return int|float
-     * @throws InvalidArgumentException if `$min > $max`.
+     * @return int|float The value if it lies within the range; otherwise, the nearest bound.
+     * @throws InvalidArgumentException If the minimum is greater than the maximum.
      */
     public static function clamp(int|float $value, int|float $min, int|float $max): int|float
     {
@@ -33,11 +36,11 @@ final class Math
     }
 
     /**
-     * Returns the value clamped to the inclusive range of 0 and 1.
+     * Returns the value clamped to the inclusive range between 0 and 1.
      *
-     * @param float $value The value to be clamped.
+     * @param float $value The value to clamp.
      *
-     * @return float
+     * @return float The value if it lies within the range; otherwise, the nearest bound.
      */
     public static function clamp01(float $value): float
     {
@@ -45,67 +48,69 @@ final class Math
     }
 
     /**
-     * Calculates the quotient and remainder of two numbers.
+     * Returns the quotient of two integers and passes back the remainder.
      *
      * @param int $a The dividend.
      * @param int $b The divisor.
-     * @param int|null $result OUT: the remainder.
+     * @param int|null $remainder Receives the remainder of the division, which has the sign of the dividend.
      *
-     * @return int The quotient of the division.
-     * @throws DivisionByZeroError if the divisor is zero.
+     * @return int The quotient, truncated toward zero.
+     * @throws DivisionByZeroError If the divisor is zero.
+     * @throws ArithmeticError If the dividend is PHP_INT_MIN and the divisor is -1.
      */
-    public static function divRem(int $a, int $b, ?int &$result): int
+    public static function divRem(int $a, int $b, ?int &$remainder): int
     {
-        $div = intdiv($a, $b);
-        $result = $a - ($div * $b);
-        return $div;
+        $quotient = intdiv($a, $b);
+        $remainder = $a % $b;
+        return $quotient;
     }
 
     /**
-     * Calculates the $n-th factorial.
+     * Returns the factorial of a non-negative integer.
+     * If the result is greater than PHP_INT_MAX, which is the case for integers greater than 20 on 64-bit
+     * platforms, it is returned as an approximate float, or as INF if it exceeds the range of a float.
      *
-     * @param int $n The value to calculate its factorial.
+     * @param int $n The non-negative integer.
      *
-     * @return int
-     * @throws InvalidArgumentException if $n is negative.
+     * @return int|float
+     * @throws InvalidArgumentException If the integer is negative.
      */
-    public static function factorial(int $n): int
+    public static function factorial(int $n): int|float
     {
         if ($n < 0) {
             throw new InvalidArgumentException('$n must be greater than or equal to zero');
         }
 
         $result = 1;
-        while ($n > 0) {
-            $result *= $n;
-            $n--;
+        for ($i = 2; $i <= $n; ++$i) {
+            $result *= $i;
         }
 
         return $result;
     }
 
     /**
-     * Converts an angle in degrees to its equivalent in radians.
+     * Converts an angle from degrees to radians.
      *
      * @param float $degrees The angle in degrees.
      *
-     * @return float
+     * @return float The angle in radians.
      */
     public static function toRadians(float $degrees): float
     {
-        return $degrees * (M_PI / 180);
+        return deg2rad($degrees);
     }
 
     /**
-     * Converts an angle in radians to its equivalent in degrees.
+     * Converts an angle from radians to degrees.
      *
      * @param float $radians The angle in radians.
      *
-     * @return float
+     * @return float The angle in degrees.
      */
     public static function toDegrees(float $radians): float
     {
-        return $radians * (180 / M_PI);
+        return rad2deg($radians);
     }
 
     /**
