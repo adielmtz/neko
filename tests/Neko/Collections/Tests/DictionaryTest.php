@@ -9,6 +9,7 @@ use Neko\Collections\KeyNotFoundException;
 use Neko\Collections\KeyValuePair;
 use Neko\Collections\Map;
 use Neko\NotSupportedException;
+use OutOfBoundsException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
@@ -17,11 +18,15 @@ use TypeError;
 use function array_key_first;
 use function fclose;
 use function fopen;
+use function restore_error_handler;
 use function serialize;
+use function set_error_handler;
 use function spl_object_id;
+use function str_repeat;
 use function unserialize;
 use const INF;
 use const M_PI;
+use const NAN;
 
 final class DictionaryTest extends TestCase
 {
@@ -665,6 +670,147 @@ final class DictionaryTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageIs("Value of type 'array' is not a valid key");
         $this->dictionary->get([]);
+    }
+
+    public function testGetExceptionMessageShortensLongStringKeys(): void
+    {
+        $this->expectException(KeyNotFoundException::class);
+        $this->expectExceptionMessageIs("Key '" . str_repeat('a', 64) . "'... does not exist in the dictionary");
+        $this->dictionary->get(str_repeat('a', 1000));
+    }
+
+    public function testGetExceptionMessageKeepsStringKeysUpToTheLimit(): void
+    {
+        $this->expectException(KeyNotFoundException::class);
+        $this->expectExceptionMessageIs("Key '" . str_repeat('a', 64) . "' does not exist in the dictionary");
+        $this->dictionary->get(str_repeat('a', 64));
+    }
+
+    public function testKeyNotFoundCanBeCaughtAsOutOfBoundsException(): void
+    {
+        // KeyNotFoundException extends OutOfBoundsException, like an invalid index in a list
+        $this->expectException(OutOfBoundsException::class);
+        $this->dictionary->get('Unknown Key');
+    }
+    #endregion
+
+    #region tryGet
+    public function testTryGetFindsAValue(): void
+    {
+        $this->assertTrue($this->dictionary->tryGet('C', $value));
+        $this->assertSame('c', $value);
+
+        $this->assertTrue($this->dictionary->tryGet(30, $value));
+        $this->assertSame('thirty', $value);
+    }
+
+    public function testTryGetSetsValueToNullIfTheKeyIsNotFound(): void
+    {
+        $value = 'previous';
+        $this->assertFalse($this->dictionary->tryGet('Unknown Key', $value));
+        $this->assertNull($value);
+    }
+
+    public function testTryGetFindsANullValue(): void
+    {
+        // Unlike isset(), tryGet() distinguishes a null value from a missing key
+        $this->dictionary->set('null', null);
+        $value = 'previous';
+        $this->assertTrue($this->dictionary->tryGet('null', $value));
+        $this->assertNull($value);
+    }
+
+    public function testTryGetComparesKeysStrictly(): void
+    {
+        $this->assertFalse($this->dictionary->tryGet('10', $value));
+        $this->assertTrue($this->dictionary->tryGet(10, $value));
+        $this->assertSame('ten', $value);
+    }
+
+    public function testTryGetWithObjectKey(): void
+    {
+        $key = new stdClass();
+        $this->dictionary->set($key, 'object');
+
+        $this->assertTrue($this->dictionary->tryGet($key, $value));
+        $this->assertSame('object', $value);
+        $this->assertFalse($this->dictionary->tryGet(new stdClass(), $value));
+    }
+
+    public function testTryGetDoesNotModifyTheDictionary(): void
+    {
+        $visited = [];
+        foreach ($this->dictionary as $key => $item) {
+            $this->dictionary->tryGet($key, $value);
+            $visited[] = $value;
+        }
+
+        $this->assertSame($this->dictionary->getValues(), $visited);
+    }
+
+    #[DataProvider('invalidKeyProvider')]
+    public function testTryGetThrowsExceptionWithInvalidKey(mixed $key): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->dictionary->tryGet($key, $value);
+    }
+    #endregion
+
+    #region NAN keys
+    public function testNanKeyCanBeFoundAgain(): void
+    {
+        // NAN !== NAN, but every NAN maps to the same key
+        $dictionary = new Dictionary();
+        $dictionary->set(NAN, 'first');
+        $dictionary->set(NAN, 'second');
+
+        $this->assertSame(1, $dictionary->count());
+        $this->assertTrue($dictionary->containsKey(NAN));
+        $this->assertSame('second', $dictionary->get(NAN));
+        $this->assertTrue($dictionary->removeKey(NAN));
+        $this->assertTrue($dictionary->isEmpty());
+    }
+
+    public function testNanKeyDoesNotCollideWithOtherFloats(): void
+    {
+        $dictionary = new Dictionary();
+        $dictionary->set(NAN, 'nan');
+        $dictionary->set(INF, 'inf');
+        $dictionary->set(-INF, '-inf');
+        $dictionary->set(0.0, 'zero');
+
+        $this->assertSame(4, $dictionary->count());
+        $this->assertSame('nan', $dictionary->get(NAN));
+        $this->assertSame('inf', $dictionary->get(INF));
+        $this->assertSame('-inf', $dictionary->get(-INF));
+    }
+    #endregion
+
+    #region Indirect modification
+    public function testArrayAccessCannotModifyStoredArraysInPlace(): void
+    {
+        $dictionary = new Dictionary(['tags' => ['x']]);
+        $notices = [];
+        set_error_handler(function (int $errno, string $message) use (&$notices): bool {
+            $notices[] = $message;
+            return true;
+        });
+
+        try {
+            $dictionary['tags'][] = 'y';
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertCount(1, $notices);
+        $this->assertStringContainsString('Indirect modification', $notices[0]);
+        $this->assertSame(['x'], $dictionary['tags']);
+
+        // The documented way: read, modify, and assign back
+        $tags = $dictionary['tags'];
+        $tags[] = 'y';
+        $dictionary['tags'] = $tags;
+        $this->assertSame(['x', 'y'], $dictionary['tags']);
     }
     #endregion
 
