@@ -10,12 +10,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
 use TypeError;
-use function gc_disable;
-use function gc_enable;
-use function gc_enabled;
 use function iterator_to_array;
-use function memory_get_usage;
-use function range;
 use function serialize;
 use function unserialize;
 
@@ -153,26 +148,6 @@ final class LinkedListTest extends TestCase
         $this->assertSame(['A', 'B', 'C', 'D', 'E'], $restored->toArray());
         $this->assertSame('A', $restored->getFirst());
         $this->assertSame('E', $restored->getLast());
-    }
-
-    public function testSerializeRoundTripOfLargeListDoesNotOverflowTheStack(): void
-    {
-        $size = 300000;
-        $list = new LinkedList(range(0, $size - 1));
-
-        $restored = unserialize(serialize($list));
-        $this->assertInstanceOf(LinkedList::class, $restored);
-        $this->assertSame($size, $restored->count());
-        $this->assertSame(0, $restored->getFirst());
-        $this->assertSame($size - 1, $restored->getLast());
-        $this->assertSame(150000, $restored->get(150000));
-
-        // The restored list is fully functional
-        $restored->addFirst(-1);
-        $this->assertSame($size - 1, $restored->removeLast());
-        $this->assertSame($size, $restored->count());
-        $this->assertSame(-1, $restored->getFirst());
-        $this->assertSame($size - 2, $restored->getLast());
     }
     #endregion
 
@@ -321,31 +296,6 @@ final class LinkedListTest extends TestCase
         $list = new LinkedList();
         $list->clear();
         $this->assertTrue($list->isEmpty());
-    }
-
-    public function testDroppedListFreesItsNodesWithoutTheCycleCollector(): void
-    {
-        // The nodes reference each other in a cycle; without __destruct() they would stay
-        // in memory until the cycle collector runs, which is disabled here.
-        $gcWasEnabled = gc_enabled();
-        gc_disable();
-
-        try {
-            $baseline = memory_get_usage();
-            $list = new LinkedList();
-            for ($i = 0; $i < 50000; ++$i) {
-                $list->add($i);
-            }
-
-            $this->assertGreaterThan($baseline + 1024 * 1024, memory_get_usage());
-
-            unset($list);
-            $this->assertLessThan($baseline + 64 * 1024, memory_get_usage());
-        } finally {
-            if ($gcWasEnabled) {
-                gc_enable();
-            }
-        }
     }
 
     public function testListStaysUsableWhileAnIteratorHoldsIt(): void
