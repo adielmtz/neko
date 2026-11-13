@@ -2,37 +2,60 @@
 namespace Neko\IO;
 
 use Neko\Environment;
-use function array_pop;
-use function explode;
-use function func_num_args;
-use function getcwd;
-use function implode;
-use function str_replace;
-use function str_starts_with;
-use function strlen;
-use function strpos;
-use function substr;
-use const DIRECTORY_SEPARATOR;
+use Neko\IO\OS\AbstractPath;
+use Neko\IO\OS\Unix\PathUnix;
+use Neko\IO\OS\Windows\PathWindows;
+use RuntimeException;
 
 /**
  * Contains methods for path string manipulation.
+ *
+ * The rules depend on the current platform. On Windows, both '\' and '/' are directory separators, roots can be drives
+ * ("C:\"), UNC shares ("\\server\share") or device paths ("\\?\C:\"), and paths are compared case-insensitively.
+ * On Unix-like platforms, '/' is the only directory separator and root.
  */
 final class Path
 {
+    private static ?AbstractPath $impl = null;
+
     /**
-     * Returns true if the given character is a directory separator.
+     * Selects the path implementation for the current platform.
      *
-     * @param string $char The character to test.
+     * This method is called automatically when the class is loaded and does not need to be called manually.
+     * Subsequent calls have no effect.
      *
-     * @return bool
+     * @internal
      */
-    public static function isDirectorySeparator(string $char): bool
+    public static function initialize(): void
     {
-        return $char === DIRECTORY_SEPARATOR || $char === '/';
+        static $initialized = false;
+        if ($initialized) {
+            return;
+        }
+
+        if (Environment::IS_WINDOWS_MACHINE) {
+            self::$impl = new PathWindows();
+        } else {
+            self::$impl = new PathUnix();
+        }
+
+        $initialized = true;
     }
 
     /**
-     * Returns true if the given path ends in a directory separator character.
+     * Returns true if the given character is a directory separator.
+     *
+     * @param string $chr The character to test.
+     *
+     * @return bool
+     */
+    public static function isDirectorySeparator(string $chr): bool
+    {
+        return self::$impl->isDirectorySeparator($chr);
+    }
+
+    /**
+     * Returns true if the given path ends in a directory separator.
      *
      * @param string $path The path to test.
      *
@@ -40,20 +63,33 @@ final class Path
      */
     public static function endsInDirectorySeparator(string $path): bool
     {
-        $length = strlen($path);
-        return $length > 0 && self::isDirectorySeparator($path[$length - 1]);
+        return self::$impl->endsInDirectorySeparator($path);
     }
 
     /**
-     * Returns true if the given path has a root component.
+     * Returns true if the given path contains a root, such as "/", "C:\", "C:" or "\\server\share".
+     * A rooted path may still be relative to the current drive or directory; see {@see Path::isPathFullyQualified()}.
      *
      * @param string $path The path to test.
      *
      * @return bool
      */
-    public static function hasRoot(string $path): bool
+    public static function isPathRooted(string $path): bool
     {
-        return self::getRootLength($path) > 0;
+        return self::$impl->isPathRooted($path);
+    }
+
+    /**
+     * Returns true if the given path is fixed to a specific drive or UNC share, and therefore does not depend on the
+     * current drive or working directory. On Windows, "C:foo" and "\foo" are rooted but not fully qualified.
+     *
+     * @param string $path The path to test.
+     *
+     * @return bool
+     */
+    public static function isPathFullyQualified(string $path): bool
+    {
+        return self::$impl->isPathFullyQualified($path);
     }
 
     /**
@@ -61,27 +97,15 @@ final class Path
      *
      * @param string $path The path to process.
      *
-     * @return string The root component or an empty string if the path does not contain a root component.
+     * @return string The root as it appears in the path, or an empty string if the path is not rooted.
      */
-    public static function getRoot(string $path): string
+    public static function getPathRoot(string $path): string
     {
-        return self::split($path)[0];
+        return self::$impl->getPathRoot($path);
     }
 
     /**
-     * Returns true if the given path is absolute (not necessarily canonical).
-     *
-     * @param string $path The path to test.
-     *
-     * @return bool
-     */
-    public static function isAbsolute(string $path): bool
-    {
-        return $path !== '' && self::hasRoot($path);
-    }
-
-    /**
-     * Returns true if the given path has a file extension.
+     * Returns true if the file name of the given path has an extension.
      *
      * @param string $path The path to test.
      *
@@ -89,211 +113,105 @@ final class Path
      */
     public static function hasExtension(string $path): bool
     {
-        $length = strlen($path);
-        for ($i = $length - 1; $i >= 0; $i--) {
-            $c = $path[$i];
-            if ($c === '.') {
-                return $i !== $length - 1;
-            }
-
-            if (self::isDirectorySeparator($c)) {
-                break;
-            }
-        }
-
-        return false;
+        return self::$impl->hasExtension($path);
     }
 
     /**
-     * Returns the file extension (including the leading period) of the given path.
+     * Returns the extension of the file name of the given path, including the leading period.
      *
      * @param string $path The path to process.
      *
-     * @return string The file extension or an empty string if the path does not contain a file extension component.
+     * @return string The extension, or an empty string if the file name has no extension or ends with a period.
      */
     public static function getExtension(string $path): string
     {
-        $length = strlen($path);
-        for ($i = $length - 1; $i >= 0; $i--) {
-            $c = $path[$i];
-            if ($c === '.' && $i !== $length - 1) {
-                return substr($path, $i);
-            }
-
-            if (self::isDirectorySeparator($c)) {
-                break;
-            }
-        }
-
-        return '';
+        return self::$impl->getExtension($path);
     }
 
     /**
-     * Changes the extension of the given path.
+     * Changes the extension of the file name of the given path.
      *
      * @param string $path The path to modify.
-     * @param string|null $extension The new extension. The extension can contain a leading period.
-     * If NULL is passed, the extension will be removed from the path.
+     * @param string|null $extension The new extension, with or without a leading period;
+     * or null to remove the extension.
      *
-     * @return string The path with the new extension.
+     * @return string The path with the new extension, or an empty string if the path is empty.
      */
     public static function changeExtension(string $path, ?string $extension): string
     {
-        $length = strlen($path);
-        if ($length === 0) {
-            return '';
-        }
-
-        for ($i = $length - 1; $i >= 0; $i--) {
-            $c = $path[$i];
-            if ($c === '.') {
-                $length = $i;
-                break;
-            }
-
-            if (self::isDirectorySeparator($c)) {
-                break;
-            }
-        }
-
-        $trimmedPath = substr($path, 0, $length);
-        if ($extension === null) {
-            return $trimmedPath;
-        }
-
-        if (!str_starts_with($extension, '.')) {
-            $extension = '.' . $extension;
-        }
-
-        return $trimmedPath . $extension;
+        return self::$impl->changeExtension($path, $extension);
     }
 
     /**
-     * Returns the directory name component of the path.
+     * Returns the file name component of the given path, which is everything after the last directory separator.
      *
      * @param string $path The path to process.
      *
-     * @return string The directory name or an empty string if the given path does not contain a directory component.
+     * @return string The file name, or an empty string if the path ends in a directory separator or is a root.
      */
-    public static function getDirectory(string $path): string
+    public static function getFileName(string $path): string
     {
-        $rootLength = self::getRootLength($path);
-        $end = strlen($path) - 1;
-
-        if ($end < $rootLength) {
-            return '';
-        }
-
-        while ($end > $rootLength && !self::isDirectorySeparator($path[$end])) {
-            $end--;
-        }
-
-        while ($end > $rootLength && self::isDirectorySeparator($path[$end - 1])) {
-            // trim duplicated directory separators
-            // <= "/foo/bar//"
-            // => "/foo/bar"
-            $end--;
-        }
-
-        return substr($path, 0, $end);
+        return self::$impl->getFileName($path);
     }
 
     /**
-     * Returns the filename component of the path.
+     * Returns the file name component of the given path without its extension.
      *
      * @param string $path The path to process.
      *
-     * @return string The filename or an empty string if the given path does not contain a filename component.
+     * @return string The file name without its extension, or an empty string if there is no file name.
      */
-    public static function getFilename(string $path): string
+    public static function getFileNameWithoutExtension(string $path): string
     {
-        $rootLength = self::getRootLength($path);
-        for ($i = strlen($path) - 1; $i >= 0; $i--) {
-            if ($i < $rootLength || self::isDirectorySeparator($path[$i])) {
-                return substr($path, $i + 1);
-            }
-        }
-
-        return $path;
+        return self::$impl->getFileNameWithoutExtension($path);
     }
 
     /**
-     * Returns the filename component of the path without the extension.
+     * Returns the directory component of the given path, which is everything before the last directory separator.
+     * Trailing directory separators are removed, unless the directory is the root.
      *
      * @param string $path The path to process.
      *
-     * @return string The filename without the extension or an empty string if the given path does not contain a
-     * filename component.
+     * @return string The directory, or an empty string if the path has no directory component or is a root.
      */
-    public static function getFilenameWithoutExtension(string $path): string
+    public static function getDirectoryName(string $path): string
     {
-        $filename = self::getFilename($path);
-        return $filename === '' ? '' : self::changeExtension($filename, null);
+        return self::$impl->getDirectoryName($path);
     }
 
     /**
-     * Returns the canonical absolute path.
-     * Unlike realpath, this method does not check if the path exists.
+     * Returns the absolute path of the given path. Relative paths are resolved against the current working
+     * directory, '.' and '..' segments are resolved, and directory separators are normalized.
+     * Unlike realpath(), the path does not need to exist and symbolic links are not resolved.
      *
      * @param string $path The path to process.
      *
-     * @return string
+     * @return string The fully qualified path.
+     * @throws RuntimeException If the path is relative and the current working directory cannot be determined.
      */
     public static function getFullPath(string $path): string
     {
-        if (!self::hasRoot($path)) {
-            $path = self::combine(getcwd(), $path);
-        }
-
-        $result = self::canonicalize($path);
-        return $result === '' ? '/' : $result;
+        return self::$impl->getFullPath($path);
     }
 
     /**
-     * Canonicalizes the given path.
+     * Returns the path of one path relative to another.
      *
-     * @param string $path The path to process.
+     * @param string $relativeTo The directory the result is relative to.
+     * @param string $path The path to make relative.
      *
-     * @return string
+     * @return string The relative path; "." if both paths are the same directory; or the full path of $path if the
+     * paths do not share the same root.
+     * @throws RuntimeException If a path is relative and the current working directory cannot be determined.
      */
-    public static function canonicalize(string $path): string
+    public static function getRelativePath(string $relativeTo, string $path): string
     {
-        if ($path === '') {
-            return '';
-        }
-
-        [$root, $path] = self::split($path);
-        $normalized = str_replace('\\', '/', $path);
-        $exploded_path = explode('/', $normalized);
-        $segments = [];
-        $segment_count = 0;
-
-        foreach ($exploded_path as $str) {
-            if ($str === '' || $str === '.') {
-                // ignore empty or '.' segments
-                continue;
-            }
-
-            if ($str === '..') {
-                if ($segment_count > 0) {
-                    // remove relative segment if is not at the beginning of the path
-                    array_pop($segments);
-                    $segment_count--;
-                    continue;
-                }
-            }
-
-            $segments[] = $str;
-            $segment_count++;
-        }
-
-        return $root . implode('/', $segments);
+        return self::$impl->getRelativePath($relativeTo, $path);
     }
 
     /**
-     * Combines multiple path strings into a single path.
-     * If an argument contains a rooted path, any previous path components are ignored and the returned string begins
-     * with the rooted path.
+     * Combines the given paths into a single path, adding directory separators where needed.
+     * If an argument is rooted, all the previous arguments are discarded. Empty arguments are ignored.
      *
      * @param string ...$paths The paths to combine.
      *
@@ -301,135 +219,20 @@ final class Path
      */
     public static function combine(string ...$paths): string
     {
-        $numArgs = func_num_args();
-        $startIndex = 0;
-        $result = '';
-
-        if ($numArgs > 0) {
-            for ($i = $numArgs - 1; $i >= 0; $i--) {
-                if ($paths[$i] === '') {
-                    continue;
-                }
-
-                if (self::hasRoot($paths[$i])) {
-                    $startIndex = $i;
-                    break;
-                }
-            }
-
-            $result = $paths[$startIndex++];
-            for ($i = $startIndex; $i < $numArgs; $i++) {
-                $s = $paths[$i];
-                if ($s === '') {
-                    continue;
-                }
-
-                if (!self::endsInDirectorySeparator($result) && !self::isDirectorySeparator($s[0])) {
-                    $result .= '/';
-                }
-
-                $result .= $s;
-            }
-        }
-
-        return $result;
+        return self::$impl->combine(...$paths);
     }
 
     /**
-     * Concatenates a list of path strings into a single path.
-     * Unlike `Path::combine()` this method does not check for a rooted path.
+     * Concatenates the given paths into a single path, adding directory separators where needed.
+     * Unlike {@see Path::combine()}, rooted arguments do not discard the previous ones. Empty arguments are ignored.
      *
-     * @param string ...$paths The paths to concatenate.
+     * @param string ...$paths The paths to join.
      *
      * @return string
      */
     public static function join(string ...$paths): string
     {
-        $result = '';
-        $numArgs = func_num_args();
-        if ($numArgs > 0) {
-            $result = $paths[0];
-            for ($i = 1; $i < $numArgs; $i++) {
-                $s = $paths[$i];
-                if ($s === '') {
-                    continue;
-                }
-
-                if (!self::endsInDirectorySeparator($result) && !self::isDirectorySeparator($s[0])) {
-                    $result .= '/';
-                }
-
-                $result .= $s;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Returns the length of the root component of the given path;
-     *
-     * @param string $path The path to process.
-     *
-     * @return int
-     */
-    private static function getRootLength(string $path): int
-    {
-        // handle schemes like: 'file://', 'ftp://', etc.
-        $schemePos = strpos($path, '://');
-        if ($schemePos !== false) {
-            return $schemePos + 3;
-        }
-
-        $length = strlen($path);
-        if (Environment::IS_WINDOWS_MACHINE && $length >= 2 && self::isDriveLetter($path[0]) && $path[1] === ':') {
-            return $length >= 3 && self::isDirectorySeparator($path[2]) ? 3 : 2;
-        }
-
-        return $length > 0 && self::isDirectorySeparator($path[0]) ? 1 : 0;
-    }
-
-    /**
-     * Splits the path in root and path components.
-     *
-     * @param string $path The path to split.
-     *
-     * @return string[] Index 0 contains the root of the path;
-     * Index 1 contains the rest of the path without its root.
-     */
-    private static function split(string $path): array
-    {
-        if ($path === '') {
-            return ['', ''];
-        }
-
-        $rootLength = self::getRootLength($path);
-        $root = substr($path, 0, $rootLength);
-        $path = substr($path, $rootLength);
-
-        if (Environment::IS_WINDOWS_MACHINE && $rootLength > 0) {
-            if ($rootLength === 2) {
-                // Handle "C:" --> "C:/" for Windows
-                $root .= '/';
-            } else {
-                // Convert '\' --> '/' if necessary
-                $root[$rootLength - 1] = '/';
-            }
-        }
-
-        return [$root, $path];
-    }
-
-    /**
-     * Returns true if the given character is a valid drive letter for Windows.
-     *
-     * @param string $c The character to test.
-     *
-     * @return bool
-     */
-    private static function isDriveLetter(string $c): bool
-    {
-        return ($c >= 'a' && $c <= 'z') || ($c >= 'A' && $c <= 'Z');
+        return self::$impl->join(...$paths);
     }
 
     /**
@@ -439,3 +242,8 @@ final class Path
     {
     }
 }
+
+/**
+ * Self-initialize.
+ */
+Path::initialize();
