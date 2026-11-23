@@ -1,10 +1,14 @@
 <?php declare(strict_types=1);
 namespace Neko\Tests;
 
+use ArithmeticError;
+use DivisionByZeroError;
 use InvalidArgumentException;
 use Neko\Math;
 use PHPUnit\Framework\TestCase;
+use const INF;
 use const M_PI;
+use const PHP_INT_MIN;
 
 final class MathTest extends TestCase
 {
@@ -76,6 +80,30 @@ final class MathTest extends TestCase
         $this->assertSame(0, $div);
         $this->assertSame(0, $remainder);
     }
+
+    public function testDivRemTruncatesTowardZeroWithNegativeOperands(): void
+    {
+        $this->assertSame(-2, Math::divRem(-7, 3, $remainder));
+        $this->assertSame(-1, $remainder);
+
+        $this->assertSame(-2, Math::divRem(7, -3, $remainder));
+        $this->assertSame(1, $remainder);
+
+        $this->assertSame(2, Math::divRem(-7, -3, $remainder));
+        $this->assertSame(-1, $remainder);
+    }
+
+    public function testDivRemThrowsDivisionByZeroError(): void
+    {
+        $this->expectException(DivisionByZeroError::class);
+        Math::divRem(1, 0, $remainder);
+    }
+
+    public function testDivRemThrowsArithmeticErrorOnOverflow(): void
+    {
+        $this->expectException(ArithmeticError::class);
+        Math::divRem(PHP_INT_MIN, -1, $remainder);
+    }
     #endregion
 
     #region Math::factorial() tests
@@ -104,6 +132,33 @@ final class MathTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         Math::factorial(-1);
+    }
+
+    public function testFactorialReturnsTheLargestRepresentableValue(): void
+    {
+        $this->assertSame(2432902008176640000, Math::factorial(20));
+    }
+
+    public function testFactorialReturnsFloatOnOverflow(): void
+    {
+        $this->assertSame(5.109094217170944E+19, Math::factorial(21));
+        $this->assertSame(INF, Math::factorial(171));
+    }
+    #endregion
+
+    #region Math::toRadians() and Math::toDegrees() tests
+    public function testToRadians(): void
+    {
+        $this->assertSame(0.0, Math::toRadians(0.0));
+        $this->assertSame(M_PI, Math::toRadians(180.0));
+        $this->assertEqualsWithDelta(M_PI / 2, Math::toRadians(90.0), 1e-12);
+    }
+
+    public function testToDegrees(): void
+    {
+        $this->assertSame(0.0, Math::toDegrees(0.0));
+        $this->assertSame(180.0, Math::toDegrees(M_PI));
+        $this->assertEqualsWithDelta(90.0, Math::toDegrees(M_PI / 2), 1e-12);
     }
     #endregion
 }
